@@ -24,6 +24,7 @@ core/
 ├── save/
 ├── scene_flow/
 ├── settings/
+├── utils/
 └── window/
 ```
 
@@ -87,6 +88,7 @@ Gameplay sits above Core.
 11. **Platform decisions use Godot capability APIs.**
 12. **Persistent data paths derive from `OS.get_user_data_dir()`.**
 13. **Packaged resources continue to use `res://` + `ResourceLoader`.**
+14. **Utilities stay narrow and never become another OmniKit-style catch-all.**
 
 ## Patterns currently used
 
@@ -139,6 +141,8 @@ Retained and redesigned:
 - Audio buses, one-shot pooling, and music crossfades.
 - Save format strategies, slots, backups, autosave, encryption, and schema
   evolution.
+- UUID, SemVer, shuffle-bag, collection, filesystem, time, node-traversal,
+  enum, and random-geometry utilities selectively rescued from OmniKit.
 
 Not carried into Core:
 

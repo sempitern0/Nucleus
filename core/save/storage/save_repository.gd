@@ -176,7 +176,7 @@ func delete_slot(slot_id: String) -> Error:
 	if not DirAccess.dir_exists_absolute(directory_path):
 		return ERR_DOES_NOT_EXIST
 
-	return _remove_directory_recursive(directory_path)
+	return NucleusFileUtils.remove_directory_recursive(directory_path)
 
 
 func _save_named(
@@ -540,24 +540,3 @@ func _is_auxiliary_file(file_name: String) -> bool:
 		or file_name.contains(".bak")
 	)
 
-
-func _remove_directory_recursive(path: String) -> Error:
-	var directory := DirAccess.open(path)
-
-	if directory == null:
-		return DirAccess.get_open_error()
-
-	for file_name: String in directory.get_files():
-		var error: Error = directory.remove(file_name)
-
-		if error != OK:
-			return error
-
-	for directory_name: String in directory.get_directories():
-		var child_path: String = path.path_join(directory_name)
-		var error: Error = _remove_directory_recursive(child_path)
-
-		if error != OK:
-			return error
-
-	return DirAccess.remove_absolute(path)

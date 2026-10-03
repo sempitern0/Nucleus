@@ -34,6 +34,15 @@ NucleusSceneFlow="*res://core/scene_flow/scene_flow_service.gd"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[file_customization]
+
+folder_colors={
+"res://components/": "yellow",
+"res://components/ui/": "green",
+"res://core/": "purple",
+"res://modules/": "purple"
+}
+
 [input]
 
 move_left={

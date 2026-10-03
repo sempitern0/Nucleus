@@ -16,7 +16,11 @@
 [ext_resource type="Resource" path="res://core/settings/defaults/audio_voice_volume.tres" id="14_voice"]
 [ext_resource type="Resource" path="res://core/settings/defaults/audio_ui_volume.tres" id="15_ui"]
 [ext_resource type="Resource" path="res://core/settings/defaults/audio_ambient_volume.tres" id="16_ambient"]
+[ext_resource type="Resource" path="res://core/settings/defaults/localization_locale.tres" id="17_locale"]
+[ext_resource type="Resource" path="res://core/settings/defaults/accessibility_reduced_motion.tres" id="18_reduced_motion"]
+[ext_resource type="Resource" path="res://core/settings/defaults/accessibility_ui_motion_scale.tres" id="19_motion_scale"]
+[ext_resource type="Resource" path="res://core/settings/defaults/accessibility_screen_flash_intensity.tres" id="20_flash_intensity"]
 
 [resource]
 script = ExtResource("1_catalog")
-settings = Array[ExtResource("7_definition")]([ExtResource("2_window_mode"), ExtResource("3_borderless"), ExtResource("4_vsync"), ExtResource("5_max_fps"), ExtResource("6_msaa"), ExtResource("8_input_bindings"), ExtResource("9_vibration"), ExtResource("10_audio_muted"), ExtResource("11_master"), ExtResource("12_music"), ExtResource("13_sfx"), ExtResource("14_voice"), ExtResource("15_ui"), ExtResource("16_ambient")])
+settings = Array[ExtResource("7_definition")]([ExtResource("2_window_mode"), ExtResource("3_borderless"), ExtResource("4_vsync"), ExtResource("5_max_fps"), ExtResource("6_msaa"), ExtResource("8_input_bindings"), ExtResource("9_vibration"), ExtResource("10_audio_muted"), ExtResource("11_master"), ExtResource("12_music"), ExtResource("13_sfx"), ExtResource("14_voice"), ExtResource("15_ui"), ExtResource("16_ambient"), ExtResource("17_locale"), ExtResource("18_reduced_motion"), ExtResource("19_motion_scale"), ExtResource("20_flash_intensity")])

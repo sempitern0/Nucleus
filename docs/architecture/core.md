@@ -20,6 +20,7 @@ core/
 ├── input/
 │   ├── bindings/
 │   └── local/
+├── localization/
 ├── platform/
 ├── save/
 ├── scene_flow/
@@ -153,3 +154,13 @@ Not carried into Core:
 - Generic EventBus.
 - Generic Service Locator.
 - Inventory, weapons, interactions, DLC, Terrainy, or other gameplay systems.
+
+
+## Localization
+
+Localization is Core infrastructure but does not add another Autoload.
+`TranslationServer` owns the active runtime locale while `NucleusSettings`
+persists the player's locale preference through a small settings applier.
+
+The default locale catalog is presentation metadata only. Loaded Godot
+translations remain the source of truth for supported languages.

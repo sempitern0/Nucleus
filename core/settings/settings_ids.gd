@@ -19,3 +19,11 @@ const AUDIO_SFX_VOLUME: StringName = &"audio/sfx_volume"
 const AUDIO_VOICE_VOLUME: StringName = &"audio/voice_volume"
 const AUDIO_UI_VOLUME: StringName = &"audio/ui_volume"
 const AUDIO_AMBIENT_VOLUME: StringName = &"audio/ambient_volume"
+
+const LOCALIZATION_LOCALE: StringName = &"localization/locale"
+
+const ACCESSIBILITY_REDUCED_MOTION: StringName = &"accessibility/reduced_motion"
+const ACCESSIBILITY_UI_MOTION_SCALE: StringName = &"accessibility/ui_motion_scale"
+const ACCESSIBILITY_SCREEN_FLASH_INTENSITY: StringName = (
+	&"accessibility/screen_flash_intensity"
+)

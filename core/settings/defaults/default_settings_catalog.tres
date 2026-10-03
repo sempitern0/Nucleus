@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="NucleusSettingsCatalog" format=3 uid="uid://bgmb3nxv6w2l"]
+
+[ext_resource type="Script" uid="uid://54liwvwpucc3" path="res://core/settings/catalog/settings_catalog.gd" id="1_catalog"]
+[ext_resource type="Resource" uid="uid://denxso32umyb0" path="res://core/settings/defaults/display_window_mode.tres" id="2_window_mode"]
+[ext_resource type="Resource" path="res://core/settings/defaults/display_borderless.tres" id="3_borderless"]
+[ext_resource type="Resource" uid="uid://bbeht2axtm72q" path="res://core/settings/defaults/display_vsync_mode.tres" id="4_vsync"]
+[ext_resource type="Resource" uid="uid://cyg3gwi24d7ix" path="res://core/settings/defaults/graphics_max_fps.tres" id="5_max_fps"]
+[ext_resource type="Resource" uid="uid://fquwuvkvoxp4" path="res://core/settings/defaults/graphics_msaa_3d.tres" id="6_msaa"]
+[ext_resource type="Script" uid="uid://dxo7qhwxnfl2v" path="res://core/settings/definitions/setting_definition.gd" id="7_definition"]
+
+[resource]
+script = ExtResource("1_catalog")
+settings = Array[ExtResource("7_definition")]([ExtResource("2_window_mode"), ExtResource("3_borderless"), ExtResource("4_vsync"), ExtResource("5_max_fps"), ExtResource("6_msaa")])

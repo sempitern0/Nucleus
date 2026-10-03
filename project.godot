@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 NucleusApp="*res://core/application/application.gd"
+NucleusSettings="*res://core/settings/settings.tscn"
 
 [display]
 

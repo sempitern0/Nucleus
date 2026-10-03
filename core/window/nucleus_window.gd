@@ -63,6 +63,7 @@ static func get_display_center(
 ) -> Vector2i:
 	var usable_rect: Rect2i = DisplayServer.screen_get_usable_rect(screen)
 
+	@warning_ignore("integer_division")
 	return usable_rect.position + usable_rect.size / 2
 
 
@@ -77,4 +78,5 @@ static func center_window(
 	var usable_rect: Rect2i = DisplayServer.screen_get_usable_rect(screen)
 	var window_size: Vector2i = window.get_size_with_decorations()
 
+	@warning_ignore("integer_division")
 	window.position = usable_rect.position + (usable_rect.size - window_size) / 2

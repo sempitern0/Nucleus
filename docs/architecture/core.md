@@ -10,7 +10,7 @@ camera perspective, dimensionality, control scheme, content, or business model.
 A Core module may depend on Godot and on lower-level Core modules. It must not
 depend on gameplay code, external addons, examples, or project-specific assets.
 
-## Iteration 01
+## Current modules
 
 ```text
 core/
@@ -19,11 +19,28 @@ core/
 ├── diagnostics/
 │   ├── nucleus_file_logger.gd
 │   └── nucleus_log.gd
+├── settings/
+│   ├── appliers/
+│   ├── bindings/
+│   ├── catalog/
+│   ├── defaults/
+│   ├── definitions/
+│   ├── persistence/
+│   ├── settings_ids.gd
+│   ├── settings_service.gd
+│   └── settings.tscn
 └── window/
     └── nucleus_window.gd
 ```
 
-Only `NucleusApp` is an Autoload.
+Current Autoloads:
+
+```text
+NucleusApp
+NucleusSettings
+```
+
+Each exists for a distinct application-lifetime responsibility.
 
 ## Dependency direction
 
@@ -32,16 +49,19 @@ Godot APIs
    ▲
    ├── NucleusWindow
    ├── NucleusLog
-   └── NucleusFileLogger
-              ▲
-              │
-         NucleusApp
+   ├── NucleusFileLogger
+   │
+   └── NucleusApp
+          ▲
+          │ lifecycle
+          │
+     NucleusSettings
 ```
 
 Gameplay is not part of this graph.
 
-Future Core modules such as Settings, Input, Audio, Persistence, and Scene Flow
-may depend on these foundations, but this layer must never depend back on them.
+Future Core modules such as Input, Audio, Persistence, and Scene Flow may depend
+on these foundations, but lower layers must never depend back on them.
 
 ## Design rules
 
@@ -78,7 +98,7 @@ may depend on these foundations, but this layer must never depend back on them.
 ### Observer
 
 `NucleusApp` translates operating-system notifications into typed Godot signals.
-Future services can react without `NucleusApp` importing them.
+Core services react without `NucleusApp` importing them.
 
 ### Facade
 
@@ -94,6 +114,15 @@ native output, warning, and error streams.
 `NucleusWindow` contains pure viewport/window calculations that do not own
 state, so it is deliberately not an Autoload.
 
+### Repository
+
+Settings persistence is isolated behind `NucleusConfigSettingsRepository`.
+
+### Binding components
+
+Settings UI uses composition to adapt ordinary Godot controls instead of
+creating a parallel hierarchy of custom GUI controls.
+
 ## Barebone code intentionally salvaged
 
 Ideas retained and redesigned:
@@ -102,6 +131,9 @@ Ideas retained and redesigned:
 - Viewport center, aspect ratio, relative mouse, and window centering helpers.
 - File logging through Godot's `Logger` API.
 - Thread safety with `Mutex` for logger callbacks.
+- Resource-driven setting definitions.
+- Lightweight settings-to-GUI binding.
+- ConfigFile-based user preferences.
 
 Ideas intentionally not carried into Core:
 
@@ -109,7 +141,7 @@ Ideas intentionally not carried into Core:
 - `GlobalEvents`.
 - Global player references.
 - Collision-layer constants.
-- Resolution catalogs.
+- Resolution catalogs in window infrastructure.
 - Parallax helpers inside window infrastructure.
 - Generic EventBus.
 - Networking.
@@ -117,10 +149,9 @@ Ideas intentionally not carried into Core:
 
 ## Planned Core modules
 
-The next layers should be introduced one at a time:
+The remaining layers should be introduced one at a time:
 
 ```text
-Settings
 Input
 Audio
 Persistence

@@ -4,9 +4,8 @@ Target engine: Godot 4.7.x.
 
 ## Goal
 
-Settings is the first stateful Core module after Application. It provides a
-small, typed and editor-friendly API for game options without coupling GUI
-controls to persistence or engine APIs.
+Settings provides a small, typed and editor-friendly API for application
+preferences without coupling GUI controls to persistence or engine APIs.
 
 ## Architecture
 
@@ -18,9 +17,9 @@ SettingDefinition Resources
     │             │
     │             └── ConfigSettingsRepository ── user://settings/settings.cfg
     │
-    ├── signals ──► DisplaySettingsApplier ──► Godot runtime APIs
+    ├── signals ──► Runtime appliers ──► Godot runtime APIs
     │
-    └── API ◄──── Settings UI bindings
+    └── API ◄──── Settings UI bindings / Core modules
 ```
 
 The runtime value exists in exactly one place: `NucleusSettingsService`.
@@ -30,14 +29,8 @@ controls and scenes because UI changes never mutate the Resource.
 
 ## Why `NucleusSettings` is an Autoload
 
-Settings satisfies the Nucleus Autoload rule:
-
-- It owns persistent cross-scene state.
-- The state exists for the lifetime of the application.
-- Unrelated scenes need to read and update it.
-- It must flush during application pause and graceful shutdown.
-
-This is application infrastructure rather than gameplay state.
+Settings owns persistent application-lifetime preferences that survive scene
+changes and must be flushed during application pause and graceful shutdown.
 
 ## Public API
 
@@ -45,32 +38,40 @@ Typical code:
 
 ```gdscript
 var vsync_mode: int = NucleusSettings.get_int(
-    NucleusSettingIds.DISPLAY_VSYNC_MODE
+	NucleusSettingIds.DISPLAY_VSYNC_MODE
 )
 
 NucleusSettings.set_value(
-    NucleusSettingIds.GRAPHICS_MAX_FPS,
-    120
+	NucleusSettingIds.GRAPHICS_MAX_FPS,
+	120,
 )
 ```
 
-Reset operations:
+Structured preferences can use a generic dictionary definition. The Settings
+module persists the Variant but does not interpret its domain-specific schema.
 
-```gdscript
-NucleusSettings.reset_setting(
-    NucleusSettingIds.DISPLAY_VSYNC_MODE
-)
-NucleusSettings.reset_section(&"graphics")
-NucleusSettings.reset_all()
+Input uses this for:
+
+```text
+input/bindings
 ```
 
-Settings are persisted automatically after a short debounce. Critical lifecycle
-events call `save_now()` synchronously.
+This keeps the dependency direction:
+
+```text
+Settings ◄── Input
+```
+
+and never:
+
+```text
+Settings ──► Input
+```
 
 ## Definitions and runtime state
 
-Barebone's `GameSetting` Resource stored both definition metadata and the
-mutable runtime value. Nucleus deliberately separates them:
+Barebone's `GameSetting` Resource stored both definition metadata and mutable
+runtime value. Nucleus deliberately separates them:
 
 ```text
 .tres definition               runtime service
@@ -82,113 +83,60 @@ range/options
 presentation metadata
 ```
 
-This prevents shared mutable Resource state and makes two-way UI synchronization
-predictable.
-
 ## Persistence
 
-The repository uses Godot `ConfigFile` because it natively stores Variant values
-in a readable INI-like format.
+The repository uses Godot `ConfigFile`, with temporary writes, a last-known
+backup, corruption quarantine, schema metadata, and debounced normal saves.
 
-Write flow:
+Critical lifecycle events call `save_now()` synchronously.
 
-```text
-runtime values
-     │
-     ▼
-settings.cfg.tmp
-     │
-     ├── previous settings.cfg ──► settings.cfg.bak
-     │
-     ▼
-settings.cfg
-```
+The settings file is intentionally not encrypted. User preferences are not
+secrets.
 
-If the primary file cannot be parsed, it is quarantined and the backup is tried.
-If neither can be loaded, defaults are used and a fresh file is written.
+## Definition types
 
-The settings file is intentionally not encrypted. Display, input, audio and
-accessibility preferences are not secrets, and fake encryption based on public
-project metadata adds complexity without meaningful confidentiality.
-
-## Schema versioning
-
-Every file stores:
-
-```ini
-[__nucleus]
-schema_version=1
-```
-
-Additive changes require no migration:
-
-- New setting: the catalog default is used and the file is rewritten.
-- Removed setting: the unknown old value is ignored on the next load.
-- Invalid value: the definition default is used and the file is rewritten.
-
-Explicit migration objects should only be introduced when Nucleus first needs a
-breaking rename or value transformation.
-
-## UI binding pattern
-
-Nucleus uses composition instead of subclassing Godot controls.
-
-Example scene:
+Current generic definitions:
 
 ```text
-CheckButton
-└── NucleusBoolSettingBinding
+NucleusBoolSettingDefinition
+NucleusIntSettingDefinition
+NucleusFloatSettingDefinition
+NucleusStringSettingDefinition
+NucleusVector2iSettingDefinition
+NucleusIntOptionSettingDefinition
+NucleusDictionarySettingDefinition
 ```
 
-The binding can use its parent automatically, so the only required Inspector
-field is the setting Resource.
-
-Available bindings:
-
-- `NucleusBoolSettingBinding` for CheckBox, CheckButton and toggle Buttons.
-- `NucleusRangeSettingBinding` for Slider, SpinBox and other Range controls.
-- `NucleusIntOptionSettingBinding` for OptionButton.
-- `NucleusResetSettingsBinding` for reset buttons.
-
-This keeps themes, custom control subclasses and UI layout completely separate
-from the Settings implementation.
+`NucleusDictionarySettingDefinition` supports structured Core preferences while
+remaining completely domain-agnostic.
 
 ## Built-in definitions
-
-Iteration 02 ships a deliberately small universal catalog:
 
 ```text
 display/window_mode
 display/borderless
 display/vsync_mode
+
 graphics/max_fps
 graphics/msaa_3d
+
+input/bindings
+input/vibration_enabled
 ```
 
-Input and Audio will add settings through their own Core iterations rather than
-making this module depend on those systems.
+## UI binding pattern
 
-## Patterns used
+Nucleus uses composition instead of subclassing Godot controls.
 
-### Repository
+Settings itself ships:
 
-`NucleusConfigSettingsRepository` owns filesystem and ConfigFile concerns.
-`NucleusSettingsService` does not know how an INI file is written.
+- `NucleusBoolSettingBinding`
+- `NucleusRangeSettingBinding`
+- `NucleusIntOptionSettingBinding`
+- `NucleusResetSettingsBinding`
 
-### Observer
-
-`setting_changed` and `settings_loaded` let runtime appliers and UI react
-without the Settings service importing them.
-
-### Definition/Instance separation
-
-Resources describe a setting. The service owns the live instance value. This is
-similar to separating immutable configuration assets from mutable game state.
-
-### Adapter / Binding component
-
-Small child Nodes adapt vanilla Godot controls to the Settings API. Controls do
-not need Settings-specific subclasses.
+Domain-specific modules may add bindings on top of the same service. Input does
+this for rebinding controls and prompt labels.
 
 ## Dependency direction
 
@@ -202,8 +150,10 @@ NucleusSettings
     ├── definitions
     ├── repository
     └── appliers
-
-UI bindings ──► NucleusSettings
+          ▲
+          │
+     higher Core modules
 ```
 
 `NucleusApp` does not know that Settings exists.
+Settings does not know which higher-level module owns a structured value.

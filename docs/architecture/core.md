@@ -15,22 +15,18 @@ depend on gameplay code, external addons, examples, or project-specific assets.
 ```text
 core/
 ├── application/
-│   └── application.gd
 ├── diagnostics/
-│   ├── nucleus_file_logger.gd
-│   └── nucleus_log.gd
-├── settings/
-│   ├── appliers/
+├── input/
 │   ├── bindings/
-│   ├── catalog/
-│   ├── defaults/
-│   ├── definitions/
-│   ├── persistence/
-│   ├── settings_ids.gd
-│   ├── settings_service.gd
-│   └── settings.tscn
+│   ├── cursor.gd
+│   ├── gamepad.gd
+│   ├── input_actions.gd
+│   ├── input_binding_codec.gd
+│   ├── input_labels.gd
+│   ├── input_service.gd
+│   └── input_types.gd
+├── settings/
 └── window/
-    └── nucleus_window.gd
 ```
 
 Current Autoloads:
@@ -38,121 +34,101 @@ Current Autoloads:
 ```text
 NucleusApp
 NucleusSettings
+NucleusInput
 ```
 
-Each exists for a distinct application-lifetime responsibility.
+Each owns a distinct application-lifetime responsibility.
 
 ## Dependency direction
 
 ```text
 Godot APIs
    ▲
-   ├── NucleusWindow
-   ├── NucleusLog
-   ├── NucleusFileLogger
+   ├── Diagnostics / Window
    │
    └── NucleusApp
           ▲
           │ lifecycle
           │
      NucleusSettings
+          ▲
+          │ preferences
+          │
+       NucleusInput
 ```
 
 Gameplay is not part of this graph.
 
-Future Core modules such as Input, Audio, Persistence, and Scene Flow may depend
-on these foundations, but lower layers must never depend back on them.
+Future Audio, Persistence, and Scene Flow modules may depend on lower layers,
+but lower layers must never depend back on them.
 
 ## Design rules
 
 1. **No gameplay types in Core.**
-   No Player, Enemy, Weapon, Inventory, Interactable, Quest, or genre-specific
-   concepts.
-
 2. **Autoloads require persistent cross-scene state or lifecycle ownership.**
-   Stateless shared behavior uses static named classes instead.
-
 3. **No global EventBus by default.**
-   Prefer local Godot signals. Add a mediator only when a subsystem has a real
-   many-to-many communication problem.
-
 4. **No Service Locator.**
-   Core services do not hide arbitrary dependencies behind a global registry.
-
 5. **No legacy compatibility layer.**
-   Nucleus is a clean architecture. Barebone is reference material only.
-
 6. **Public global class names use the `Nucleus` prefix.**
-   This reduces collisions when the project is eventually distributed through
-   the Godot Asset Store.
-
-7. **Composition over inheritance for game-facing systems.**
-   Reusable gameplay functionality will live in components rather than Core
-   base classes.
-
-8. **Persistence work must be synchronous at critical lifecycle boundaries.**
-   Mobile pause and application quit callbacks have limited time to finish.
+7. **Composition over inheritance for game-facing systems and UI bindings.**
+8. **Critical lifecycle persistence is synchronous.**
+9. **Project files define defaults; user data stores overrides.**
+10. **Presentation metadata is not persistence data.**
 
 ## Patterns used
 
 ### Observer
 
-`NucleusApp` translates operating-system notifications into typed Godot signals.
-Core services react without `NucleusApp` importing them.
+Lifecycle, Settings, and Input expose narrow signals instead of importing their
+consumers.
 
 ### Facade
 
-`NucleusLog` provides a tiny stable logging API while continuing to use Godot's
-native output, warning, and error streams.
+`NucleusLog` provides a small stable API over Godot output.
 
 ### Adapter
 
-`NucleusFileLogger` adapts Godot's `Logger` interface to a rotating file sink.
-
-### Static utility
-
-`NucleusWindow` contains pure viewport/window calculations that do not own
-state, so it is deliberately not an Autoload.
+`NucleusFileLogger` adapts Godot Logger to a file sink.
 
 ### Repository
 
-Settings persistence is isolated behind `NucleusConfigSettingsRepository`.
+Settings persistence is isolated behind its ConfigFile repository.
 
 ### Binding components
 
-Settings UI uses composition to adapt ordinary Godot controls instead of
-creating a parallel hierarchy of custom GUI controls.
+Settings and Input adapt ordinary Godot controls through child Nodes instead of
+creating parallel GUI inheritance hierarchies.
+
+### Snapshot + Override
+
+Input snapshots project InputMap defaults, then persists only user changes.
 
 ## Barebone code intentionally salvaged
 
-Ideas retained and redesigned:
+Retained and redesigned:
 
-- Manual quit interception from `OmniKitWindowManager`.
-- Viewport center, aspect ratio, relative mouse, and window centering helpers.
-- File logging through Godot's `Logger` API.
-- Thread safety with `Mutex` for logger callbacks.
-- Resource-driven setting definitions.
-- Lightweight settings-to-GUI binding.
-- ConfigFile-based user preferences.
+- Application quit interception.
+- Window helpers.
+- File logging.
+- Resource-driven settings.
+- Lightweight GUI settings bindings.
+- ConfigFile preferences.
+- Semantic movement actions.
+- Cursor helpers.
+- Gamepad labels and vibration.
 
-Ideas intentionally not carried into Core:
+Not carried into Core:
 
-- `Globals`.
-- `GlobalEvents`.
-- Global player references.
-- Collision-layer constants.
-- Resolution catalogs in window infrastructure.
-- Parallax helpers inside window infrastructure.
+- `Globals` and `GlobalEvents`.
+- Global player state.
+- Gameplay collision constants.
 - Generic EventBus.
 - Networking.
-- Inventory, weapons, interactions, DLC, UI effects, or other gameplay state.
+- Inventory, weapons, DLC, interactions, Terrainy, or other game features.
 
 ## Planned Core modules
 
-The remaining layers should be introduced one at a time:
-
 ```text
-Input
 Audio
 Persistence
 Scene Flow

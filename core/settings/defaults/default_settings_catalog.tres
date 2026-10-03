@@ -7,7 +7,9 @@
 [ext_resource type="Resource" uid="uid://cyg3gwi24d7ix" path="res://core/settings/defaults/graphics_max_fps.tres" id="5_max_fps"]
 [ext_resource type="Resource" uid="uid://fquwuvkvoxp4" path="res://core/settings/defaults/graphics_msaa_3d.tres" id="6_msaa"]
 [ext_resource type="Script" uid="uid://dxo7qhwxnfl2v" path="res://core/settings/definitions/setting_definition.gd" id="7_definition"]
+[ext_resource type="Resource" path="res://core/settings/defaults/input_bindings.tres" id="8_input_bindings"]
+[ext_resource type="Resource" path="res://core/settings/defaults/input_vibration_enabled.tres" id="9_vibration"]
 
 [resource]
 script = ExtResource("1_catalog")
-settings = Array[ExtResource("7_definition")]([ExtResource("2_window_mode"), ExtResource("3_borderless"), ExtResource("4_vsync"), ExtResource("5_max_fps"), ExtResource("6_msaa")])
+settings = Array[ExtResource("7_definition")]([ExtResource("2_window_mode"), ExtResource("3_borderless"), ExtResource("4_vsync"), ExtResource("5_max_fps"), ExtResource("6_msaa"), ExtResource("8_input_bindings"), ExtResource("9_vibration")])

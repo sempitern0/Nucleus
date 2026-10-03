@@ -344,3 +344,13 @@ Gameplay ──► NucleusInput only for service features
 ```
 
 Settings never imports Input code.
+
+
+## Local multiplayer
+
+`core/input/local/` adds an optional `NucleusLocalInputSession`.
+
+It assigns keyboard/mouse or individual joypad ids to local player seats and
+provides per-device action polling. It is scene-owned rather than global.
+
+See `docs/architecture/local_multiplayer_input.md`.

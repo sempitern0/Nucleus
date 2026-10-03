@@ -157,3 +157,21 @@ NucleusSettings
 
 `NucleusApp` does not know that Settings exists.
 Settings does not know which higher-level module owns a structured value.
+
+
+## Audio preferences
+
+Audio adds generic boolean/float definitions to the existing Settings catalog:
+
+```text
+audio/muted
+audio/master_volume
+audio/music_volume
+audio/sfx_volume
+audio/voice_volume
+audio/ui_volume
+audio/ambient_volume
+```
+
+Settings still has no dependency on Audio. `NucleusAudio` observes these values
+and applies them to `AudioServer`.

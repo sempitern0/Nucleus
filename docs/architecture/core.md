@@ -35,6 +35,7 @@ Current Autoloads:
 NucleusApp
 NucleusSettings
 NucleusInput
+NucleusAudio
 ```
 
 Each owns a distinct application-lifetime responsibility.
@@ -55,6 +56,7 @@ Godot APIs
           │ preferences
           │
        NucleusInput
+NucleusAudio
 ```
 
 Gameplay is not part of this graph.
@@ -129,9 +131,17 @@ Not carried into Core:
 ## Planned Core modules
 
 ```text
-Audio
 Persistence
 Scene Flow
 ```
 
 Each module must justify every new Autoload independently.
+
+
+## Iteration 04
+
+Audio is now an application-lifetime Core service through `NucleusAudio`.
+
+Local multiplayer input is intentionally scene-owned through
+`NucleusLocalInputSession`, demonstrating that reusable Core infrastructure does
+not automatically imply another Autoload.

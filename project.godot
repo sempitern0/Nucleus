@@ -16,11 +16,16 @@ config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
+[audio]
+
+buses/default_bus_layout="uid://cktnsh7pma6tc"
+
 [autoload]
 
 NucleusApp="*res://core/application/application.gd"
 NucleusSettings="*res://core/settings/settings.tscn"
 NucleusInput="*res://core/input/input_service.gd"
+NucleusSave="*res://core/save/save.tscn"
 
 [display]
 

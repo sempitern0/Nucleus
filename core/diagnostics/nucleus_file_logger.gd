@@ -5,7 +5,6 @@ extends Logger
 ## The logger only captures engine output. It never prints from inside Logger
 ## callbacks, preventing recursive logging.
 
-const DEFAULT_LOG_DIRECTORY: String = "user://logs"
 const LOG_FILE_PREFIX: String = "nucleus_"
 const LOG_FILE_EXTENSION: String = ".log"
 const MAX_LOG_FILES: int = 10
@@ -18,8 +17,12 @@ var _buffer: PackedStringArray = []
 var _is_closed: bool = false
 
 
-func _init(log_directory: String = DEFAULT_LOG_DIRECTORY) -> void:
-	_log_directory = log_directory
+func _init(log_directory: String = "") -> void:
+	_log_directory = (
+		log_directory
+		if not log_directory.is_empty()
+		else NucleusPaths.logs_directory()
+	)
 
 	var directory_error: Error = DirAccess.make_dir_recursive_absolute(_log_directory)
 

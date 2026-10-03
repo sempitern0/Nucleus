@@ -18,7 +18,7 @@ signal persistence_failed(error: Error)
 const LOG_CONTEXT: StringName = &"Settings"
 
 @export var catalog: NucleusSettingsCatalog
-@export var settings_file_path: String = "user://settings/settings.cfg"
+@export var settings_file_path: String = ""
 @export_range(0.0, 10.0, 0.05, "or_greater")
 var save_debounce_seconds: float = 0.35
 
@@ -46,6 +46,10 @@ func _ready() -> void:
 		return
 
 	_definitions = catalog.build_index()
+
+	if settings_file_path.is_empty():
+		settings_file_path = NucleusPaths.settings_file()
+
 	_repository = NucleusConfigSettingsRepository.new(settings_file_path)
 
 	NucleusApp.application_paused.connect(_on_application_paused)

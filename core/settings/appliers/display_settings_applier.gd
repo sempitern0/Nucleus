@@ -75,27 +75,19 @@ func _on_setting_changed(
 
 @warning_ignore("int_as_enum_without_cast")
 func _apply_window_mode(value: int) -> void:
-	if _uses_managed_window_mode():
+	if NucleusPlatform.uses_managed_window_mode():
 		return
 
 	DisplayServer.window_set_mode(value)
 
 
 func _apply_borderless(value: bool) -> void:
-	if _uses_managed_window_mode():
+	if NucleusPlatform.uses_managed_window_mode():
 		return
 
 	DisplayServer.window_set_flag(
 		DisplayServer.WINDOW_FLAG_BORDERLESS,
 		value,
-	)
-
-
-func _uses_managed_window_mode() -> bool:
-	return (
-		OS.has_feature("web")
-		or OS.has_feature("android")
-		or OS.has_feature("ios")
 	)
 
 

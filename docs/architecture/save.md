@@ -23,7 +23,7 @@ NucleusSaveService           application-wide facade
              └── Encryption Strategy
                      │
                      ▼
-                  user://
+          platform user data directory
 ```
 
 Gameplay never imports a storage codec and the storage layer never imports
@@ -217,7 +217,7 @@ backup chains.
 Example:
 
 ```text
-user://saves/
+<OS.get_user_data_dir()>/saves/
 └── slot_1/
     ├── manual.nsav
     ├── manual.nsav.bak1
@@ -418,3 +418,18 @@ Schema version       Start at 1
 ```
 
 Enable encryption because a game needs it, not simply because the option exists.
+
+
+## Platform-specific save root
+
+The default save root is resolved at runtime with:
+
+```gdscript
+NucleusPaths.saves_directory()
+```
+
+which derives from `OS.get_user_data_dir()`.
+
+This avoids hardcoding Windows/Linux paths while still using Godot's
+project-specific writable storage location. On Web this resolves to the
+browser-managed virtual filesystem.

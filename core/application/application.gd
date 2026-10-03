@@ -1,7 +1,7 @@
 extends Node
 ## Owns application-wide lifecycle events and graceful shutdown coordination.
 ##
-## This is the only Core autoload in the initial Nucleus architecture.
+## This service owns application lifecycle only.
 ## Game-specific state must never be stored here.
 
 signal focus_changed(is_focused: bool)
@@ -61,7 +61,7 @@ func _notification(what: int) -> void:
 ## Browsers do not allow a game to close its own tab, and iOS applications
 ## should be terminated by the user rather than programmatically.
 func can_quit_programmatically() -> bool:
-	return not OS.has_feature("web") and not OS.has_feature("ios")
+	return NucleusPlatform.supports_programmatic_quit()
 
 
 ## Starts an orderly application shutdown.

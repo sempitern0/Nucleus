@@ -6,7 +6,7 @@ extends Resource
 ## here and must be supplied to [NucleusSave] at runtime.
 
 @export_group("Storage")
-@export var base_directory: String = "user://saves"
+@export var base_directory: String = ""
 @export_enum("Binary:0", "Text Variant:1", "JSON:2")
 var default_format: int = NucleusSaveTypes.Format.BINARY
 @export_range(1, 8, 1, "or_greater") var backup_count: int = 2
@@ -26,10 +26,12 @@ var schema_version: int = 1
 func get_validation_errors() -> PackedStringArray:
 	var errors := PackedStringArray()
 
-	if base_directory.is_empty():
-		errors.append("base_directory cannot be empty")
-	elif not base_directory.is_absolute_path():
-		errors.append("base_directory must be an absolute res:// or user:// path")
+	var resolved_directory: String = get_base_directory()
+
+	if resolved_directory.is_empty():
+		errors.append("base_directory could not be resolved")
+	elif not resolved_directory.is_absolute_path():
+		errors.append("base_directory must resolve to an absolute path")
 
 	if schema_version < 1:
 		errors.append("schema_version must be at least 1")
@@ -48,3 +50,12 @@ func get_validation_errors() -> PackedStringArray:
 		errors.append_array(migration.get_validation_errors())
 
 	return errors
+
+
+
+## Returns the configured save root or the platform-specific Nucleus default.
+func get_base_directory() -> String:
+	if not base_directory.is_empty():
+		return base_directory
+
+	return NucleusPaths.saves_directory()

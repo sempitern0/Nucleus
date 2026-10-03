@@ -164,7 +164,6 @@ func _apply_all_settings() -> void:
 		),
 	)
 
-
 func _on_setting_changed(
 	setting_id: StringName,
 	value: Variant,

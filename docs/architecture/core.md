@@ -4,144 +4,148 @@ Target engine: Godot 4.7.x.
 
 ## Purpose
 
-The Core contains only infrastructure that is valid regardless of game genre,
-camera perspective, dimensionality, control scheme, content, or business model.
+Core contains infrastructure that remains valid regardless of genre, camera
+perspective, dimensionality, content, or game rules.
 
-A Core module may depend on Godot and on lower-level Core modules. It must not
-depend on gameplay code, external addons, examples, or project-specific assets.
+A Core module may depend on Godot and lower-level Core modules. It must not
+depend on gameplay code, examples, optional addons, or project-specific assets.
 
 ## Current modules
 
 ```text
 core/
 ├── application/
+├── audio/
 ├── diagnostics/
 ├── input/
 │   ├── bindings/
-│   ├── cursor.gd
-│   ├── gamepad.gd
-│   ├── input_actions.gd
-│   ├── input_binding_codec.gd
-│   ├── input_labels.gd
-│   ├── input_service.gd
-│   └── input_types.gd
+│   └── local/
+├── platform/
+├── save/
+├── scene_flow/
 ├── settings/
 └── window/
 ```
 
-Current Autoloads:
+## Autoloads
 
 ```text
 NucleusApp
 NucleusSettings
 NucleusInput
 NucleusAudio
+NucleusSave
+NucleusSceneFlow
 ```
 
-Each owns a distinct application-lifetime responsibility.
+Every Autoload owns a distinct application-lifetime responsibility.
+
+Scene-owned systems such as local-player assignment and save-session snapshot
+capture remain regular Nodes.
 
 ## Dependency direction
 
 ```text
 Godot APIs
-   ▲
-   ├── Diagnostics / Window
-   │
-   └── NucleusApp
-          ▲
-          │ lifecycle
-          │
-     NucleusSettings
-          ▲
-          │ preferences
-          │
-       NucleusInput
-NucleusAudio
+    ▲
+    │
+Platform / Paths / Diagnostics / Window
+    ▲
+    │
+NucleusApp
+    ▲
+    │ lifecycle
+    │
+NucleusSettings
+    ▲
+    ├──────────────┐
+    │              │
+NucleusInput   NucleusAudio
+                   │
+NucleusSave        │
+                   │
+NucleusSceneFlow ──┘
 ```
 
-Gameplay is not part of this graph.
+The diagram describes allowed infrastructure direction, not a requirement that
+every module depend on every lower layer.
 
-Future Audio, Persistence, and Scene Flow modules may depend on lower layers,
-but lower layers must never depend back on them.
+Gameplay sits above Core.
 
 ## Design rules
 
 1. **No gameplay types in Core.**
-2. **Autoloads require persistent cross-scene state or lifecycle ownership.**
+2. **Autoloads require application-lifetime state or cross-scene ownership.**
 3. **No global EventBus by default.**
 4. **No Service Locator.**
 5. **No legacy compatibility layer.**
 6. **Public global class names use the `Nucleus` prefix.**
 7. **Composition over inheritance for game-facing systems and UI bindings.**
-8. **Critical lifecycle persistence is synchronous.**
-9. **Project files define defaults; user data stores overrides.**
+8. **Critical persistence work is synchronous at lifecycle boundaries.**
+9. **Project files define defaults; user data stores overrides/state.**
 10. **Presentation metadata is not persistence data.**
+11. **Platform decisions use Godot capability APIs.**
+12. **Persistent data paths derive from `OS.get_user_data_dir()`.**
+13. **Packaged resources continue to use `res://` + `ResourceLoader`.**
 
-## Patterns used
+## Patterns currently used
 
 ### Observer
 
-Lifecycle, Settings, and Input expose narrow signals instead of importing their
-consumers.
+Lifecycle, Settings, Input, Save, and Scene Flow expose narrow signals instead
+of importing their consumers.
 
 ### Facade
 
-`NucleusLog` provides a small stable API over Godot output.
+Small stable APIs sit over Godot facilities where they improve ergonomics
+without replacing the engine.
 
 ### Adapter
 
-`NucleusFileLogger` adapts Godot Logger to a file sink.
+File logging and UI binding components adapt Godot-native APIs.
 
 ### Repository
 
-Settings persistence is isolated behind its ConfigFile repository.
+Settings and Save isolate filesystem persistence behind repositories.
 
-### Binding components
+### Strategy
 
-Settings and Input adapt ordinary Godot controls through child Nodes instead of
-creating parallel GUI inheritance hierarchies.
+Save codecs separate binary, text Variant, and JSON representations.
+
+### Migration Pipeline
+
+Save schema evolution is explicit and ordered.
 
 ### Snapshot + Override
 
-Input snapshots project InputMap defaults, then persists only user changes.
+Input stores only user binding overrides over project InputMap defaults.
 
-## Barebone code intentionally salvaged
+### Composition Root ownership
+
+Local multiplayer input and save snapshot capture are scene-owned because their
+state belongs to one game session.
+
+## Barebone concepts retained
 
 Retained and redesigned:
 
-- Application quit interception.
+- Application lifecycle and quit interception.
 - Window helpers.
 - File logging.
-- Resource-driven settings.
-- Lightweight GUI settings bindings.
-- ConfigFile preferences.
-- Semantic movement actions.
-- Cursor helpers.
-- Gamepad labels and vibration.
+- Resource-driven Settings.
+- Lightweight settings/input UI binding.
+- Semantic input actions and gamepad support.
+- Local multi-controller routing.
+- Audio buses, one-shot pooling, and music crossfades.
+- Save format strategies, slots, backups, autosave, encryption, and schema
+  evolution.
 
 Not carried into Core:
 
-- `Globals` and `GlobalEvents`.
+- `Globals`.
+- `GlobalEvents`.
 - Global player state.
 - Gameplay collision constants.
 - Generic EventBus.
-- Networking.
-- Inventory, weapons, DLC, interactions, Terrainy, or other game features.
-
-## Planned Core modules
-
-```text
-Persistence
-Scene Flow
-```
-
-Each module must justify every new Autoload independently.
-
-
-## Iteration 04
-
-Audio is now an application-lifetime Core service through `NucleusAudio`.
-
-Local multiplayer input is intentionally scene-owned through
-`NucleusLocalInputSession`, demonstrating that reusable Core infrastructure does
-not automatically imply another Autoload.
+- Generic Service Locator.
+- Inventory, weapons, interactions, DLC, Terrainy, or other gameplay systems.

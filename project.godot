@@ -25,7 +25,9 @@ buses/default_bus_layout="uid://cktnsh7pma6tc"
 NucleusApp="*res://core/application/application.gd"
 NucleusSettings="*res://core/settings/settings.tscn"
 NucleusInput="*res://core/input/input_service.gd"
+NucleusAudio="*res://core/audio/audio.tscn"
 NucleusSave="*res://core/save/save.tscn"
+NucleusSceneFlow="*res://core/scene_flow/scene_flow_service.gd"
 
 [display]
 

@@ -21,6 +21,10 @@ var _initialized: bool = false
 
 
 func _ready() -> void:
+	if profile:
+		profile = profile.duplicate(true)
+		profile.base_directory = profile.get_base_directory()
+
 	if not _validate_profile():
 		return
 

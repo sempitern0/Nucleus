@@ -11,8 +11,14 @@ config_version=5
 [application]
 
 config/name="Nucleus"
+config/auto_accept_quit=false
+config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+NucleusApp="*res://core/application/application.gd"
 
 [display]
 

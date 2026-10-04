@@ -1,5 +1,11 @@
 # Foundation Quickstart
 
+This page is the five-minute orientation.
+
+For a build-along introduction to the default services, follow:
+
+[`tutorials/core_services.md`](tutorials/core_services.md)
+
 ## 1. Open the template
 
 Use Godot 4.7.x and import the repository root containing `project.godot`.
@@ -43,6 +49,10 @@ Player
 
 Exact node placement depends on the feature contracts and your game.
 
+For concrete recipes, see:
+
+[`tutorials/components_first_steps.md`](tutorials/components_first_steps.md)
+
 ## 4. Prefer native Godot nodes
 
 Keep using native:
@@ -61,11 +71,17 @@ Nucleus components adapt and compose these APIs.
 
 ## 5. Check the Scene dock warnings
 
-Some editor-facing components emit native Godot configuration warnings in
-Iteration 18. Resolve red/yellow scene configuration indicators before relying
-on runtime auto-discovery.
+Some editor-facing components emit native Godot configuration warnings. Resolve
+red/yellow scene configuration indicators before relying on runtime
+auto-discovery.
 
 ## 6. Validate the baseline
 
 Run the commands in `validation_ci_quickstart.md` before making Nucleus changes
 part of another project template.
+
+## Next tutorial
+
+If you are unsure what to build next:
+
+[`tutorials/README.md`](tutorials/README.md)

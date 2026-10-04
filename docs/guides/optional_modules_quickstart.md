@@ -1,5 +1,11 @@
 # Optional Modules Quickstart
 
+This page is the module selection map.
+
+For a first-use recipe for every optional module, see:
+
+[`tutorials/modules_first_steps.md`](tutorials/modules_first_steps.md)
+
 ## EventBus
 
 Use the EventBus only when you intentionally need mediator semantics.
@@ -138,7 +144,6 @@ See:
 docs/guides/ai_navigation_quickstart.md
 ```
 
-
 ## Online Gameplay Replication
 
 `modules/networking/replication` complements Godot's native multiplayer
@@ -194,3 +199,7 @@ docs/guides/platform_services_quickstart.md
 The default Nucleus `project.godot` intentionally does not load these modules.
 
 A game that does not use one should pay no runtime architectural cost for it.
+
+For concrete first-use code and scene ownership, continue with:
+
+[`tutorials/modules_first_steps.md`](tutorials/modules_first_steps.md)

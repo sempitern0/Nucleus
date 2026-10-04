@@ -1,5 +1,15 @@
 # Settings and Input Quickstart
 
+This page defines the ownership rules.
+
+For step-by-step options, prompt, and rebinding UI examples, follow:
+
+[`tutorials/bindings.md`](tutorials/bindings.md)
+
+For Core usage in a small game shell:
+
+[`tutorials/core_services.md`](tutorials/core_services.md)
+
 ## Settings
 
 Use `NucleusSettings` as the stable settings service.
@@ -23,8 +33,8 @@ Keep gameplay code semantic:
 
 ```gdscript
 if Input.is_action_just_pressed(NucleusInputActions.INTERACT):
-	# Ask the current interaction target to perform its game-specific action.
-	pass
+    # Ask the current interaction target to perform its game-specific action.
+    pass
 ```
 
 Use `NucleusInput` for active-device tracking, rebinding, prompt/label concerns,
@@ -61,8 +71,8 @@ A world scene should not do this:
 
 ```gdscript
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(NucleusInputActions.UI_CANCEL):
-		return_to_main_menu()
+    if event.is_action_pressed(NucleusInputActions.UI_CANCEL):
+        return_to_main_menu()
 ```
 
 That makes a UI-navigation binding globally own gameplay behavior. On a gamepad,
@@ -73,8 +83,8 @@ Use a gameplay action instead:
 
 ```gdscript
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(NucleusInputActions.PAUSE):
-		open_pause_menu()
+    if event.is_action_pressed(NucleusInputActions.PAUSE):
+        open_pause_menu()
 ```
 
 Once the pause/menu UI is open, that UI can consume `ui_cancel` to close itself.
@@ -126,6 +136,10 @@ gamepad rather than persisting one transient device id.
 After a binding changes, prompts derive labels from `NucleusInput` helpers
 instead of caching strings such as `E`, `A`, `Cross`, or `LMB`.
 
+The complete editor-first recipe is in:
+
+[`tutorials/bindings.md`](tutorials/bindings.md)
+
 ### UI action rebinding
 
 Actions beginning with `ui_` are protected by default because removing the last
@@ -172,5 +186,6 @@ ownership.
 - writing runtime display/audio state directly from settings UI.
 
 For broader examples, see
-[`real_game_patterns.md`](real_game_patterns.md) and the technical
+[`real_game_patterns.md`](real_game_patterns.md), the hands-on
+[`tutorials/bindings.md`](tutorials/bindings.md), and the technical
 [`settings_and_input.md`](../components/settings_and_input.md) contract.

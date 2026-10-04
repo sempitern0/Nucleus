@@ -9,6 +9,7 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Goal | Guide |
 | --- | --- |
 | Start a new game from Nucleus | `guides/installation.md` |
+| Learn Nucleus by building small features | `guides/tutorials/README.md` |
 | Match a game problem to a Nucleus component/module | `guides/real_game_patterns.md` |
 | Understand the baseline and Autoloads | `guides/foundation_quickstart.md` |
 | Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
@@ -31,10 +32,60 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Run validation and CI | `guides/validation_ci_quickstart.md` |
 | Package a Nucleus release | `guides/releasing.md` |
 
-`real_game_patterns.md` is the practical index when a developer knows the
+## Learn by building
+
+The hands-on tutorial section is for developers who want concrete scene trees,
+Inspector values, and minimal code before reading the full technical contract.
+
+Start with:
+
+```text
+guides/tutorials/core_services.md
+guides/tutorials/bindings.md
+guides/tutorials/gameplay_actions.md
+guides/tutorials/platformer_2d.md
+guides/tutorials/components_first_steps.md
+guides/tutorials/modules_first_steps.md
+```
+
+Examples answer questions such as:
+
+- How do I use the default Core services from a real game scene?
+- How do I get the most from settings/input bindings?
+- How do I create an InputMap action?
+- How do I create and execute a NucleusGameplayAction?
+- How do I build a responsive 2D platformer controller?
+- Which component should own health, damage, state, interaction, or pooling?
+- How do I opt into EventBus, networking, inventory, loot, AI, or world state?
+
+`real_game_patterns.md` remains the practical index when a developer knows the
 gameplay/product problem but not the Nucleus subsystem. Game references in that
 guide are design analogies, not claims about another game's internal
 implementation.
+
+## Documentation layers
+
+Use the shortest layer that answers the current question:
+
+```text
+guides/*_quickstart.md
+    fast ownership/setup summary
+
+guides/tutorials/
+    build concrete features step by step
+
+docs/components/ and docs/modules/
+    technical contracts and limitations
+
+docs/architecture/
+    rationale and dependency direction
+
+docs/policies/
+    compatibility and stability promises
+```
+
+Tutorials should not become a second source of truth for public contracts. When
+a public API changes, update both the contract and every affected tutorial.
 
 ## Product policies
 

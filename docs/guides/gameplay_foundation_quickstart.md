@@ -1,5 +1,13 @@
 # Gameplay Foundation Quickstart
 
+This page is the fast component map.
+
+For build-along recipes, see:
+
+- [`tutorials/components_first_steps.md`](tutorials/components_first_steps.md)
+- [`tutorials/platformer_2d.md`](tutorials/platformer_2d.md)
+- [`tutorials/gameplay_actions.md`](tutorials/gameplay_actions.md)
+
 ## Health/stamina/mana/fuel
 
 Add a `Node` with `NucleusValuePool`.
@@ -16,7 +24,7 @@ initial_value
 Add `NucleusRegenerator` as a child of the ValuePool for automatic target
 resolution, or assign `target_pool` explicitly.
 
-Iteration 18 shows an editor warning if neither wiring path is present.
+Editor warnings identify missing required wiring.
 
 ## Damage
 
@@ -50,6 +58,21 @@ adapter consume FSM state rather than calling animations from every state.
 
 Use the existing interaction components/contracts for nearby interactables and
 keep communication local where possible.
+
+## Movement
+
+For side-view 2D movement start with:
+
+```text
+CharacterBody2D
+├── NucleusMotionInput
+└── NucleusPlatformerMotor2D
+```
+
+The full tutorial includes jump buffer, coyote time, variable jump height, camera
+follow, and gamepad support:
+
+[`tutorials/platformer_2d.md`](tutorials/platformer_2d.md)
 
 ## Validation scenes
 

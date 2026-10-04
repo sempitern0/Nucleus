@@ -1,5 +1,10 @@
 # Actions, Attributes, and Status Effects Quickstart
 
+For a step-by-step explanation of InputMap actions versus
+`NucleusGameplayAction`, follow:
+
+[`tutorials/gameplay_actions.md`](tutorials/gameplay_actions.md)
+
 ## GameplayAction
 
 Create/configure a `NucleusGameplayAction`, then compose the pieces it needs:
@@ -25,6 +30,9 @@ requirements
 ```
 
 Do not perform irreversible work from requirement checks.
+
+Input is only one adapter. Player input, AI, UI, networking, or scripts can all
+request the same action transaction.
 
 ## Attributes
 

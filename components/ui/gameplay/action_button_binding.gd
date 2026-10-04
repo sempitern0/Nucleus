@@ -2,8 +2,7 @@ class_name NucleusActionButtonBinding
 extends Node
 ## Binds a regular BaseButton to one NucleusGameplayAction.
 ##
-## The Button remains a normal Godot control. This component only coordinates
-## availability and execution.
+## Child NucleusActionContextProvider nodes may enrich UI-triggered execution.
 
 signal execution_finished(
 	error: Error,
@@ -13,6 +12,7 @@ signal execution_finished(
 @export var target: BaseButton
 @export var gameplay_action: NucleusGameplayAction
 @export var context_source: Node
+@export var context_root: Node
 @export var disable_when_unavailable: bool = true
 
 
@@ -36,6 +36,9 @@ func _ready() -> void:
 
 	if context_source == null:
 		context_source = target
+
+	if context_root == null:
+		context_root = self
 
 	target.pressed.connect(_on_pressed)
 	gameplay_action.availability_changed.connect(
@@ -64,13 +67,23 @@ func refresh() -> void:
 	_refresh()
 
 
-func _on_pressed() -> void:
+func _build_context() -> Dictionary:
 	var context: Dictionary = {
 		"source": context_source,
 		"ui_source": target,
 	}
+
+	NucleusActionContextProvider.contribute_from(
+		context_root,
+		context,
+	)
+
+	return context
+
+
+func _on_pressed() -> void:
 	var error: Error = gameplay_action.try_execute(
-		context
+		_build_context()
 	)
 
 	execution_finished.emit(
@@ -92,4 +105,6 @@ func _refresh() -> void:
 		return
 
 	if disable_when_unavailable:
-		target.disabled = not gameplay_action.can_execute()
+		target.disabled = not gameplay_action.can_execute(
+			_build_context()
+		)

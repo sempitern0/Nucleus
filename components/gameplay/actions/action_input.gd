@@ -4,6 +4,8 @@ extends Node
 ##
 ## Prefer a NucleusMotionInput reference so local multiplayer reuses the same
 ## per-player event stream already used by movement/camera.
+##
+## Child NucleusActionContextProvider nodes may enrich the execution context.
 
 signal input_execution_finished(
 	error: Error,
@@ -17,6 +19,9 @@ signal input_execution_finished(
 @export var enabled: bool = true
 @export var mark_global_input_handled: bool = true
 
+@export_group("Context")
+@export var context_root: Node
+
 var _using_motion_stream: bool = false
 
 
@@ -29,6 +34,9 @@ func _ready() -> void:
 
 	if motion_input == null:
 		motion_input = _find_motion_input()
+
+	if context_root == null:
+		context_root = self
 
 	if gameplay_action == null:
 		NucleusLog.error(
@@ -107,6 +115,11 @@ func _handle_event(
 		context["player_index"] = (
 			motion_input.local_player_input.player_index
 		)
+
+	NucleusActionContextProvider.contribute_from(
+		context_root,
+		context,
+	)
 
 	var error: Error = gameplay_action.try_execute(
 		context

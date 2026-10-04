@@ -46,6 +46,9 @@
     "modules/event_bus": [
       "docs/modules/event_bus.md"
     ],
+    "modules/inventory": [
+      "docs/modules/inventory_equipment.md"
+    ],
     "modules/networking": [
       "docs/modules/networking.md"
     ],

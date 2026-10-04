@@ -20,7 +20,8 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Build production UI and accessibility | `guides/ui_quickstart.md` |
 | Wire AnimationTree | `guides/animation_integration_quickstart.md` |
 | Add camera/game-feel feedback | `guides/camera_game_feel_quickstart.md` |
-| Opt into EventBus or networking | `guides/optional_modules_quickstart.md` |
+| Use Inventory / Equipment | `guides/inventory_equipment_quickstart.md` |
+| Opt into optional modules | `guides/optional_modules_quickstart.md` |
 | Run validation and CI | `guides/validation_ci_quickstart.md` |
 | Package a Nucleus release | `guides/releasing.md` |
 
@@ -62,6 +63,7 @@ infrastructure:
 
 - `event_bus.md`
 - `networking.md`
+- `inventory_equipment.md`
 
 Neither module is an Autoload in the default `project.godot`.
 
@@ -84,8 +86,9 @@ Use `docs/roadmap/` for status and future direction.
 
 `iteration_19.md` records productization and first-project readiness.
 
-`iteration_20.md` records the final proven Barebone reuse additions before the
-first game project.
+`iteration_20.md` records proven presentation reuse.
+
+`iteration_21.md` records the first post-Core optional gameplay module.
 
 `next_chat_context.md` is the portable handoff document and should always
 distinguish implemented, CI-validated, and future work.

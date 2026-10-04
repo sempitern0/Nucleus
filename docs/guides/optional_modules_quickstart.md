@@ -28,7 +28,35 @@ WebSocket
 The module does not implement gameplay replication, RPC design, authentication,
 lobbies, or matchmaking.
 
+## Inventory / Equipment
+
+`modules/inventory` is data/runtime infrastructure and does not require an
+Autoload.
+
+Typical ownership:
+
+```text
+Player
+├── Inventory
+└── Equipment
+
+Chest
+└── Inventory
+```
+
+Use `NucleusItemCatalog` as explicit shared definition data.
+
+Equipment may reuse `NucleusAttributeSet` modifier sources and Inventory stack
+identity without teaching either baseline system about item gameplay.
+
+See:
+
+```text
+docs/guides/inventory_equipment_quickstart.md
+```
+
 ## Keep optional modules optional
 
-The default Nucleus `project.godot` intentionally does not load either module.
-A game that does not use them should pay no runtime architectural cost for them.
+The default Nucleus `project.godot` intentionally does not load these modules.
+
+A game that does not use one should pay no runtime architectural cost for it.

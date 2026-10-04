@@ -74,10 +74,10 @@ nucleus stable release
 
 ## Versioning
 
-Nucleus development version after Iteration 20:
+Nucleus development version after Iteration 21:
 
 ```text
-0.2.0-dev.1
+0.3.0-dev.1
 ```
 
 Source of truth:
@@ -93,8 +93,8 @@ version.
 
 Iteration 18 established the operational validation pipeline.
 
-Iteration 20 must remain runtime-validation pending until the updated CI passes
-and `examples/validation/smart_decal_3d.tscn` is visually checked in Godot.
+Iteration 21 must remain runtime-validation pending until the updated CI parses
+and executes the Inventory / Equipment suites successfully.
 
 Current CI covers:
 
@@ -135,6 +135,7 @@ utilities
 ```text
 EventBus
 NetworkHandler / LAN helpers
+Inventory / Equipment
 ```
 
 Neither is loaded by default.
@@ -274,3 +275,41 @@ When considering a feature:
 
 The baseline should remain coherent even if that means saying no to useful but
 project-specific features.
+
+## Iteration 21 — Inventory / Equipment
+
+The optional module lives under:
+
+```text
+modules/inventory/
+```
+
+It provides:
+
+```text
+NucleusItemDefinition
+NucleusItemCatalog
+NucleusItemStack
+NucleusInventory
+NucleusEquipmentItemDefinition
+NucleusEquipmentSlotDefinition
+NucleusEquipment
+NucleusInventoryItemRequirement
+NucleusInventoryItemCost
+```
+
+Inventory and Equipment are scene-owned.
+
+Equipment reuses `NucleusAttributeSet` modifier sources instead of owning a
+parallel stat model.
+
+Save integration uses explicit `NucleusSaveSession` participant registration.
+
+Recommended next optional module:
+
+```text
+Probability / Loot
+```
+
+Use Barebone only as a concept/source audit; do not carry forward its global Loot
+manager automatically.

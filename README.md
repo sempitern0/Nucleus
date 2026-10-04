@@ -101,6 +101,7 @@ accessibility-oriented behavior
 ```text
 EventBus
 NetworkHandler / LAN helpers
+Inventory / Equipment
 ```
 
 ## Start a new game

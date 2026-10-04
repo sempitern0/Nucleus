@@ -123,11 +123,46 @@ stateless Viewport screenshot capture
 They were redesigned around current Nucleus boundaries rather than copied
 verbatim.
 
-The development version is:
+The development version after the presentation additions was:
 
 ```text
 0.2.0-dev.1
 ```
+
+## Iteration 21 — optional Inventory / Equipment
+
+The first post-Core optional gameplay module provides:
+
+```text
+immutable item definitions
+explicit item catalog
+UUID-backed runtime stacks/instances
+scene-owned inventories
+slot and weight limits
+scene-owned equipment
+data-driven equipment slots
+Attribute modifier integration
+GameplayAction item requirements/costs
+capture/restore persistence
+```
+
+It is not an Autoload and does not define inventory UI, crafting, loot, economy,
+or replication.
+
+Development version:
+
+```text
+0.3.0-dev.1
+```
+
+Recommended next module:
+
+```text
+Probability / Loot
+```
+
+Loot should consume/produce generic IDs/definitions rather than depend on a
+specific game inventory UI or pickup implementation.
 
 ## Baseline completion rule
 
@@ -168,10 +203,9 @@ Only proven baseline defects/gaps should expand the default template.
 Candidates remain:
 
 ```text
-Inventory / Equipment
-AI / Navigation helpers
 Probability / Loot
 Persistent world identity
+AI / Navigation helpers
 Save-slot presentation UI
 online gameplay replication
 platform services

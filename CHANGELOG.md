@@ -32,6 +32,9 @@ summarized under **Unreleased** until the first release is cut.
 - `NucleusWindow` viewport screenshot capture and PNG/JPEG/WebP saving for
   marketing/development stills.
 - `NucleusPaths.screenshots_directory()` as the default writable capture path.
+- Optional scene-owned Inventory / Equipment module with immutable item
+  definitions, UUID-backed runtime stacks, capacity/weight limits, save
+  state, Attribute modifier integration, and GameplayAction adapters.
 
 ### Changed
 
@@ -42,6 +45,8 @@ summarized under **Unreleased** until the first release is cut.
   version.
 - Development version advances to `0.2.0-dev.1` for the new public world
   presentation APIs.
+- Development version advances to `0.3.0-dev.1` for the optional Inventory /
+  Equipment public APIs.
 
 ### Notes
 

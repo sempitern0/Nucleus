@@ -4,6 +4,10 @@ extends RefCounted
 ##
 ## Games are free to add or remove actions. Core systems never require these
 ## actions to exist; they are provided as useful, device-agnostic defaults.
+##
+## UI_* constants are navigation actions for active menus/dialogs. World and
+## session gameplay should use semantic gameplay actions instead of interpreting
+## UI_CANCEL as a universal back/leave command.
 
 const UI_ACCEPT: StringName = &"ui_accept"
 const UI_CANCEL: StringName = &"ui_cancel"
@@ -21,4 +25,6 @@ const LOOK_DOWN: StringName = &"look_down"
 const PRIMARY_ACTION: StringName = &"primary_action"
 const SECONDARY_ACTION: StringName = &"secondary_action"
 const INTERACT: StringName = &"interact"
+
+## Gameplay-level pause/menu request. Prefer this over UI_CANCEL from world scenes.
 const PAUSE: StringName = &"pause"

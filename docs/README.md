@@ -9,6 +9,7 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Goal | Guide |
 | --- | --- |
 | Start a new game from Nucleus | `guides/installation.md` |
+| Match a game problem to a Nucleus component/module | `guides/real_game_patterns.md` |
 | Understand the baseline and Autoloads | `guides/foundation_quickstart.md` |
 | Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
 | Use audio, save, scene flow, and localization | `guides/runtime_services_quickstart.md` |
@@ -29,6 +30,11 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Opt into optional modules | `guides/optional_modules_quickstart.md` |
 | Run validation and CI | `guides/validation_ci_quickstart.md` |
 | Package a Nucleus release | `guides/releasing.md` |
+
+`real_game_patterns.md` is the practical index when a developer knows the
+gameplay/product problem but not the Nucleus subsystem. Game references in that
+guide are design analogies, not claims about another game's internal
+implementation.
 
 ## Product policies
 
@@ -106,7 +112,12 @@ Use `docs/roadmap/` for status and future direction.
 
 `iteration_24.md` records AI / Navigation.
 
-`iteration_25.md` records the final pre-game online/platform integration checkpoint.
+`iteration_25.md` records the final pre-game online/platform integration
+checkpoint.
+
+`iteration_26.md` records first consuming-game feedback: seamless gamepad
+behavior, UI/gameplay input boundaries, project identity, and documentation
+discoverability.
 
 `next_chat_context.md` is the portable handoff document and should always
 distinguish implemented, CI-validated, and future work.

@@ -1,56 +1,146 @@
 # Nucleus agent contract
 
-This file is a short map for coding agents. The detailed source of truth remains
-under `docs/`.
+Nucleus is a reusable Godot project foundation. Coding agents working in this
+repository act as maintainers of a template that will be copied into many games,
+not as authors of one specific game.
+
+Detailed contracts live under `docs/`. This file is the fast decision map.
+
+## Core principles
+
+1. **Godot-native first.** Use native Godot APIs when Nucleus does not already
+   own the concern.
+2. **Do not bypass a Nucleus owner.** When a concern has a stable Nucleus
+   boundary, game-facing code uses that boundary instead of duplicating the
+   lower-level engine call.
+3. **Composition over inheritance.** Prefer scene-owned nodes, resources, and
+   small adapters that compose with normal Godot nodes.
+4. **Scene ownership by default.** Autoloads are reserved for genuinely
+   cross-scene services.
+5. **Production evidence before abstraction.** Add reusable behavior because a
+   consuming game exposed repeatable friction, not because a generic feature
+   could be imagined.
+6. **Optional means optional.** Modules must not become hidden dependencies of
+   the baseline.
+7. **Public names are deliberate.** Public `class_name` identifiers use the
+   `Nucleus` prefix and public-contract changes follow the versioning policy.
 
 ## Before editing
 
-1. Inspect the current repository state and the relevant Nucleus implementation.
-2. Search for an existing Nucleus public API before calling the underlying Godot
-   API directly.
-3. Read the relevant contract under `docs/components/`, `docs/modules/`,
+1. Inspect the current branch, affected files, and the latest implementation.
+2. Search for an existing Nucleus public API before reaching for a lower-level
+   Godot API.
+3. Read the relevant contract in `docs/components/`, `docs/modules/`,
    `docs/guides/`, or `docs/policies/`.
-4. Keep changes driven by observed production friction. Do not expand the
-   template only because a generic feature could be imagined.
+4. Identify whether the behavior belongs to Core, an optional module, a reusable
+   component, or the consuming game.
+5. Make the smallest coherent change that fixes the observed problem.
+6. Add or update tests for behavior, documentation for public contracts, and the
+   changelog when the change is notable.
 
-## Nucleus-first ownership rule
+## Ownership map
 
-Godot-native APIs remain the default when Nucleus does not own the behavior.
-When Nucleus already centralizes a concern, game-facing code must use the
-Nucleus boundary instead of duplicating the lower-level call.
+| Concern | Preferred owner | Do not duplicate in game code |
+| --- | --- | --- |
+| Cursor mode | `NucleusCursor` | `Input.mouse_mode = ...` |
+| Runtime settings | `NucleusSettings` + appliers | direct engine writes from UI |
+| Scene transitions | `NucleusSceneFlow` | ad-hoc loading for app flow |
+| Application quit/back | `NucleusApp` | platform-specific exit wiring |
+| Input device state/rebinding | `NucleusInput` | physical-key logic in gameplay |
+| Local player devices | `NucleusLocalInputSession` | global active-device ownership |
+| Audio routing already modeled | `NucleusAudio` | parallel bus policy |
+| Save-game persistence | `NucleusSave` | unrelated `user://` save formats |
+| Transient UI messages | scene-owned toast host | global notification singleton |
+| Optional networking/game systems | matching `modules/*` contract | hidden baseline dependency |
 
-Important examples:
-
-- Cursor mode: use `NucleusCursor.show()`, `hide()`, `capture()`, `confine()`,
-  or `set_mode()`. Do not assign `Input.mouse_mode` in game code.
-- Persisted display settings: use `NucleusSettings` and the settings bindings.
-  Do not call `DisplayServer.window_set_mode()` or set VSync from game UI.
-- Scene transitions: use `NucleusSceneFlow` when the transition belongs to the
-  application flow.
-- Application quit/back behavior: use `NucleusApp`.
-- Save-game persistence: use `NucleusSave` and explicit save participants.
-- Audio behavior already modeled by Nucleus should go through `NucleusAudio`.
-
-The rule is not "wrap every Godot API". It is "do not bypass an existing
+The rule is not "wrap every Godot API". The rule is "do not bypass an existing
 Nucleus owner".
 
-If a direct lower-level call is genuinely required, document why and update the
-central ownership rule or implementation deliberately. Do not add a local
-workaround just to silence validation.
+## Input rules
 
-## Settings validation
+Input code must distinguish **physical bindings**, **UI navigation actions**, and
+**gameplay semantics**.
 
-`NucleusSettings` stores user preferences. Settings appliers translate those
-values into runtime Godot state. Project settings are not the runtime source of
-truth after startup.
+- Gameplay code consumes semantic actions such as `move_*`, `interact`,
+  `primary_action`, `secondary_action`, or `pause`.
+- `ui_accept`, `ui_cancel`, and other `ui_*` actions belong to active Godot UI
+  navigation, dialogs, and menus.
+- World/session scripts must not treat `ui_cancel` as a universal "leave game"
+  action. A physical B/Circle button may also be bound to dodge, melee, interact,
+  or another gameplay action.
+- Gameplay pause/menu behavior uses a gameplay action such as
+  `NucleusInputActions.PAUSE`, then lets the opened UI consume `ui_cancel`.
+- A one-player `NucleusLocalInputSession` should hot-swap keyboard/mouse and
+  gamepad ownership without replacing the stable local-player object.
+- Runtime rebinding goes through `NucleusInput`; gameplay does not cache physical
+  keys, button indices, or prompt strings.
+- UI actions are protected from rebinding by default. A project may explicitly
+  enable `NucleusInput.allow_ui_action_rebinding`, but it must preserve a usable
+  accept/cancel path.
 
-Godot game embedding does not support window mode changes such as fullscreen.
-When validating window mode, disable **Embed Game on Next Play** or run an
-export/separate game window.
+The same physical button may legally participate in multiple actions. Context is
+defined by the active consumer, not by assigning one global meaning to the
+button.
+
+## Settings rules
+
+`NucleusSettings` stores user preferences. Settings appliers translate them into
+runtime Godot state.
+
+Do not make settings UI write `ProjectSettings`, `DisplayServer`, audio buses, or
+viewport properties when an existing applier owns that behavior.
+
+Godot editor game embedding does not support window-mode changes such as
+fullscreen. Validate those settings with **Embed Game on Next Play** disabled or
+in an exported/separate game window.
+
+## UI rules
+
+Nucleus UI is composition around native `Control` nodes.
+
+- Use native focus/navigation behavior first.
+- Keep modal, toast, and tooltip lifecycle scene-owned.
+- Bridge Core signals into presentation through small bindings rather than
+  making Core depend on UI.
+- Respect `NucleusMotionPolicy` for reusable motion and feedback.
+- Keep localization keys/data separate from permanently translated output.
+
+## Optional modules
+
+Modules under `modules/` are opt-in. Before adding one to a consuming game:
+
+1. confirm the game actually needs the capability;
+2. read the module contract;
+3. keep the dependency explicit in the scene/service that owns it;
+4. do not move module behavior into a baseline Autoload merely for convenience.
+
+## Production-friction rule
+
+When a consuming game exposes a problem, ask:
+
+1. Is this caused by incorrect use of an existing Nucleus contract?
+2. Is the missing behavior broadly reusable across genres?
+3. Would another game reasonably need the same fix?
+4. Can Nucleus solve it without forcing project-specific policy on all games?
+
+If the answer is mostly "no", fix the game. If the answer is mostly "yes", fix
+Nucleus first and let the game consume the corrected contract.
+
+## Public API and versioning
+
+Before renaming/removing a public class, method, signal, export, Autoload, save
+shape, settings contract, or required project wiring, read:
+
+- `docs/policies/api_stability.md`
+- `docs/policies/versioning.md`
+- `docs/policies/deprecation.md`
+
+Pre-1.0 allows contract changes, but they must still be intentional and
+documented.
 
 ## Required validation
 
-Run the repository checks relevant to the change. For a normal Nucleus delta:
+Run the checks relevant to the change. A normal Nucleus change should pass:
 
 ```bash
 python3 scripts/ci/static_checks.py
@@ -60,6 +150,11 @@ python3 scripts/ci/productization_audit.py
 godot --headless --path . --import
 godot --headless --path . --check-only --script res://tests/headless/test_runner.gd
 godot --headless --path . --script res://tests/headless/test_runner.gd
+godot --headless --path . res://tests/smoke/smoke_main.tscn
 ```
 
-Use the normal smoke/export CI for release-facing changes.
+Release-facing changes also require the export/package workflows.
+
+If the environment cannot run Godot, say so explicitly and still run every
+available static/documentation check. Do not present static validation as runtime
+validation.

@@ -55,6 +55,13 @@ summarized under **Unreleased** until the first release is cut.
 - Root `AGENTS.md` guidance and static ownership checks that keep coding agents
   on existing Nucleus cursor and display-settings APIs instead of duplicating
   their lower-level Godot calls.
+- Seamless single-player keyboard/gamepad device hot-swap on a stable local
+  input seat, plus reusable scene-owned controller connection/disconnection
+  toast composition.
+- `docs/guides/real_game_patterns.md` as a practical map from recognizable
+  game-shaped problems to every baseline component group and optional module.
+- A Nucleus-specific SVG project icon representing a stable core surrounded by
+  composable systems.
 
 ### Changed
 
@@ -77,6 +84,11 @@ summarized under **Unreleased** until the first release is cut.
   online replication and Platform Services public APIs.
 - Display settings now detect Godot editor game embedding before requesting an
   unsupported window-mode/window-flag transition and emit a useful diagnostic.
+- Input documentation now treats `ui_*` actions as active UI-navigation
+  semantics rather than universal gameplay commands; world/session behavior
+  should use semantic gameplay actions such as `pause`.
+- README and `AGENTS.md` now present the ownership model, CI state, open-source
+  status, and evidence-driven extension rules more explicitly.
 
 ### Notes
 

@@ -56,7 +56,11 @@
       "docs/modules/probability_loot.md"
     ],
     "modules/networking": [
-      "docs/modules/networking.md"
+      "docs/modules/networking.md",
+      "docs/modules/online_replication.md"
+    ],
+    "modules/platform_services": [
+      "docs/modules/platform_services.md"
     ],
     "modules/world_state": [
       "docs/modules/persistent_world_state.md"

@@ -105,6 +105,8 @@ Inventory / Equipment
 Probability / Loot
 Persistent World State
 AI / Navigation
+Online Gameplay Replication
+Platform Services
 ```
 
 ## Start a new game

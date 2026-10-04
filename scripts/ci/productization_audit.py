@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 from pathlib import Path
 
 SEMVER_RE = re.compile(
@@ -27,7 +28,7 @@ REQUIRED_FILES = (
 	"docs/policies/api_stability.md",
 	"docs/guides/installation.md",
 	"docs/guides/releasing.md",
-	"scripts/release/package_release.py",
+	"scripts/package_release.py",
 	".github/workflows/nucleus-package.yml",
 )
 
@@ -42,6 +43,26 @@ README_TOKENS = (
 )
 
 TEXT_FILES = REQUIRED_FILES + ("project.godot",)
+
+
+def is_git_ignored(
+	root: Path,
+	relative: str,
+) -> bool:
+	if not (root / ".git").exists():
+		return False
+
+	try:
+		result = subprocess.run(
+			["git", "check-ignore", "-q", "--", relative],
+			cwd=root,
+			check=False,
+			capture_output=True,
+		)
+	except OSError:
+		return False
+
+	return result.returncode == 0
 
 
 def read_text(
@@ -72,8 +93,16 @@ def audit(root: Path) -> list[str]:
 	errors: list[str] = []
 
 	for relative in REQUIRED_FILES:
-		if not (root / relative).is_file():
+		path = root / relative
+
+		if not path.is_file():
 			errors.append(f"{relative}: required productization file is missing")
+			continue
+
+		if is_git_ignored(root, relative):
+			errors.append(
+				f"{relative}: required productization source is ignored by Git"
+			)
 
 	text_by_path: dict[str, str] = {}
 

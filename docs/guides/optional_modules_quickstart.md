@@ -138,6 +138,57 @@ See:
 docs/guides/ai_navigation_quickstart.md
 ```
 
+
+## Online Gameplay Replication
+
+`modules/networking/replication` complements Godot's native multiplayer
+replication instead of replacing it.
+
+Use:
+
+```text
+MultiplayerSpawner
+    spawn / despawn
+
+MultiplayerSynchronizer
+    discrete replicated state
+
+NucleusNetworkIntentChannel
+    client → server gameplay requests
+
+NucleusNetworkTransformReplicator2D/3D
+    optional remote transform smoothing
+```
+
+The default contract is server-authoritative.
+
+See:
+
+```text
+docs/guides/online_replication_quickstart.md
+```
+
+## Platform Services
+
+`modules/platform_services` provides only:
+
+```text
+provider lifecycle
+local platform identity
+capability discovery
+standalone fallback
+```
+
+It has no dependency on GodotSteam, EOS, or console SDKs.
+
+A game integrates those through a thin `NucleusPlatformProvider` adapter.
+
+See:
+
+```text
+docs/guides/platform_services_quickstart.md
+```
+
 ## Keep optional modules optional
 
 The default Nucleus `project.godot` intentionally does not load these modules.

@@ -70,10 +70,10 @@ That commit already contains the user-validated Persistent World State module.
 
 ## Versioning
 
-Nucleus development version after Iteration 24:
+Nucleus development version after Iteration 25:
 
 ```text
-0.6.0-dev.1
+0.7.0-dev.1
 ```
 
 Source of truth:
@@ -89,8 +89,9 @@ application version.
 
 Iterations through 23 were validated by the user.
 
-Iteration 24 remains runtime-validation pending until Godot parses and executes
-the new AI / Navigation suite and the normal CI/export pipeline succeeds.
+Iteration 25 remains runtime-validation pending until the productization fix
+allows CI to reach Godot parsing/tests and the new replication/platform suites
+complete successfully.
 
 Current CI covers:
 
@@ -164,6 +165,8 @@ Inventory / Equipment
 Probability / Loot
 Persistent World State
 AI / Navigation
+Online Gameplay Replication
+Platform Services
 ```
 
 None is loaded by default.
@@ -359,25 +362,10 @@ Then run the normal smoke/export CI.
 
 ## Next decision
 
-Roadmap candidate:
+After Iteration 25, move to the planned real game and treat Nucleus as a pinned
+production dependency/foundation.
 
-```text
-Save-slot presentation UI
-```
-
-However, after AI / Navigation the template is already broad enough that the
-planned real game should increasingly decide whether remaining optional modules
-are worth implementing before production starts.
-
-Potential later candidates remain:
-
-```text
-Save-slot presentation UI
-online gameplay replication
-platform services
-dialogue / quests
-world streaming
-```
+Do not schedule another broad template iteration by default.
 
 ## Decision rule
 
@@ -392,3 +380,95 @@ When considering a feature:
 
 The baseline should remain coherent even when that means keeping useful
 game-specific features outside Nucleus.
+
+
+## Iteration 25 — final pre-game checkpoint
+
+Prepared against:
+
+```text
+main
+b5eb53138916d62681f16398b08eb37fde2c51fb
+```
+
+Productization CI root cause:
+
+```text
+.gitignore contains [Rr]elease/
+→ scripts/release/ was ignored
+→ package_release.py existed locally but not in GitHub checkout
+```
+
+Canonical packaging script is now:
+
+```text
+scripts/package_release.py
+```
+
+Keep the productization CI gate.
+
+### Online gameplay replication
+
+New public types:
+
+```text
+NucleusNetworkIntentChannel
+NucleusNetworkSequenceTracker
+NucleusNetworkRateLimiter
+NucleusTransformSnapshotBuffer2D
+NucleusTransformSnapshotBuffer3D
+NucleusNetworkTransformReplicator2D
+NucleusNetworkTransformReplicator3D
+```
+
+Native Godot remains responsible for:
+
+```text
+MultiplayerSpawner
+MultiplayerSynchronizer
+SceneReplicationConfig
+RPC transport semantics
+```
+
+Default contract:
+
+```text
+client sends intent
+server validates and simulates
+server owns critical state
+clients receive resolved replication
+```
+
+No generic prediction/reconciliation/rollback is included.
+
+### Platform Services
+
+New optional module:
+
+```text
+modules/platform_services/
+```
+
+Public types:
+
+```text
+NucleusPlatformCapabilities
+NucleusPlatformUser
+NucleusPlatformProvider
+NucleusNullPlatformProvider
+NucleusPlatformService
+```
+
+Nucleus standardizes only provider lifecycle, local identity, locale, and
+capability discovery.
+
+No GodotSteam/EOS/console dependency is included.
+
+Use project/provider adapters around production integrations.
+
+### Development policy after Iteration 25
+
+Stop broad template expansion and move into the planned real game.
+
+Further Nucleus changes should be driven by observed production friction rather
+than roadmap completion.

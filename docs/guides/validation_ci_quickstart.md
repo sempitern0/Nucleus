@@ -62,6 +62,8 @@ Inventory / Equipment
 Probability / Loot
 Persistent World State
 AI utility / navigation policies
+online replication sequence/rate/snapshot policies
+platform provider/service contracts
 editor configuration warnings
 ```
 

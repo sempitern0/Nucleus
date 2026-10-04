@@ -7,10 +7,13 @@ Nucleus releases are **source-template packages**, not exported games.
 Game exports in CI are smoke tests that prove project exportability. They are
 separate from the Nucleus release archive.
 
+The packaging script intentionally lives directly under `scripts/`; generic
+`Release/` ignore patterns from IDE templates must not hide source tooling.
+
 Generate a package with:
 
 ```bash
-python3 scripts/release/package_release.py
+python3 scripts/package_release.py
 ```
 
 Default outputs:
@@ -65,7 +68,7 @@ Official packages require a clean Git working tree.
 For local packaging experiments only:
 
 ```bash
-python3 scripts/release/package_release.py --allow-dirty
+python3 scripts/package_release.py --allow-dirty
 ```
 
 Do not publish a dirty package.

@@ -234,6 +234,40 @@ Development version:
 0.6.0-dev.1
 ```
 
+
+## Iteration 25 — online replication / Platform Services
+
+The final pre-game template iteration adds:
+
+```text
+server-authoritative gameplay intent channel
+sequence and basic rate admission
+2D/3D transform snapshot interpolation
+native MultiplayerSpawner/Synchronizer guidance
+provider-neutral platform lifecycle
+platform user identity
+platform capability discovery
+standalone platform fallback
+```
+
+It also fixes release packaging source placement by moving the tracked script to:
+
+```text
+scripts/package_release.py
+```
+
+Development version:
+
+```text
+0.7.0-dev.1
+```
+
+No storefront SDK is added to Nucleus.
+
+No prediction/rollback/lag-compensation framework is added without project
+evidence.
+
+
 ## Baseline completion rule
 
 The general reusable baseline is complete.
@@ -250,39 +284,35 @@ not already solved well by Godot
 
 Otherwise they belong in an optional module/plugin or in the game itself.
 
-## Next phase — use Nucleus in a real game
+## Next phase — freeze broad template work and build the real game
 
-The preferred next step is increasingly to start the planned game from a pinned
-Nucleus version/commit and use production friction to drive changes.
+Iteration 25 is the pre-game checkpoint.
 
-Classify new requirements as:
+Start the planned game from a pinned Nucleus commit/release and use production
+friction to drive further changes.
+
+Classify every new requirement as:
 
 ```text
-baseline defect
-reusable baseline gap
-optional module/plugin
+Nucleus defect
+proven reusable Nucleus gap
+optional provider/plugin integration
 game-specific system
 ```
 
-Only proven baseline defects/gaps should expand the default template.
+Do not expand Nucleus merely because a reusable-looking feature can be imagined.
 
-## Optional modules after hardening
-
-Candidates that remain:
+Ideas such as:
 
 ```text
-Save-slot presentation UI
-online gameplay replication
-platform services
+save-slot presentation UI
 dialogue / quests
 world streaming
+prediction / rollback
+provider achievement wrappers
 ```
 
-`Save-slot presentation UI` is the next roadmap candidate, but Iteration 24 is a
-good checkpoint to reassess which of these are actually needed before the first
-real project starts.
-
-They should remain opt-in unless cross-project evidence proves otherwise.
+should now wait for concrete project evidence.
 
 ## Dedicated plugin horizon
 

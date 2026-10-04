@@ -91,7 +91,7 @@ docs/guides/releasing.md
 
 ## Release packaging
 
-`scripts/release/package_release.py` creates a source-template archive from
+`scripts/package_release.py` creates a source-template archive from
 Git-tracked files only.
 
 It emits:

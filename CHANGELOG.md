@@ -44,6 +44,14 @@ summarized under **Unreleased** until the first release is cut.
 - Optional AI / Navigation module with Utility AI, context providers,
   considerations, TargetingAgent/FSM integration, efficient native
   NavigationAgent followers, avoidance handoff, and reusable patrol/wander.
+- Optional online gameplay replication helpers for server-authoritative
+  intents, sequence/rate admission, and interpolated 2D/3D transform
+  snapshots while preserving native MultiplayerSpawner/Synchronizer.
+- Optional provider-neutral Platform Services boundary with standalone
+  fallback, local identity, capability discovery, and no storefront SDK
+  dependency.
+- Productization packaging moved to `scripts/package_release.py` so the
+  source tool is not hidden by Visual Studio's generic `Release/` ignore.
 
 ### Changed
 
@@ -62,6 +70,8 @@ summarized under **Unreleased** until the first release is cut.
   Identity public APIs.
 - Development version advances to `0.6.0-dev.1` for optional AI / Navigation
   public APIs.
+- Development version advances to `0.7.0-dev.1` for the final pre-game
+  online replication and Platform Services public APIs.
 
 ### Notes
 

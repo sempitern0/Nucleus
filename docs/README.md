@@ -24,6 +24,8 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Build deterministic loot tables | `guides/loot_quickstart.md` |
 | Persist world state across scenes | `guides/persistent_world_quickstart.md` |
 | Compose Utility AI and navigation | `guides/ai_navigation_quickstart.md` |
+| Build authoritative gameplay replication | `guides/online_replication_quickstart.md` |
+| Integrate storefront/platform providers | `guides/platform_services_quickstart.md` |
 | Opt into optional modules | `guides/optional_modules_quickstart.md` |
 | Run validation and CI | `guides/validation_ci_quickstart.md` |
 | Package a Nucleus release | `guides/releasing.md` |
@@ -70,6 +72,8 @@ infrastructure:
 - `probability_loot.md`
 - `persistent_world_state.md`
 - `ai_navigation.md`
+- `online_replication.md`
+- `platform_services.md`
 
 No optional module is loaded by default in `project.godot`.
 
@@ -101,6 +105,8 @@ Use `docs/roadmap/` for status and future direction.
 `iteration_23.md` records Persistent World State / Identity.
 
 `iteration_24.md` records AI / Navigation.
+
+`iteration_25.md` records the final pre-game online/platform integration checkpoint.
 
 `next_chat_context.md` is the portable handoff document and should always
 distinguish implemented, CI-validated, and future work.

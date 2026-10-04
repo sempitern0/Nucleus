@@ -121,7 +121,7 @@ func evaluate(
 	var context: Dictionary = _build_context(
 		extra_context
 	)
-	var best: NucleusAIUtilityOption
+	var best: NucleusAIUtilityOption = null
 	var best_score: float = -1.0
 	var best_priority: int = -2147483648
 

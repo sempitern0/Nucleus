@@ -38,31 +38,31 @@ static func parse(value: String) -> NucleusSemanticVersion:
 	if candidate.is_empty():
 		return null
 
-	var build_metadata: String = ""
+	var parsed_build_metadata: String = ""
 	var build_separator: int = candidate.find("+")
 
 	if build_separator != -1:
 		if candidate.find("+", build_separator + 1) != -1:
 			return null
 
-		build_metadata = candidate.substr(build_separator + 1)
+		parsed_build_metadata = candidate.substr(build_separator + 1)
 		candidate = candidate.substr(0, build_separator)
 
 		if not _is_valid_identifier_list(
-			build_metadata,
+			parsed_build_metadata,
 			false,
 		):
 			return null
 
-	var prerelease: String = ""
+	var parsed_prerelease: String = ""
 	var prerelease_separator: int = candidate.find("-")
 
 	if prerelease_separator != -1:
-		prerelease = candidate.substr(prerelease_separator + 1)
+		parsed_prerelease = candidate.substr(prerelease_separator + 1)
 		candidate = candidate.substr(0, prerelease_separator)
 
 		if not _is_valid_identifier_list(
-			prerelease,
+			parsed_prerelease,
 			true,
 		):
 			return null
@@ -80,8 +80,8 @@ static func parse(value: String) -> NucleusSemanticVersion:
 		parts[0].to_int(),
 		parts[1].to_int(),
 		parts[2].to_int(),
-		prerelease,
-		build_metadata,
+		parsed_prerelease,
+		parsed_build_metadata,
 	)
 
 

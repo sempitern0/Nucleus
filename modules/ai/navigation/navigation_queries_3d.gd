@@ -34,14 +34,14 @@ static func random_point_in_radius(
 			0.0,
 			sin(angle) * distance,
 		)
-		var snapped: Vector3 = NavigationServer3D.map_get_closest_point(
+		var closest_point: Vector3 = NavigationServer3D.map_get_closest_point(
 			navigation_map,
 			candidate,
 		)
 
 		var owner: RID = NavigationServer3D.map_get_closest_point_owner(
 			navigation_map,
-			snapped,
+			closest_point,
 		)
 
 		if owner.is_valid() and navigation_layers > 0:
@@ -53,11 +53,11 @@ static func random_point_in_radius(
 				continue
 
 		var planar_distance: float = Vector2(
-			snapped.x - origin.x,
-			snapped.z - origin.z,
+			closest_point.x - origin.x,
+			closest_point.z - origin.z,
 		).length()
 
 		if planar_distance <= maximum_distance + 0.001:
-			return snapped
+			return closest_point
 
 	return origin

@@ -83,7 +83,7 @@ func _activate(context: Dictionary) -> void:
 	acquired.emit(context.duplicate(true))
 
 
-func _set_inactive(emit_signal: bool = true) -> void:
+func _set_inactive(emit_released: bool = true) -> void:
 	if not _baseline_captured:
 		_capture_baseline(false)
 
@@ -91,7 +91,7 @@ func _set_inactive(emit_signal: bool = true) -> void:
 	var was_active: bool = _active
 	_active = false
 
-	if emit_signal and was_active:
+	if emit_released and was_active:
 		released.emit()
 
 
@@ -158,9 +158,8 @@ func _restore_baseline() -> void:
 	if manage_process_modes:
 		for node: Variant in _process_modes:
 			if is_instance_valid(node):
-				(node as Node).process_mode = int(
-					_process_modes[node]
-				)
+				var stored_process_mode: int = int(_process_modes[node])
+				(node as Node).process_mode = stored_process_mode as Node.ProcessMode
 
 	if manage_collision_shapes:
 		for node: Variant in _collision_disabled:

@@ -27,6 +27,7 @@ enum RejectionStage {
 	REQUIREMENT,
 	COST,
 	EFFECT,
+	BLOCKED,
 }
 
 @export var action_id: StringName
@@ -51,6 +52,7 @@ var _effects: Array[NucleusActionEffect] = []
 
 var _executing: bool = false
 var _last_available: bool = false
+var _blockers: Dictionary[StringName, bool] = {}
 
 
 func _ready() -> void:
@@ -78,6 +80,46 @@ func get_action_id() -> StringName:
 
 func has_tag(tag: StringName) -> bool:
 	return tag in tags
+
+
+func add_blocker(blocker_id: StringName) -> Error:
+	if blocker_id == &"":
+		return ERR_INVALID_PARAMETER
+
+	if _blockers.has(blocker_id):
+		return OK
+
+	_blockers[blocker_id] = true
+	_refresh_availability()
+
+	return OK
+
+
+func remove_blocker(blocker_id: StringName) -> bool:
+	if not _blockers.has(blocker_id):
+		return false
+
+	_blockers.erase(blocker_id)
+	_refresh_availability()
+
+	return true
+
+
+func has_blocker(blocker_id: StringName) -> bool:
+	return _blockers.has(blocker_id)
+
+
+func is_blocked() -> bool:
+	return not _blockers.is_empty()
+
+
+func get_blockers() -> Array[StringName]:
+	var result: Array[StringName] = []
+
+	for blocker_id: StringName in _blockers:
+		result.append(blocker_id)
+
+	return result
 
 
 func can_execute(context: Dictionary = {}) -> bool:
@@ -188,6 +230,13 @@ func _validate(context: Dictionary) -> Dictionary:
 	if not enabled:
 		return _rejection(
 			RejectionStage.DISABLED,
+			self,
+			ERR_UNAVAILABLE,
+		)
+
+	if is_blocked():
+		return _rejection(
+			RejectionStage.BLOCKED,
 			self,
 			ERR_UNAVAILABLE,
 		)

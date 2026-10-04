@@ -1,9 +1,15 @@
 class_name NucleusUIMotionPolicy
 extends RefCounted
 ## Resolves UI animation and flash accessibility preferences.
+##
+## Project preferences are combined with the operating-system accessibility
+## preference when Godot can report it.
 
 
 static func is_reduced_motion_enabled() -> bool:
+	if DisplayServer.accessibility_should_reduce_animation() == 1:
+		return true
+
 	if not NucleusSettings.is_initialized():
 		return false
 
@@ -43,6 +49,9 @@ static func get_effective_duration(
 
 
 static func get_screen_flash_intensity() -> float:
+	if DisplayServer.accessibility_should_reduce_animation() == 1:
+		return 0.0
+
 	if not NucleusSettings.is_initialized():
 		return 1.0
 

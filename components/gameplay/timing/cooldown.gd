@@ -1,6 +1,9 @@
 class_name NucleusCooldown
 extends Node
 ## Reusable one-shot cooldown built on Godot's native Timer.
+##
+## Cooldown state can be captured/restored so action sets compose directly with
+## the existing NucleusSaveSession participant model.
 
 signal started(duration: float)
 signal progress_changed(progress: float)
@@ -36,6 +39,7 @@ func _process(_delta: float) -> void:
 		return
 
 	progress_changed.emit(get_progress())
+
 
 func start(custom_duration: float = -1.0) -> void:
 	var resolved_duration: float = (
@@ -78,6 +82,10 @@ func is_ready() -> bool:
 	return _timer.is_stopped()
 
 
+func is_running() -> bool:
+	return not _timer.is_stopped()
+
+
 func get_time_left() -> float:
 	return _timer.time_left
 
@@ -94,6 +102,30 @@ func get_progress() -> float:
 		0.0,
 		1.0,
 	)
+
+
+func capture_state() -> Dictionary:
+	return {
+		"running": is_running(),
+		"time_left": get_time_left(),
+	}
+
+
+func restore_state(data: Dictionary) -> void:
+	var should_run: bool = bool(
+		data.get("running", false)
+	)
+	var time_left: float = maxf(
+		0.0,
+		float(data.get("time_left", 0.0)),
+	)
+
+	if should_run and time_left > 0.0:
+		start(time_left)
+		return
+
+	cancel()
+
 
 func _on_timeout() -> void:
 	set_process(false)

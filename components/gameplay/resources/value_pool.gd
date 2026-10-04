@@ -85,9 +85,11 @@ func increase(
 
 
 func decrease(amount: float) -> float:
+	# Preserve existing overflow while moving downward. Clamping to the normal
+	# maximum here would consume the whole overflow portion on the first decrease.
 	return set_value(
 		value - absf(amount),
-		false,
+		true,
 	)
 
 

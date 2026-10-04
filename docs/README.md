@@ -1,119 +1,93 @@
 # Nucleus Documentation
 
-Nucleus documentation is intentionally split by audience. This prevents public
-setup instructions from becoming architecture essays, while keeping internal
-contracts explicit enough to maintain the framework safely.
+Nucleus documentation is split by audience and by responsibility. The objective
+is to make the template usable from the Godot editor without requiring users to
+understand its internals, while keeping enough contract detail for maintainers.
 
-## I want to use Nucleus in a game
+## Start here
 
-Start in:
+If you are integrating Nucleus into a game, use `docs/guides/`.
 
-```text
-docs/guides/
-```
+| Goal | Guide |
+| --- | --- |
+| Understand the baseline and Autoloads | `foundation_quickstart.md` |
+| Configure settings, input, and rebinding | `settings_input_quickstart.md` |
+| Use audio, save, scene flow, and localization | `runtime_services_quickstart.md` |
+| Compose common gameplay building blocks | `gameplay_foundation_quickstart.md` |
+| Use actions, attributes, and status effects | `actions_attributes_status_quickstart.md` |
+| Set up pooling and targeting | `pooling_targeting_quickstart.md` |
+| Build production UI and accessibility | `ui_quickstart.md` |
+| Wire AnimationTree | `animation_integration_quickstart.md` |
+| Add camera/game-feel feedback | `camera_game_feel_quickstart.md` |
+| Opt into EventBus or networking | `optional_modules_quickstart.md` |
+| Run validation and CI | `validation_ci_quickstart.md` |
 
-Guides are editor-first and task-oriented.
+## Technical contracts
 
-They answer questions such as:
+`docs/components/` documents ownership, lifetime, data flow, signals, extension
+points, persistence boundaries, Godot-native APIs, and known limitations.
 
-```text
-How do I create a rebinding menu?
-How do I add a pooled projectile?
-How do I configure lock-on?
-How do I connect AnimationTree?
-How do I add recoil or camera shake?
-```
+The recovered baseline is grouped into contracts rather than one file per
+script:
 
-A guide should prefer:
-
-```text
-SceneTree examples
-Inspector fields
-small GDScript snippets
-expected behavior
-common mistakes
-```
-
-over implementation detail.
-
-## I want to understand or extend Nucleus
-
-Read:
-
-```text
-docs/components/
-docs/architecture/
-```
-
-`components/` documents technical API contracts:
-
-```text
-ownership
-signals
-public methods
-data flow
-extension points
-failure behavior
-persistence boundaries
-```
-
-`architecture/` explains why the system is shaped that way:
-
-```text
-reuse audits
-dependency direction
-rejected alternatives
-cross-system integration
-Godot-native features being reused
-```
+- `core_runtime.md`
+- `settings_and_input.md`
+- `audio_save_scene_localization.md`
+- `gameplay_foundation.md`
+- `gameplay_actions_attributes_status.md`
+- `gameplay_movement_camera.md`
+- `gameplay_pooling_targeting.md`
+- `ui_and_accessibility.md`
+- `animation_integration.md`
+- `camera_game_feel.md`
 
 ## Optional modules
 
-Read:
+`docs/modules/` is reserved for systems that are useful but not mandatory
+baseline infrastructure:
 
-```text
-docs/modules/
-```
+- `event_bus.md`
+- `networking.md`
 
-These systems are useful but intentionally not part of the mandatory baseline.
+Neither module is an Autoload in the default `project.godot`.
 
-Examples include optional EventBus/networking infrastructure.
+## Architecture
+
+Use `docs/architecture/` for dependency direction and design rationale.
+
+The key documents are:
+
+- `documentation_model.md`
+- `baseline_architecture.md`
+- `production_hardening.md`
+- the existing Iteration 17 reuse audit
 
 ## Roadmap and handoff
 
-Read:
+Use `docs/roadmap/` for status and future direction.
+
+`iteration_18.md` records the hardening delivery. `next_chat_context.md` remains
+the portable handoff document. It should state what was implemented, what was
+actually runtime-validated, and what remains pending without conflating those
+states.
+
+## Documentation coverage is machine-checkable
+
+`docs/documentation_coverage.json` maps every direct subsystem directory under:
 
 ```text
-docs/roadmap/well_rounded_template.md
-docs/roadmap/next_chat_context.md
-docs/roadmap/plugin_horizon.md
+core/*
+modules/*
+components/gameplay/*
+components/ui/*
 ```
 
-`next_chat_context.md` is deliberately self-contained. It can be copied into a
-new ChatGPT conversation to continue Nucleus work without rebuilding the project
-context manually.
+to at least one technical document. Run:
 
-## Documentation rule for new systems
-
-A production-facing Nucleus feature should normally ship with:
-
-```text
-docs/components/<feature>.md
-    technical contract
-
-docs/guides/<feature>_quickstart.md
-    public/editor workflow
-
-docs/architecture/<feature>_reuse_audit.md
-    architectural rationale when the feature is substantial
+```bash
+python3 scripts/ci/documentation_audit.py
 ```
 
-If a feature changes the project direction, update:
-
-```text
-docs/roadmap/well_rounded_template.md
-docs/roadmap/next_chat_context.md
-```
-
-The user guide must not require understanding the internal architecture before
-the feature can be used.
+A new top-level subsystem that is not mapped fails the audit. This makes the
+documentation requirement part of production readiness instead of a cleanup
+task performed after implementation.

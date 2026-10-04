@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "scope": [
+    "core/*",
+    "modules/*",
+    "components/gameplay/*",
+    "components/ui/*"
+  ],
+  "coverage": {
+    "core/accessibility": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "core/application": [
+      "docs/components/core_runtime.md"
+    ],
+    "core/audio": [
+      "docs/components/audio_save_scene_localization.md"
+    ],
+    "core/diagnostics": [
+      "docs/components/core_runtime.md"
+    ],
+    "core/input": [
+      "docs/components/settings_and_input.md"
+    ],
+    "core/localization": [
+      "docs/components/audio_save_scene_localization.md"
+    ],
+    "core/platform": [
+      "docs/components/core_runtime.md"
+    ],
+    "core/save": [
+      "docs/components/audio_save_scene_localization.md"
+    ],
+    "core/scene_flow": [
+      "docs/components/audio_save_scene_localization.md"
+    ],
+    "core/settings": [
+      "docs/components/settings_and_input.md"
+    ],
+    "core/utils": [
+      "docs/components/core_runtime.md"
+    ],
+    "core/window": [
+      "docs/components/core_runtime.md"
+    ],
+    "modules/event_bus": [
+      "docs/modules/event_bus.md"
+    ],
+    "modules/networking": [
+      "docs/modules/networking.md"
+    ],
+    "components/gameplay/actions": [
+      "docs/components/gameplay_actions_attributes_status.md"
+    ],
+    "components/gameplay/animation": [
+      "docs/components/animation_integration.md"
+    ],
+    "components/gameplay/attributes": [
+      "docs/components/gameplay_actions_attributes_status.md"
+    ],
+    "components/gameplay/camera": [
+      "docs/components/gameplay_movement_camera.md",
+      "docs/components/camera_game_feel.md"
+    ],
+    "components/gameplay/combat": [
+      "docs/components/gameplay_foundation.md"
+    ],
+    "components/gameplay/control": [
+      "docs/components/gameplay_movement_camera.md"
+    ],
+    "components/gameplay/feedback": [
+      "docs/components/camera_game_feel.md"
+    ],
+    "components/gameplay/interaction": [
+      "docs/components/gameplay_foundation.md"
+    ],
+    "components/gameplay/lifecycle": [
+      "docs/components/gameplay_foundation.md"
+    ],
+    "components/gameplay/movement": [
+      "docs/components/gameplay_movement_camera.md"
+    ],
+    "components/gameplay/pooling": [
+      "docs/components/gameplay_pooling_targeting.md"
+    ],
+    "components/gameplay/resources": [
+      "docs/components/gameplay_foundation.md"
+    ],
+    "components/gameplay/state": [
+      "docs/components/gameplay_foundation.md"
+    ],
+    "components/gameplay/status": [
+      "docs/components/gameplay_actions_attributes_status.md"
+    ],
+    "components/gameplay/targeting": [
+      "docs/components/gameplay_pooling_targeting.md"
+    ],
+    "components/gameplay/timing": [
+      "docs/components/gameplay_foundation.md"
+    ],
+    "components/ui/accessibility": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/data": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/effects": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/feedback": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/focus": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/gameplay": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/interaction": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/layout": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/localization": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/modal": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/motion": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/navigation": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/presentation": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/toast": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/tooltip": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/virtualization": [
+      "docs/components/ui_and_accessibility.md"
+    ]
+  }
+}

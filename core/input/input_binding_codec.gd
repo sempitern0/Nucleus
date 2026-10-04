@@ -141,7 +141,6 @@ static func encode(event: InputEvent) -> Dictionary:
 	return {}
 
 
-@warning_ignore("int_as_enum_without_cast")
 static func decode(data: Dictionary) -> InputEvent:
 	var binding_type := StringName(str(data.get("type", "")))
 
@@ -149,19 +148,19 @@ static func decode(data: Dictionary) -> InputEvent:
 		TYPE_KEY:
 			var key_event := InputEventKey.new()
 			key_event.device = INPUT_MAP_ALL_DEVICES
-			key_event.physical_keycode = int(
-				data.get("physical_keycode", KEY_NONE)
+			key_event.physical_keycode = (
+				int(data.get("physical_keycode", KEY_NONE)) as Key
 			)
-			key_event.keycode = int(data.get("keycode", KEY_NONE))
-			key_event.location = int(data.get("location", 0))
+			key_event.keycode = int(data.get("keycode", KEY_NONE)) as Key
+			key_event.location = int(data.get("location", 0)) as KeyLocation
 			_apply_modifiers(key_event, data)
 			return key_event
 
 		TYPE_MOUSE_BUTTON:
 			var mouse_event := InputEventMouseButton.new()
 			mouse_event.device = INPUT_MAP_ALL_DEVICES
-			mouse_event.button_index = int(
-				data.get("button_index", MOUSE_BUTTON_NONE)
+			mouse_event.button_index = (
+				int(data.get("button_index", MOUSE_BUTTON_NONE)) as MouseButton
 			)
 			_apply_modifiers(mouse_event, data)
 			return mouse_event
@@ -169,13 +168,17 @@ static func decode(data: Dictionary) -> InputEvent:
 		TYPE_JOYPAD_BUTTON:
 			var button_event := InputEventJoypadButton.new()
 			button_event.device = INPUT_MAP_ALL_DEVICES
-			button_event.button_index = int(data.get("button_index", 0))
+			button_event.button_index = (
+				int(data.get("button_index", JOY_BUTTON_INVALID)) as JoyButton
+			)
 			return button_event
 
 		TYPE_JOYPAD_MOTION:
 			var motion_event := InputEventJoypadMotion.new()
 			motion_event.device = INPUT_MAP_ALL_DEVICES
-			motion_event.axis = int(data.get("axis", JOY_AXIS_LEFT_X))
+			motion_event.axis = (
+				int(data.get("axis", JOY_AXIS_LEFT_X)) as JoyAxis
+			)
 			motion_event.axis_value = (
 				-1.0
 				if float(data.get("axis_value", 1.0)) < 0.0

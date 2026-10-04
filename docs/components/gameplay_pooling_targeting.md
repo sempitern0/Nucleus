@@ -1,0 +1,77 @@
+# Pooling, Spawning, Targeting, and Sensing Contract
+
+## Scope
+
+```text
+components/gameplay/pooling
+components/gameplay/targeting
+```
+
+Both systems are scene-owned and source-aware. There is no global `PoolManager`
+or global target registry.
+
+## Object pooling
+
+Pools are type-specific and owned by the scene/system that needs them.
+
+The reusable lifecycle is:
+
+```text
+reserve/acquire
+→ configure transform/context
+→ activate
+→ release/reset
+```
+
+`NucleusPoolable` defines the reusable object lifecycle. `NucleusObjectPool`
+owns instances. 2D/3D spawners apply transform before activation so a pooled
+object cannot briefly wake at its previous location.
+
+Pool reset must remove source-owned gameplay state before the next activation.
+
+## Targeting model
+
+Targeting separates discovery from decision:
+
+```text
+sensors
+→ source-owned candidate registry
+→ filters
+→ scorers
+→ current target / lock state
+```
+
+`NucleusTargetingAgent` owns candidates, current selection, and lock state.
+
+Sensors register candidates by source ownership so one sensor can be cleared
+without deleting candidates still observed by another sensor.
+
+Filters answer validity. Scorers rank valid candidates. Higher aggregate score
+wins.
+
+## 2D/3D sensing
+
+Area sensors use native `Area2D`/`Area3D` overlap signals and shapes. Geometry
+helpers remain dimension-specific where Godot's coordinate conventions differ.
+
+Iteration 18 adds editor warnings for:
+
+- a sensor with neither body nor area detection enabled;
+- a sensor without an enabled collision shape;
+- an unassigned agent where runtime auto-resolution could be ambiguous.
+
+The warning does not remove runtime auto-resolution.
+
+## Integrations
+
+Targeting has explicit seams for GameplayActions, interaction, status effects,
+local multiplayer contexts, and pooled projectile/action contexts.
+
+Do not make consumers query the physics space again if the TargetingAgent
+already owns the required selection.
+
+## Extension rule
+
+New acquisition behavior should normally be a sensor, filter, or scorer.
+Introduce a new global targeting service only if a future feature genuinely
+requires cross-scene target ownership.

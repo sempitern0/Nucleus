@@ -1,13 +1,10 @@
-[gd_resource type="Resource" script_class="NucleusLocaleCatalog" load_steps=32 format=3]
+[gd_resource type="Resource" script_class="NucleusLocaleCatalog" format=3 uid="uid://uwi5150rvfj3"]
 
-[ext_resource type="Script" path="res://core/localization/locale_catalog.gd" id="1_catalog"]
-[ext_resource type="Script" path="res://core/localization/locale_definition.gd" id="2_definition"]
+[ext_resource type="Script" uid="uid://c6tnkxwbxhv2t" path="res://core/localization/locale_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" uid="uid://ftd4agqma448" path="res://core/localization/locale_definition.gd" id="2_definition"]
 
 [sub_resource type="Resource" id="Locale_1"]
 script = ExtResource("2_definition")
-locale = "en"
-native_name = "English"
-english_name = "English"
 
 [sub_resource type="Resource" id="Locale_2"]
 script = ExtResource("2_definition")

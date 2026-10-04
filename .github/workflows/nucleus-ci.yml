@@ -1,0 +1,80 @@
+name: Nucleus CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: 4.7.2-stable
+
+jobs:
+  validate:
+    name: Static, headless, and export validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Restore Godot cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .ci/godot
+            ~/.local/share/godot/export_templates/4.7.2.stable
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}
+
+      - name: Install Godot and export templates
+        id: godot
+        shell: bash
+        run: |
+          GODOT_BIN="$(bash scripts/ci/install_godot.sh)"
+          echo "bin=$GODOT_BIN" >> "$GITHUB_OUTPUT"
+
+      - name: Static repository checks
+        run: python3 scripts/ci/static_checks.py
+
+      - name: Documentation coverage audit
+        run: python3 scripts/ci/documentation_audit.py
+
+      - name: Import and parse project headlessly
+        run: |
+          "${{ steps.godot.outputs.bin }}" \
+            --headless \
+            --path . \
+            --import
+
+      - name: Run native headless tests
+        run: |
+          "${{ steps.godot.outputs.bin }}" \
+            --headless \
+            --path . \
+            --script res://tests/headless/test_runner.gd
+
+      - name: Run bootstrap smoke scene
+        run: |
+          "${{ steps.godot.outputs.bin }}" \
+            --headless \
+            --path . \
+            res://tests/smoke/smoke_main.tscn
+
+      - name: Smoke export Linux, Windows, and Web
+        env:
+          GODOT_BIN: ${{ steps.godot.outputs.bin }}
+        run: bash scripts/ci/smoke_exports.sh "$PWD"
+
+      - name: Upload smoke outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nucleus-smoke-exports
+          path: build/smoke/
+          if-no-files-found: warn
+          retention-days: 7

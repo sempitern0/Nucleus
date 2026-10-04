@@ -1,3 +1,4 @@
+@tool
 class_name NucleusRegenerator
 extends Node
 ## Periodically restores a [NucleusValuePool].
@@ -9,12 +10,23 @@ signal regeneration_started
 signal regeneration_stopped
 signal regenerated(amount: float)
 
-@export var target_pool: NucleusValuePool
+@export var target_pool: NucleusValuePool:
+	set(value):
+		target_pool = value
+		update_configuration_warnings()
 
 @export_range(0.0, 1.0e12, 0.01, "or_greater")
-var amount_per_tick: float = 1.0
+var amount_per_tick: float = 1.0:
+	set(value):
+		amount_per_tick = value
+		update_configuration_warnings()
+
 @export_range(0.01, 3600.0, 0.01, "or_greater")
-var tick_interval: float = 1.0
+var tick_interval: float = 1.0:
+	set(value):
+		tick_interval = value
+		update_configuration_warnings()
+
 @export_range(0.0, 3600.0, 0.01, "or_greater")
 var delay_after_decrease: float = 0.0
 
@@ -27,6 +39,9 @@ var _delay_timer: Timer
 
 
 func _enter_tree() -> void:
+	if Engine.is_editor_hint():
+		return
+
 	_tick_timer = Timer.new()
 	_tick_timer.name = "RegenerationTickTimer"
 	_tick_timer.one_shot = false
@@ -43,6 +58,9 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
+
 	if target_pool == null:
 		target_pool = get_parent() as NucleusValuePool
 
@@ -60,6 +78,25 @@ func _ready() -> void:
 	target_pool.value_changed.connect(_on_pool_value_changed)
 
 	_refresh()
+
+
+func _get_configuration_warnings() -> PackedStringArray:
+	var warnings := PackedStringArray()
+	var parent_pool := get_parent() as NucleusValuePool
+
+	if target_pool == null and parent_pool == null:
+		warnings.append(
+			"Assign target_pool or make the Regenerator a child of a "
+			+ "NucleusValuePool."
+		)
+
+	if amount_per_tick <= 0.0:
+		warnings.append("amount_per_tick must be greater than zero.")
+
+	if tick_interval <= 0.0:
+		warnings.append("tick_interval must be greater than zero.")
+
+	return warnings
 
 
 func set_enabled(new_enabled: bool) -> void:

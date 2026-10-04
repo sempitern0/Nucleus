@@ -1,11 +1,28 @@
+@tool
 class_name NucleusAnimationTreeStateBinding
 extends Node
 ## Drives an AnimationTree state machine from NucleusStateMachine transitions.
 
-@export var state_machine: NucleusStateMachine
-@export var animation_tree: AnimationTree
-@export var playback_parameter: StringName = &"parameters/playback"
-@export var mappings: Array[NucleusStateAnimationMapping] = []
+@export var state_machine: NucleusStateMachine:
+	set(value):
+		state_machine = value
+		update_configuration_warnings()
+
+@export var animation_tree: AnimationTree:
+	set(value):
+		animation_tree = value
+		update_configuration_warnings()
+
+@export var playback_parameter: StringName = &"parameters/playback":
+	set(value):
+		playback_parameter = value
+		update_configuration_warnings()
+
+@export var mappings: Array[NucleusStateAnimationMapping] = []:
+	set(value):
+		mappings = value
+		update_configuration_warnings()
+
 @export var use_state_id_as_fallback: bool = true
 @export var activate_tree_on_ready: bool = true
 @export var reset_on_teleport: bool = true
@@ -14,6 +31,9 @@ var _map: Dictionary[StringName, StringName] = {}
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
+
 	_resolve_dependencies()
 	_build_map()
 
@@ -34,6 +54,9 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	if Engine.is_editor_hint():
+		return
+
 	if state_machine == null:
 		return
 
@@ -42,6 +65,42 @@ func _exit_tree() -> void:
 
 	if state_machine.states_initialized.is_connected(_on_states_initialized):
 		state_machine.states_initialized.disconnect(_on_states_initialized)
+
+
+func _get_configuration_warnings() -> PackedStringArray:
+	var warnings := PackedStringArray()
+
+	if state_machine == null:
+		warnings.append(
+			"state_machine is not assigned. Runtime auto-resolution will search "
+			+ "the nearby hierarchy; assign it explicitly when that is ambiguous."
+		)
+
+	if animation_tree == null:
+		warnings.append(
+			"animation_tree is not assigned. Runtime auto-resolution will search "
+			+ "the nearby hierarchy; assign it explicitly when that is ambiguous."
+		)
+
+	if playback_parameter == &"":
+		warnings.append(
+			"playback_parameter must point to an "
+			+ "AnimationNodeStateMachinePlayback parameter."
+		)
+
+	for index: int in range(mappings.size()):
+		var mapping := mappings[index]
+
+		if mapping == null:
+			warnings.append("mappings[%d] is null." % index)
+			continue
+
+		if mapping.state_id == &"" or mapping.animation_state == &"":
+			warnings.append(
+				"mappings[%d] requires both state_id and animation_state." % index
+			)
+
+	return warnings
 
 
 func refresh_mappings() -> void:

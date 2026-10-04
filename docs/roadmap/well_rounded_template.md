@@ -2,8 +2,8 @@
 
 Target engine: Godot 4.7.x.
 
-This roadmap tracks the baseline that should exist before Nucleus stops growing
-by default and moves primarily into hardening, examples, and optional plugins.
+Nucleus is a reusable project foundation, not a catalogue of every mechanic a
+game could need.
 
 ## Baseline status
 
@@ -14,26 +14,24 @@ application lifecycle
 platform/path normalization
 logging/diagnostics
 settings
-input
-runtime rebinding
+input + runtime rebinding
 local multiplayer device routing
 audio/music/one-shots
-save slots/encryption/migrations/autosave
-scene flow/transitions
+save/encryption/migrations/autosave
+scene flow
 localization
 general utilities
-optional EventBus
-optional NetworkHandler
 ```
 
 ### Production UI — complete baseline
 
 ```text
 settings bindings
-focus/navigation helpers
+focus/navigation
 motion/feedback
 screen effects
-modal patterns
+modal/toast/tooltip patterns
+layout/data/presentation helpers
 accessibility-oriented behavior
 ```
 
@@ -56,116 +54,85 @@ AnimationTree integration
 camera / game-feel feedback
 ```
 
-Iteration 17 completes the last major gameplay-composition layer planned for the
-general baseline.
-
-## Next milestone — Iteration 18
-
-Iteration 18 should prioritize trust and developer experience rather than another
-large gameplay system.
-
-### Automated tests
-
-Add headless coverage for at least:
+### Optional infrastructure — available, not baseline-loaded
 
 ```text
-Settings persistence
-Input binding serialization/rebinding
-Save codec/integrity/backups/migrations
-ValuePool boundaries/overflow
-FSM transitions
-GameplayAction transaction/cost rollback
-Attributes modifier ordering
-Status stacking/timers
-Pooling acquire/release/reset
-Targeting ownership/filter/ranking
-Animation adapter smoke tests
-Camera feedback source ownership
+EventBus
+NetworkHandler / LAN helpers
 ```
 
-### Example / validation scenes
+## Iteration 17 — feature baseline complete
 
-Create independent removable examples:
+Iteration 17 added the final planned large baseline layer:
 
 ```text
-2D gameplay composition
-3D gameplay composition
-settings + input rebinding
-save/load
-local multiplayer
-actions + status + attributes
-pooling + targeting
-animation + game feel
-UI/accessibility showcase
+AnimationTree adapters
+FSM → AnimationTree state
+CharacterBody velocity → animation parameters
+GameplayAction → AnimationTree state / OneShot
+animation event relay
+shared motion accessibility policy
+stackable source-owned camera feedback
+recoil / kick / shake / head bob / landing feedback
+temporary FOV offsets
 ```
 
-Examples should double as smoke-test fixtures where practical.
+It also established the current documentation model.
 
-### Editor configuration warnings
+## Iteration 18 — implementation complete, runtime validation pending
 
-Add `_get_configuration_warnings()` to high-value editor-facing components.
-
-Examples:
+The production-hardening delta adds:
 
 ```text
-missing ValuePool
-ambiguous auto-discovery
-missing AnimationTree
-missing feedback pivot
-missing target point
-missing Action
-invalid save profile
-missing InputMap action
+dependency-free headless GDScript tests
+bootstrap smoke scene
+2D/3D validation scenes
+native editor configuration warnings
+static source/style checks
+machine-checkable documentation coverage
+GitHub Actions validation
+Linux/Windows/Web smoke exports
+recovered documentation for Core/Components/Modules
 ```
 
-The goal is to surface composition errors before pressing Play.
-
-### CI / export smoke tests
-
-At minimum:
+The delta was prepared against `main` commit:
 
 ```text
-headless project import
-test suite
-static formatting checks
-Windows export smoke test
-Linux export smoke test
-Web export smoke test
+4c8936ff26d96a4167c1ca2997217900e5345faf
 ```
 
-Windows/Linux/Web remain important compatibility targets.
+Do not mark Iteration 18 runtime-validated until Godot executes the included
+headless import/tests/smoke scene and smoke exports successfully.
 
 ## Baseline completion rule
 
-After Iteration 18 passes cleanly, Nucleus should be considered a well-rounded
-general project foundation.
+Once Iteration 18 passes runtime/CI validation, Nucleus should be considered a
+well-rounded general project foundation.
 
-Do not keep adding systems to the baseline merely because a game somewhere may
-need them.
-
-A new baseline feature should require evidence that it is:
+Further baseline additions require evidence that they are:
 
 ```text
 cross-genre
 repeated across projects
 difficult enough to justify centralization
 compatible with current dependency boundaries
+not already solved well by Godot
 ```
 
-Otherwise it belongs in a plugin/module or in the game itself.
+Otherwise they belong in an optional module/plugin or in the game itself.
 
-## Optional modules after the baseline
+## Optional modules after hardening
 
-High-value candidates:
+Candidates:
 
 ```text
 Inventory / Equipment
 AI / Navigation helpers
-weighted probability / loot tables
-persistent world identity
-save-slot presentation UI
-platform services
+Probability / Loot
+Persistent world identity
+Save-slot presentation UI
 online gameplay replication
+platform services
 dialogue / quests
 world streaming
 ```
@@ -174,7 +141,7 @@ These should remain opt-in.
 
 ## Dedicated plugin horizon
 
-The following ideas are explicitly outside the Nucleus baseline:
+Keep these outside the baseline:
 
 ```text
 Day / Night + Environment
@@ -182,18 +149,11 @@ Planet Generator
 Terrainy
 ```
 
-See:
+See `docs/roadmap/plugin_horizon.md`.
 
-```text
-docs/roadmap/plugin_horizon.md
-```
+## Productization before a public 1.0-style release
 
-They are substantial enough to deserve independent architecture, versioning,
-documentation, tests, and editor workflows.
-
-## Productization
-
-Before a public 1.0-style release, also establish:
+Still establish/confirm:
 
 ```text
 top-level README
@@ -202,11 +162,10 @@ changelog
 semantic versioning policy
 Godot compatibility policy
 deprecation policy
-CI
-examples
 installation instructions
 API stability expectations
+release packaging
 ```
 
-The objective is for a developer to understand how to use Nucleus without
-understanding how every subsystem is implemented.
+CI, validation fixtures, and documentation coverage are now part of the
+Iteration 18 hardening layer rather than deferred productization work.

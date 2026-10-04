@@ -102,6 +102,7 @@ accessibility-oriented behavior
 EventBus
 NetworkHandler / LAN helpers
 Inventory / Equipment
+Probability / Loot
 ```
 
 ## Start a new game

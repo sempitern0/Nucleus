@@ -35,6 +35,9 @@ summarized under **Unreleased** until the first release is cut.
 - Optional scene-owned Inventory / Equipment module with immutable item
   definitions, UUID-backed runtime stacks, capacity/weight limits, save
   state, Attribute modifier integration, and GameplayAction adapters.
+- Optional Probability / Loot module with weighted and independent chance
+  rolls, guaranteed/unique entries, injectable deterministic RNG, runtime
+  unique state, conditions, result amounts, and saveable LootRollers.
 
 ### Changed
 
@@ -47,6 +50,8 @@ summarized under **Unreleased** until the first release is cut.
   presentation APIs.
 - Development version advances to `0.3.0-dev.1` for the optional Inventory /
   Equipment public APIs.
+- Development version advances to `0.4.0-dev.1` for the optional Probability /
+  Loot public APIs.
 
 ### Notes
 

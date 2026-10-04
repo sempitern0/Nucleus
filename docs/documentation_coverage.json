@@ -49,6 +49,9 @@
     "modules/inventory": [
       "docs/modules/inventory_equipment.md"
     ],
+    "modules/loot": [
+      "docs/modules/probability_loot.md"
+    ],
     "modules/networking": [
       "docs/modules/networking.md"
     ],

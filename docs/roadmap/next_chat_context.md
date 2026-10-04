@@ -74,10 +74,10 @@ nucleus stable release
 
 ## Versioning
 
-Nucleus development version after Iteration 21:
+Nucleus development version after Iteration 22:
 
 ```text
-0.3.0-dev.1
+0.4.0-dev.1
 ```
 
 Source of truth:
@@ -93,8 +93,8 @@ version.
 
 Iteration 18 established the operational validation pipeline.
 
-Iteration 21 must remain runtime-validation pending until the updated CI parses
-and executes the Inventory / Equipment suites successfully.
+Iteration 22 must remain runtime-validation pending until CI parses and executes
+the new Loot suite successfully.
 
 Current CI covers:
 
@@ -136,6 +136,7 @@ utilities
 EventBus
 NetworkHandler / LAN helpers
 Inventory / Equipment
+Probability / Loot
 ```
 
 Neither is loaded by default.
@@ -313,3 +314,40 @@ Probability / Loot
 
 Use Barebone only as a concept/source audit; do not carry forward its global Loot
 manager automatically.
+
+## Iteration 22 — Probability / Loot
+
+Optional module:
+
+```text
+modules/loot/
+```
+
+Public types:
+
+```text
+NucleusLootCondition
+NucleusLootEntry
+NucleusLootResult
+NucleusLootState
+NucleusLootTable
+NucleusLootRoller
+```
+
+Key rule:
+
+```text
+Loot Resources are configuration.
+LootRoller owns RNG/runtime unique state.
+```
+
+Godot `RandomNumberGenerator` remains the PRNG source of truth.
+
+Loot does not depend on Inventory, but `NucleusItemDefinition` may be used as a
+payload when both optional modules are enabled.
+
+Recommended next module:
+
+```text
+Persistent World Identity
+```

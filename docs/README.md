@@ -21,6 +21,7 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Wire AnimationTree | `guides/animation_integration_quickstart.md` |
 | Add camera/game-feel feedback | `guides/camera_game_feel_quickstart.md` |
 | Use Inventory / Equipment | `guides/inventory_equipment_quickstart.md` |
+| Build deterministic loot tables | `guides/loot_quickstart.md` |
 | Opt into optional modules | `guides/optional_modules_quickstart.md` |
 | Run validation and CI | `guides/validation_ci_quickstart.md` |
 | Package a Nucleus release | `guides/releasing.md` |
@@ -64,6 +65,7 @@ infrastructure:
 - `event_bus.md`
 - `networking.md`
 - `inventory_equipment.md`
+- `probability_loot.md`
 
 Neither module is an Autoload in the default `project.godot`.
 
@@ -88,7 +90,9 @@ Use `docs/roadmap/` for status and future direction.
 
 `iteration_20.md` records proven presentation reuse.
 
-`iteration_21.md` records the first post-Core optional gameplay module.
+`iteration_21.md` records Inventory / Equipment.
+
+`iteration_22.md` records Probability / Loot.
 
 `next_chat_context.md` is the portable handoff document and should always
 distinguish implemented, CI-validated, and future work.

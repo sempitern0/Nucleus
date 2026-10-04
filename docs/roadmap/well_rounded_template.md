@@ -164,6 +164,37 @@ Probability / Loot
 Loot should consume/produce generic IDs/definitions rather than depend on a
 specific game inventory UI or pickup implementation.
 
+## Iteration 22 — optional Probability / Loot
+
+The second post-Core optional gameplay module provides:
+
+```text
+weighted loot using Godot rand_weighted()
+independent chance rolls
+guaranteed entries
+runtime unique entries
+amount ranges
+side-effect-free conditions
+Resource payloads
+scene-owned LootRoller
+seeded deterministic generation
+save/restore of RNG state and unique state
+```
+
+No global LootManager or generic probability wrapper is introduced.
+
+Development version:
+
+```text
+0.4.0-dev.1
+```
+
+Recommended next module:
+
+```text
+Persistent World Identity
+```
+
 ## Baseline completion rule
 
 The general reusable baseline is complete.
@@ -203,7 +234,6 @@ Only proven baseline defects/gaps should expand the default template.
 Candidates remain:
 
 ```text
-Probability / Loot
 Persistent world identity
 AI / Navigation helpers
 Save-slot presentation UI

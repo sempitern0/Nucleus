@@ -46,13 +46,37 @@ Chest
 
 Use `NucleusItemCatalog` as explicit shared definition data.
 
-Equipment may reuse `NucleusAttributeSet` modifier sources and Inventory stack
-identity without teaching either baseline system about item gameplay.
-
 See:
 
 ```text
 docs/guides/inventory_equipment_quickstart.md
+```
+
+## Probability / Loot
+
+`modules/loot` uses Godot's native `RandomNumberGenerator` and adds reusable
+loot-table semantics.
+
+Typical ownership:
+
+```text
+Enemy
+└── LootRoller
+
+Chest
+└── LootRoller
+```
+
+The table is a shared Resource. RNG and unique-entry state belong to each
+scene-owned `NucleusLootRoller`.
+
+Loot does not require Inventory. When both modules are enabled, an item
+definition can simply be used as a loot-entry payload.
+
+See:
+
+```text
+docs/guides/loot_quickstart.md
 ```
 
 ## Keep optional modules optional

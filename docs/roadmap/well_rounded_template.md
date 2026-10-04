@@ -1,6 +1,8 @@
 # Nucleus — Well-Rounded Template Roadmap
 
-Target engine: Godot 4.7.x.
+Target engine line: Godot 4.7.x.
+
+Release-gated reference: Godot 4.7.2-stable.
 
 Nucleus is a reusable project foundation, not a catalogue of every mechanic a
 game could need.
@@ -79,9 +81,9 @@ temporary FOV offsets
 
 It also established the current documentation model.
 
-## Iteration 18 — implementation complete, runtime validation pending
+## Iteration 18 — production hardening validated
 
-The production-hardening delta adds:
+Iteration 18 added:
 
 ```text
 dependency-free headless GDScript tests
@@ -95,19 +97,44 @@ Linux/Windows/Web smoke exports
 recovered documentation for Core/Components/Modules
 ```
 
-The delta was prepared against `main` commit:
+After test-infrastructure fixes, Nucleus CI passed on:
 
 ```text
-4c8936ff26d96a4167c1ca2997217900e5345faf
+285ba33a81a001647c79e2b0aef10303039a9e4e
 ```
 
-Do not mark Iteration 18 runtime-validated until Godot executes the included
-headless import/tests/smoke scene and smoke exports successfully.
+The hardening layer is therefore operational rather than merely proposed.
+
+## Iteration 19 — productization / first-project readiness
+
+The productization layer establishes:
+
+```text
+top-level README
+MIT license
+changelog
+Nucleus VERSION source of truth
+semantic versioning policy
+Godot compatibility policy
+deprecation policy
+installation instructions
+API stability expectations
+reproducible source-template release packaging
+productization CI audit
+```
+
+Initial version:
+
+```text
+0.1.0-dev.1
+```
+
+Nucleus remains pre-1.0 until a real game provides enough evidence to stabilize
+the public API.
 
 ## Baseline completion rule
 
-Once Iteration 18 passes runtime/CI validation, Nucleus should be considered a
-well-rounded general project foundation.
+The general reusable baseline is complete.
 
 Further baseline additions require evidence that they are:
 
@@ -121,9 +148,27 @@ not already solved well by Godot
 
 Otherwise they belong in an optional module/plugin or in the game itself.
 
+## Next phase — use Nucleus in a real game
+
+The preferred next step is not another broad subsystem.
+
+Start the planned game from a pinned Nucleus version/commit and use production
+friction to drive changes.
+
+Classify new requirements as:
+
+```text
+baseline defect
+reusable baseline gap
+optional module/plugin
+game-specific system
+```
+
+Only proven baseline defects/gaps should expand the default template.
+
 ## Optional modules after hardening
 
-Candidates:
+Candidates remain:
 
 ```text
 Inventory / Equipment
@@ -137,7 +182,7 @@ dialogue / quests
 world streaming
 ```
 
-These should remain opt-in.
+These should remain opt-in unless cross-project evidence proves otherwise.
 
 ## Dedicated plugin horizon
 
@@ -150,22 +195,3 @@ Terrainy
 ```
 
 See `docs/roadmap/plugin_horizon.md`.
-
-## Productization before a public 1.0-style release
-
-Still establish/confirm:
-
-```text
-top-level README
-license
-changelog
-semantic versioning policy
-Godot compatibility policy
-deprecation policy
-installation instructions
-API stability expectations
-release packaging
-```
-
-CI, validation fixtures, and documentation coverage are now part of the
-Iteration 18 hardening layer rather than deferred productization work.

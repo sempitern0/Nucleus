@@ -24,10 +24,19 @@ Legacy/reference repository:
 sempitern0/Barebone
 ```
 
-Target engine:
+Nucleus is the successor/rework of Barebone, but there is no Barebone backward
+compatibility requirement.
+
+Target engine line:
 
 ```text
 Godot 4.7.x
+```
+
+Release-gated reference:
+
+```text
+Godot 4.7.2-stable
 ```
 
 Nucleus is a clean reusable Godot foundation/template for new games.
@@ -45,40 +54,67 @@ a toolkit containing every mechanic found in any game.
 - No Service Locator.
 - Local signals before global EventBus.
 - EventBus and NetworkHandler remain optional/not loaded by default.
-- No Barebone backward compatibility requirement.
+- No Barebone compatibility aliases.
 - Public `class_name` names use `Nucleus` prefix.
 - GDScript: tabs, <=100 columns, LF, final newline.
 - Generate a delta ZIP; do not mutate GitHub unless explicitly requested.
-- Perform static checks and state clearly when Godot runtime was not available.
+- Use CI/runtime results as the acceptance source of truth.
 
-## Repository checkpoint used for Iteration 18
+## Current checkpoint
 
-Iteration 18 was prepared read-only against:
+Productization was prepared read-only against:
 
 ```text
 main
-4c8936ff26d96a4167c1ca2997217900e5345faf
+285ba33a81a001647c79e2b0aef10303039a9e4e
 ```
 
-Commit message:
+That commit has a successful Nucleus CI run.
+
+## Versioning
+
+Nucleus template version:
 
 ```text
-uid files for new gameplay components
+0.1.0-dev.1
 ```
 
-No GitHub changes were made while producing the delta.
+Source of truth:
 
-## Runtime validation status
+```text
+VERSION
+```
 
-Iterations through **Iteration 16 — Targeting + Sensing** were previously
-reported by the owner as validated in Godot with no errors/warnings.
+Nucleus uses Semantic Versioning independently from the consuming game's
+version.
 
-Iteration 17 must remain marked runtime-validation pending until the owner
-confirms it.
+Policy:
 
-Iteration 18 is implemented in the delta but also remains runtime-validation
-pending. The generation environment did not provide a Godot executable/export
-templates.
+```text
+docs/policies/versioning.md
+```
+
+## Runtime / CI status
+
+The Iteration 18 validation pipeline is operational.
+
+Current CI covers:
+
+```text
+static source checks
+documentation coverage
+productization contract audit
+Godot headless import
+native test-graph parse
+native regression tests
+bootstrap smoke scene
+Linux smoke export
+Windows smoke export
+Web smoke export
+```
+
+Iteration 17-specific gameplay feel/animation behavior should still be judged in
+the consuming game where subjective integration behavior can be exercised.
 
 ## Implemented foundation
 
@@ -140,96 +176,38 @@ AnimationTree integration
 camera/game-feel feedback
 ```
 
-## Iteration 17
+## Productization
 
-Iteration 17 added:
-
-```text
-AnimationTree adapters
-FSM → AnimationTree state
-CharacterBody velocity → animation parameters
-GameplayAction → AnimationTree state / OneShot
-Animation method-track event relay
-
-shared NucleusMotionPolicy
-stackable camera feedback 2D/3D
-source-owned continuous offsets
-impulse profiles
-recoil/kick/shake
-head bob
-landing feedback
-source-owned temporary FOV offsets
-```
-
-It normalized documentation into:
+The repository now has explicit contracts for:
 
 ```text
-docs/components/
-    technical API/contracts
-
-docs/architecture/
-    design rationale/reuse audits
-
-docs/guides/
-    public Godot-editor workflows
-
-docs/modules/
-    optional-module contracts
-
-docs/roadmap/
-    roadmap + portable chat context
+top-level README
+MIT license
+changelog
+semantic versioning
+Godot compatibility
+deprecation
+installation
+API stability
+release packaging
 ```
 
-## Iteration 18 — Production hardening
-
-The delta adds:
+Key files:
 
 ```text
-tests/headless/
-    native dependency-free GDScript runner
-    SemVer coverage
-    ValuePool coverage
-    networking utility coverage
+README.md
+LICENSE
+CHANGELOG.md
+VERSION
 
-tests/smoke/
-    mandatory Autoload / engine bootstrap smoke scene
+docs/policies/
+docs/guides/installation.md
+docs/guides/releasing.md
 
-examples/validation/
-    removable 2D and 3D composition scenes
-
-_get_configuration_warnings()
-    Regenerator
-    TargetAreaSensor2D
-    TargetAreaSensor3D
-    AnimationTreeStateBinding
-
-scripts/ci/
-    static checks
-    documentation coverage audit
-    Godot installer
-    disposable smoke export driver
-
-.github/workflows/nucleus-ci.yml
-    headless import
-    tests
-    smoke scene
-    Linux/Windows/Web exports
-
-docs/documentation_coverage.json
-    machine-checkable coverage for every direct Core/Module/Gameplay/UI
-    subsystem
-
-recovered docs
-    Core
-    Gameplay
-    UI
-    optional modules
-    quickstarts
-    baseline architecture
-    hardening architecture
+scripts/ci/productization_audit.py
+scripts/release/package_release.py
+.github/workflows/nucleus-package.yml
 ```
-
-The CI pins `4.7.2-stable` within the target Godot 4.7 line.
 
 ## Key architecture
 
@@ -271,9 +249,6 @@ Scorers rank.
 
 TargetingAgent owns current/lock state.
 
-Targeting integrates with Actions, Interaction, local multiplayer, Status
-Effects, and pooled projectile contexts.
-
 ### Documentation
 
 One source of truth:
@@ -282,22 +257,27 @@ One source of truth:
 technical behavior → docs/components/
 optional module contract → docs/modules/
 editor workflow → docs/guides/
+cross-cutting product promises → docs/policies/
 design rationale → docs/architecture/
 future/status → docs/roadmap/
 ```
 
-`python3 scripts/ci/documentation_audit.py` fails when a direct subsystem
-directory is not mapped to documentation.
-
-## Validation required after applying Iteration 18
+## Validation commands
 
 Run:
 
 ```bash
 python3 scripts/ci/static_checks.py
 python3 scripts/ci/documentation_audit.py
+python3 scripts/ci/productization_audit.py
 
 godot --headless --path . --import
+
+godot \
+  --headless \
+  --path . \
+  --check-only \
+  --script res://tests/headless/test_runner.gd
 
 godot \
   --headless \
@@ -310,23 +290,22 @@ godot \
   res://tests/smoke/smoke_main.tscn
 ```
 
-Then run CI or `scripts/ci/smoke_exports.sh` with official export templates.
+Then run CI for smoke exports.
 
-Only after these pass should Iteration 18 be marked runtime-validated.
+## Natural next step
 
-## Natural next step after Iteration 18
+Use Nucleus as the base of the planned real game.
 
-Do not immediately add another baseline subsystem.
+Do not immediately add another broad baseline subsystem.
 
-First:
+When the project exposes a need, decide whether it is:
 
-1. apply the delta;
-2. execute Godot/CI validation;
-3. repair any runtime/export issue discovered;
-4. confirm Iteration 17 and 18 validation status in the handoff.
+1. a Nucleus defect;
+2. a reusable Nucleus API gap;
+3. an optional module/plugin;
+4. game-specific.
 
-After that, new work should primarily be opt-in modules/plugins or
-productization.
+Only the first two should automatically change the baseline.
 
 ## Optional module candidates
 

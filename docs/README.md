@@ -1,34 +1,45 @@
 # Nucleus Documentation
 
-Nucleus documentation is split by audience and by responsibility. The objective
-is to make the template usable from the Godot editor without requiring users to
-understand its internals, while keeping enough contract detail for maintainers.
+Nucleus documentation is split by audience and responsibility. The objective is
+to make the template usable from the Godot editor without requiring users to
+understand its internals, while preserving explicit contracts for maintainers.
 
 ## Start here
 
-If you are integrating Nucleus into a game, use `docs/guides/`.
-
 | Goal | Guide |
 | --- | --- |
-| Understand the baseline and Autoloads | `foundation_quickstart.md` |
-| Configure settings, input, and rebinding | `settings_input_quickstart.md` |
-| Use audio, save, scene flow, and localization | `runtime_services_quickstart.md` |
-| Compose common gameplay building blocks | `gameplay_foundation_quickstart.md` |
-| Use actions, attributes, and status effects | `actions_attributes_status_quickstart.md` |
-| Set up pooling and targeting | `pooling_targeting_quickstart.md` |
-| Build production UI and accessibility | `ui_quickstart.md` |
-| Wire AnimationTree | `animation_integration_quickstart.md` |
-| Add camera/game-feel feedback | `camera_game_feel_quickstart.md` |
-| Opt into EventBus or networking | `optional_modules_quickstart.md` |
-| Run validation and CI | `validation_ci_quickstart.md` |
+| Start a new game from Nucleus | `guides/installation.md` |
+| Understand the baseline and Autoloads | `guides/foundation_quickstart.md` |
+| Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
+| Use audio, save, scene flow, and localization | `guides/runtime_services_quickstart.md` |
+| Compose common gameplay building blocks | `guides/gameplay_foundation_quickstart.md` |
+| Use actions, attributes, and status effects | `guides/actions_attributes_status_quickstart.md` |
+| Set up pooling and targeting | `guides/pooling_targeting_quickstart.md` |
+| Build production UI and accessibility | `guides/ui_quickstart.md` |
+| Wire AnimationTree | `guides/animation_integration_quickstart.md` |
+| Add camera/game-feel feedback | `guides/camera_game_feel_quickstart.md` |
+| Opt into EventBus or networking | `guides/optional_modules_quickstart.md` |
+| Run validation and CI | `guides/validation_ci_quickstart.md` |
+| Package a Nucleus release | `guides/releasing.md` |
+
+## Product policies
+
+`docs/policies/` defines promises that apply across components:
+
+- `versioning.md`
+- `godot_compatibility.md`
+- `api_stability.md`
+- `deprecation.md`
+
+These policies are intentionally separate from implementation documentation.
+They define how Nucleus may evolve, not how one component works internally.
 
 ## Technical contracts
 
 `docs/components/` documents ownership, lifetime, data flow, signals, extension
 points, persistence boundaries, Godot-native APIs, and known limitations.
 
-The recovered baseline is grouped into contracts rather than one file per
-script:
+The baseline is grouped into contracts rather than one file per script:
 
 - `core_runtime.md`
 - `settings_and_input.md`
@@ -43,8 +54,8 @@ script:
 
 ## Optional modules
 
-`docs/modules/` is reserved for systems that are useful but not mandatory
-baseline infrastructure:
+`docs/modules/` contains systems that are useful but not mandatory baseline
+infrastructure:
 
 - `event_bus.md`
 - `networking.md`
@@ -55,23 +66,25 @@ Neither module is an Autoload in the default `project.godot`.
 
 Use `docs/architecture/` for dependency direction and design rationale.
 
-The key documents are:
+Key documents include:
 
 - `documentation_model.md`
 - `baseline_architecture.md`
 - `production_hardening.md`
-- the existing Iteration 17 reuse audit
+- the Iteration 17 reuse audit
 
 ## Roadmap and handoff
 
 Use `docs/roadmap/` for status and future direction.
 
-`iteration_18.md` records the hardening delivery. `next_chat_context.md` remains
-the portable handoff document. It should state what was implemented, what was
-actually runtime-validated, and what remains pending without conflating those
-states.
+`iteration_18.md` records production hardening.
 
-## Documentation coverage is machine-checkable
+`iteration_19.md` records productization and first-project readiness.
+
+`next_chat_context.md` is the portable handoff document and should always
+distinguish implemented, CI-validated, and future work.
+
+## Machine-checkable documentation coverage
 
 `docs/documentation_coverage.json` maps every direct subsystem directory under:
 
@@ -82,12 +95,18 @@ components/gameplay/*
 components/ui/*
 ```
 
-to at least one technical document. Run:
+to at least one technical document.
+
+Run:
 
 ```bash
 python3 scripts/ci/documentation_audit.py
 ```
 
-A new top-level subsystem that is not mapped fails the audit. This makes the
-documentation requirement part of production readiness instead of a cleanup
-task performed after implementation.
+Product-level files and policies are checked separately:
+
+```bash
+python3 scripts/ci/productization_audit.py
+```
+
+This keeps both implementation documentation and release contracts inside CI.

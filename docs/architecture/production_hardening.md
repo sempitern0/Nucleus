@@ -9,26 +9,59 @@ This iteration intentionally does not add another large gameplay subsystem.
 
 ## Native headless tests
 
-Nucleus now includes a dependency-free GDScript test runner under
-`tests/headless/`.
+Nucleus includes a dependency-free GDScript test runner under `tests/headless/`.
 
-Initial deterministic coverage targets high-value pure contracts:
+Initial deterministic coverage targets high-value contracts:
 
 ```text
 SemVer parsing/precedence
 ValuePool limits/overflow/state restore
 network utility validation/nonce generation
+InputBindingCodec serialization round-trips
 editor configuration warning contracts
 ```
 
 The runner is deliberately small. Future suites should use the same pattern
 until the project proves it needs a third-party test framework.
 
-Run:
+## Test-suite contract
+
+`tests/headless/test_case.gd` is the single assertion API:
+
+```text
+expect_true
+expect_false
+expect_equal
+expect_float
+finish
+```
+
+Suites must define `run() -> Dictionary`, finish through `finish()`, and be
+registered in `test_manifest.gd`.
+
+`scripts/ci/static_checks.py` verifies this structure without requiring Godot.
+It also rejects the obsolete `check()` / `result()` convention and detects
+unknown `expect_*` calls.
+
+This static contract does not attempt to duplicate the Godot parser. Engine
+symbols, enum constants, typed APIs, and GDScript semantics are validated by the
+Godot test-graph parse stage.
+
+## Godot parse gate
+
+CI explicitly parses the native test graph before executing tests:
 
 ```bash
-godot --headless --path . --script res://tests/headless/test_runner.gd
+godot \
+  --headless \
+  --path . \
+  --check-only \
+  --script res://tests/headless/test_runner.gd
 ```
+
+The manifest uses `preload()`, so parsing the runner traverses the registered
+suite graph. Parse/API failures are therefore separated from assertion failures
+in CI output.
 
 ## Bootstrap smoke test
 
@@ -49,10 +82,10 @@ They are removable fixtures, not sample-game dependencies.
 
 ## Editor configuration warnings
 
-High-value editor-facing nodes now use Godot's native
+High-value editor-facing nodes use Godot's native
 `_get_configuration_warnings()` mechanism.
 
-Iteration 18 adds warnings to:
+Iteration 18 covers:
 
 ```text
 NucleusRegenerator
@@ -76,6 +109,8 @@ no trailing whitespace
 GDScript <= 100 columns
 tab indentation
 Nucleus prefix for public class_name
+headless test-suite contract
+test manifest completeness
 ```
 
 It has no Python package dependencies.
@@ -96,6 +131,7 @@ repository structure and fails if a subsystem is added without documentation.
 static checks
 documentation audit
 Godot headless import
+native test-graph parse
 native GDScript tests
 bootstrap smoke scene
 Linux export
@@ -103,11 +139,22 @@ Windows export
 Web export
 ```
 
-The workflow pins Godot `4.7.2-stable`, currently the maintenance release in the
-target 4.7 line.
+The workflow pins Godot `4.7.2-stable`.
 
-Engine and official export templates are downloaded from the official
-`godotengine/godot-builds` release assets and cached by GitHub Actions.
+CI is intentionally staged by cost:
+
+```text
+cheap Python checks
+    ↓
+Godot editor download/import/tests
+    ↓
+large export-template download
+    ↓
+cross-platform smoke exports
+```
+
+Export templates are not downloaded until the code has passed the cheaper
+validation gates.
 
 ## Smoke export isolation
 
@@ -120,10 +167,18 @@ only in that disposable copy before exporting.
 CI therefore validates exportability without mutating the developer checkout or
 changing the reusable template's main-scene policy.
 
-## Remaining runtime validation
+## Acceptance rule
 
-This delivery was statically checked in the generation environment, but that
-environment did not provide a Godot executable or export templates.
+A local editor PASS is useful feedback but is not the production gate.
 
-Do not mark Iteration 18 runtime-validated until the project owner runs Godot
-locally or the included CI completes successfully after the delta is applied.
+An iteration is runtime/export validated only after the following all pass:
+
+```text
+static checks
+documentation audit
+headless import
+test-graph parse
+runtime test suite
+bootstrap smoke scene
+Linux / Windows / Web smoke exports
+```

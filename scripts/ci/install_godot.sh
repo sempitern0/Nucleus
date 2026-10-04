@@ -2,13 +2,14 @@
 set -euo pipefail
 
 GODOT_VERSION="${GODOT_VERSION:-4.7.2-stable}"
+GODOT_INSTALL_EXPORT_TEMPLATES="${GODOT_INSTALL_EXPORT_TEMPLATES:-1}"
 CACHE_ROOT="${GODOT_CACHE_ROOT:-$PWD/.ci/godot}"
 BIN_DIR="$CACHE_ROOT/bin"
 DOWNLOAD_DIR="$CACHE_ROOT/downloads"
 TEMPLATE_VERSION="${GODOT_VERSION/-stable/.stable}"
 TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION"
 
-mkdir -p "$BIN_DIR" "$DOWNLOAD_DIR" "$TEMPLATE_DIR"
+mkdir -p "$BIN_DIR" "$DOWNLOAD_DIR"
 
 BASE_URL="https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION"
 ENGINE_ARCHIVE="Godot_v${GODOT_VERSION}_linux.x86_64.zip"
@@ -33,25 +34,29 @@ if [[ ! -x "$ENGINE_PATH" ]]; then
 	chmod +x "$ENGINE_PATH"
 fi
 
-if [[ ! -f "$TEMPLATE_DIR/version.txt" ]]; then
-	curl --fail --location --retry 3 \
-		"$BASE_URL/$TEMPLATE_ARCHIVE" \
-		--output "$DOWNLOAD_DIR/$TEMPLATE_ARCHIVE"
-
-	template_stage="$(mktemp -d)"
-	trap 'rm -rf "$template_stage"' EXIT
-	unzip -q -o "$DOWNLOAD_DIR/$TEMPLATE_ARCHIVE" -d "$template_stage"
-
-	template_source="$template_stage/templates"
-	[[ -d "$template_source" ]] || {
-		echo "Unable to locate export templates in archive." >&2
-		exit 1
-	}
-
-	rm -rf "$TEMPLATE_DIR"
+if [[ "$GODOT_INSTALL_EXPORT_TEMPLATES" != "0" ]]; then
 	mkdir -p "$TEMPLATE_DIR"
-	cp -a "$template_source"/. "$TEMPLATE_DIR"/
-	printf '%s\n' "$GODOT_VERSION" > "$TEMPLATE_DIR/version.txt"
+
+	if [[ ! -f "$TEMPLATE_DIR/version.txt" ]]; then
+		curl --fail --location --retry 3 \
+			"$BASE_URL/$TEMPLATE_ARCHIVE" \
+			--output "$DOWNLOAD_DIR/$TEMPLATE_ARCHIVE"
+
+		template_stage="$(mktemp -d)"
+		trap 'rm -rf "$template_stage"' EXIT
+		unzip -q -o "$DOWNLOAD_DIR/$TEMPLATE_ARCHIVE" -d "$template_stage"
+
+		template_source="$template_stage/templates"
+		[[ -d "$template_source" ]] || {
+			echo "Unable to locate export templates in archive." >&2
+			exit 1
+		}
+
+		rm -rf "$TEMPLATE_DIR"
+		mkdir -p "$TEMPLATE_DIR"
+		cp -a "$template_source"/. "$TEMPLATE_DIR"/
+		printf '%s\n' "$GODOT_VERSION" > "$TEMPLATE_DIR/version.txt"
+	fi
 fi
 
 printf '%s\n' "$ENGINE_PATH"

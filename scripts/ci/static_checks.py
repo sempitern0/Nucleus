@@ -23,6 +23,18 @@ TEXT_SUFFIXES = {
 SKIP_DIRS = {".ci", ".git", ".godot", "build", "dist"}
 CLASS_NAME_RE = re.compile(r"^\s*class_name\s+([A-Za-z_][A-Za-z0-9_]*)\s*$")
 
+TEST_ROOT = Path("tests/headless")
+TEST_CASE_PATH = TEST_ROOT / "test_case.gd"
+TEST_MANIFEST_PATH = TEST_ROOT / "test_manifest.gd"
+TEST_CASE_EXTENDS = 'extends "res://tests/headless/test_case.gd"'
+TEST_RUN_RE = re.compile(r"(?m)^func run\(\) -> Dictionary:\s*$")
+TEST_FUNC_RE = re.compile(r"(?m)^func ([A-Za-z_][A-Za-z0-9_]*)\s*\(")
+EXPECT_CALL_RE = re.compile(r"(?<![\w.])(expect_[A-Za-z0-9_]+)\s*\(")
+LEGACY_TEST_HELPER_RE = re.compile(r"(?<![\w.])(check|result)\s*\(")
+MANIFEST_SUITE_RE = re.compile(
+	r'preload\("(res://tests/headless/[^"]+_test\.gd)"\)'
+)
+
 
 def iter_text_files(root: Path):
 	for path in root.rglob("*"):
@@ -76,6 +88,77 @@ def check_file(path: Path, repository_root: Path) -> list[str]:
 	return errors
 
 
+def check_test_contract(repository_root: Path) -> list[str]:
+	errors: list[str] = []
+	test_root = repository_root / TEST_ROOT
+	test_case_path = repository_root / TEST_CASE_PATH
+	manifest_path = repository_root / TEST_MANIFEST_PATH
+
+	if not test_case_path.is_file():
+		return [f"{TEST_CASE_PATH.as_posix()}: missing test base"]
+
+	if not manifest_path.is_file():
+		return [f"{TEST_MANIFEST_PATH.as_posix()}: missing suite manifest"]
+
+	test_case_text = test_case_path.read_text(encoding="utf-8")
+	available_helpers = set(TEST_FUNC_RE.findall(test_case_text))
+
+	if "finish" not in available_helpers:
+		errors.append(
+			f"{TEST_CASE_PATH.as_posix()}: test base must define finish()"
+		)
+
+	manifest_text = manifest_path.read_text(encoding="utf-8")
+	manifest_suites = set(MANIFEST_SUITE_RE.findall(manifest_text))
+	discovered_suites: set[str] = set()
+
+	for suite_path in sorted(test_root.glob("*_test.gd")):
+		relative = suite_path.relative_to(repository_root).as_posix()
+		resource_path = "res://" + relative
+		discovered_suites.add(resource_path)
+		text = suite_path.read_text(encoding="utf-8")
+
+		if TEST_CASE_EXTENDS not in text:
+			errors.append(
+				f"{relative}: test suite must extend tests/headless/test_case.gd"
+			)
+
+		if not TEST_RUN_RE.search(text):
+			errors.append(
+				f"{relative}: test suite must define run() -> Dictionary"
+			)
+
+		if "return finish()" not in text:
+			errors.append(
+				f"{relative}: test suite must return finish()"
+			)
+
+		for helper in sorted(set(EXPECT_CALL_RE.findall(text))):
+			if helper not in available_helpers:
+				errors.append(
+					f"{relative}: unknown test helper {helper}()"
+				)
+
+		for legacy_helper in sorted(set(LEGACY_TEST_HELPER_RE.findall(text))):
+			errors.append(
+				f"{relative}: unsupported test helper {legacy_helper}(); "
+				"use expect_*() and finish()"
+			)
+
+	for resource_path in sorted(discovered_suites - manifest_suites):
+		errors.append(
+			f"{TEST_MANIFEST_PATH.as_posix()}: missing suite {resource_path}"
+		)
+
+	for resource_path in sorted(manifest_suites - discovered_suites):
+		errors.append(
+			f"{TEST_MANIFEST_PATH.as_posix()}: references missing suite "
+			f"{resource_path}"
+		)
+
+	return errors
+
+
 def main() -> int:
 	parser = argparse.ArgumentParser()
 	parser.add_argument(
@@ -91,6 +174,8 @@ def main() -> int:
 
 	for path in iter_text_files(repository_root):
 		errors.extend(check_file(path, repository_root))
+
+	errors.extend(check_test_contract(repository_root))
 
 	if errors:
 		print("Nucleus static checks: FAIL")

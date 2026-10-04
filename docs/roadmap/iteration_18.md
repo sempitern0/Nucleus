@@ -15,9 +15,11 @@ This iteration is a delta only. It was produced without mutating GitHub.
 ### Automated validation
 
 - dependency-free GDScript headless runner;
+- shared editor launcher over the same suite manifest;
 - SemVer precedence/parsing regression suite;
 - ValuePool limits/overflow/state regression suite;
 - networking utility regression suite;
+- InputBindingCodec serialization regression suite;
 - editor configuration-warning regression suite;
 - mandatory-Autoload/engine smoke scene.
 
@@ -47,12 +49,13 @@ These are removable wiring fixtures, not dependencies of the template.
 
 ### CI and exports
 
-GitHub Actions now has a proposed validation path for:
+GitHub Actions validates:
 
 ```text
 static source checks
 documentation audit
 Godot headless import
+native test-graph parsing
 headless test suite
 bootstrap smoke scene
 Linux release smoke export
@@ -60,8 +63,7 @@ Windows release smoke export
 Web release smoke export
 ```
 
-The CI install script pins official Godot `4.7.2-stable` editor and export
-templates from `godotengine/godot-builds`.
+The CI install script pins official Godot `4.7.2-stable` assets.
 
 Smoke export configuration is injected only into a disposable project copy, so
 the reusable template does not gain a permanent game main scene or project
@@ -82,51 +84,72 @@ docs/roadmap/       status/handoff
 Recovered contracts cover every direct subsystem under Core, Modules, Gameplay,
 and UI. `docs/documentation_coverage.json` makes that coverage machine-checkable.
 
-## Static validation performed during delivery
+## First validation feedback
 
-The generation environment validated:
-
-```text
-Python syntax
-Bash syntax
-GitHub Actions YAML syntax
-Nucleus static style/encoding rules
-documentation manifest against all 46 known direct subsystem directories
-```
-
-Godot itself was not available in the generation environment.
-
-## Acceptance gate
-
-Iteration 18 must remain **runtime-validation pending** until, after applying the
-delta, either local Godot or CI passes:
-
-1. headless import;
-2. headless tests;
-3. bootstrap smoke scene;
-4. Linux export;
-5. Windows export;
-6. Web export.
-
-A runtime/export failure should be fixed before starting another baseline
-feature iteration.
-
-## Validation cleanup after first local Godot run
-
-The first owner-side Godot validation identified two developer-experience gaps.
-They were corrected as part of Iteration 18 rather than opening a new feature
-iteration:
+The first owner-side validation exposed infrastructure issues rather than
+component defects:
 
 ```text
 InputBindingCodec enum reconstruction
-    serialized integers are explicitly cast back to Godot enum types
-    no int-as-enum warning suppression is required
-
-editor test launcher
-    tests/editor/test_runner.tscn
-    F6 runs the same suite manifest as headless CI
+test suite using helpers not present in test_case.gd
+test suite referencing a non-Godot KeyLocation constant
+repository trailing whitespace blocking the first CI run
 ```
 
-An InputBindingCodec round-trip suite now covers keyboard, mouse, joypad button,
-and joypad axis serialization. The validation quickstart now distinguishes the
-fast editor loop from the authoritative headless/export acceptance gate.
+These are treated as Iteration 18 hardening fixes, not a new feature iteration.
+
+The input regression suite now uses only Godot 4.7 `KeyLocation` values:
+
+```text
+KEY_LOCATION_UNSPECIFIED
+KEY_LOCATION_LEFT
+KEY_LOCATION_RIGHT
+```
+
+The suite also uses only the canonical Nucleus test API:
+
+```text
+expect_true
+expect_false
+expect_equal
+expect_float
+finish
+```
+
+## Test infrastructure hardening
+
+`static_checks.py` now validates the headless suite contract before Godot starts:
+
+```text
+suite extends test_case.gd
+run() -> Dictionary exists
+finish() is returned
+expect_* helpers exist in test_case.gd
+legacy check()/result() calls are rejected
+every *_test.gd is registered in test_manifest.gd
+manifest entries point to real suites
+```
+
+Godot then runs a dedicated `--check-only` parse of the preloaded test graph
+before executing runtime assertions.
+
+CI is also staged so cheap static/documentation failures happen before Godot is
+downloaded, and export templates are downloaded only after tests and smoke pass.
+
+## Acceptance gate
+
+Iteration 18 remains **runtime-validation pending** until a clean local/CI run
+passes all of:
+
+1. static checks;
+2. documentation audit;
+3. headless import;
+4. native test-graph parse;
+5. native runtime tests;
+6. bootstrap smoke scene;
+7. Linux export;
+8. Windows export;
+9. Web export.
+
+A failure in this sequence should be fixed before starting another baseline
+feature iteration.

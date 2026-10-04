@@ -6,6 +6,10 @@ extends RefCounted
 ## [NucleusLocalInputSession] through [signal input_received].
 
 signal input_received(event: InputEvent)
+signal device_changed(
+	previous_source: int,
+	previous_device_id: int,
+)
 
 var player_index: int = -1
 var source: int = NucleusInputTypes.Source.ANY
@@ -135,10 +139,54 @@ func stop_vibration() -> void:
 		NucleusInput.stop_vibration(device_id)
 
 
-func _set_gamepad_device(new_device_id: int) -> void:
+func _set_input_device(
+	new_source: int,
+	new_device_id: int,
+) -> bool:
+	if new_source not in [
+		NucleusInputTypes.Source.KEYBOARD_MOUSE,
+		NucleusInputTypes.Source.GAMEPAD,
+	]:
+		return false
+
+	if (
+		new_source == NucleusInputTypes.Source.GAMEPAD
+		and new_device_id not in Input.get_connected_joypads()
+	):
+		return false
+
+	if new_source == NucleusInputTypes.Source.KEYBOARD_MOUSE:
+		new_device_id = InputEvent.DEVICE_ID_KEYBOARD
+
+	if source == new_source and device_id == new_device_id and connected:
+		return false
+
+	var previous_source: int = source
+	var previous_device_id: int = device_id
+
+	if is_gamepad() and connected:
+		stop_vibration()
+
+	source = new_source
 	device_id = new_device_id
 	connected = true
-	_refresh_gamepad_metadata()
+
+	if is_keyboard_mouse():
+		device_name = "Keyboard & Mouse"
+		device_guid = ""
+		gamepad_family = NucleusInputTypes.GamepadFamily.GENERIC
+	else:
+		_refresh_gamepad_metadata()
+
+	device_changed.emit(previous_source, previous_device_id)
+	return true
+
+
+func _set_gamepad_device(new_device_id: int) -> void:
+	_set_input_device(
+		NucleusInputTypes.Source.GAMEPAD,
+		new_device_id,
+	)
 
 
 func _mark_disconnected() -> void:

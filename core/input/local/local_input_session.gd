@@ -10,6 +10,11 @@ signal player_left(player_index: int)
 signal player_input(player: NucleusLocalPlayerInput, event: InputEvent)
 signal player_device_disconnected(player: NucleusLocalPlayerInput)
 signal player_device_reconnected(player: NucleusLocalPlayerInput)
+signal player_device_changed(
+	player: NucleusLocalPlayerInput,
+	previous_source: int,
+	previous_device_id: int,
+)
 signal join_requested(device_id: int)
 
 @export_range(1, 16, 1, "or_greater")
@@ -18,6 +23,8 @@ var max_players: int = 4
 @export_range(0, 15, 1, "or_greater")
 var keyboard_mouse_player_index: int = 0
 @export var auto_join_gamepads: bool = true
+## Lets a one-player session follow the last meaningful keyboard/gamepad source.
+@export var single_player_hot_swap: bool = true
 
 var _players: Dictionary[int, NucleusLocalPlayerInput] = {}
 var _gamepad_to_player: Dictionary[int, int] = {}
@@ -30,9 +37,22 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	NucleusInput.gamepad_connected.connect(_on_gamepad_connected)
 	NucleusInput.gamepad_disconnected.connect(_on_gamepad_disconnected)
+	NucleusInput.input_source_changed.connect(_on_input_source_changed)
+	NucleusInput.active_gamepad_changed.connect(_on_active_gamepad_changed)
 
 	if reserve_keyboard_mouse_player:
 		join_keyboard_mouse(keyboard_mouse_player_index)
+
+
+func _exit_tree() -> void:
+	if NucleusInput.gamepad_connected.is_connected(_on_gamepad_connected):
+		NucleusInput.gamepad_connected.disconnect(_on_gamepad_connected)
+	if NucleusInput.gamepad_disconnected.is_connected(_on_gamepad_disconnected):
+		NucleusInput.gamepad_disconnected.disconnect(_on_gamepad_disconnected)
+	if NucleusInput.input_source_changed.is_connected(_on_input_source_changed):
+		NucleusInput.input_source_changed.disconnect(_on_input_source_changed)
+	if NucleusInput.active_gamepad_changed.is_connected(_on_active_gamepad_changed):
+		NucleusInput.active_gamepad_changed.disconnect(_on_active_gamepad_changed)
 
 
 func _input(event: InputEvent) -> void:
@@ -41,9 +61,9 @@ func _input(event: InputEvent) -> void:
 
 	if event is InputEventJoypadButton:
 		if event.pressed and not _gamepad_to_player.has(event.device):
-			if auto_join_gamepads:
+			if auto_join_gamepads and not _uses_single_player_hot_swap():
 				join_gamepad(event.device)
-			else:
+			elif not _uses_single_player_hot_swap():
 				join_requested.emit(event.device)
 
 		_route_gamepad_event(event)
@@ -115,6 +135,56 @@ func join_gamepad(
 	player_joined.emit(player)
 
 	return player
+
+
+## Reassigns a stable local-player seat without replacing its player object.
+func set_player_device(
+	player_index: int,
+	source: int,
+	device_id: int = -1,
+) -> Error:
+	var player: NucleusLocalPlayerInput = get_player(player_index)
+
+	if player == null:
+		return ERR_DOES_NOT_EXIST
+
+	var resolved_device_id: int = device_id
+
+	if source == NucleusInputTypes.Source.KEYBOARD_MOUSE:
+		resolved_device_id = InputEvent.DEVICE_ID_KEYBOARD
+	elif source == NucleusInputTypes.Source.GAMEPAD:
+		if resolved_device_id == -1:
+			resolved_device_id = NucleusInput.active_gamepad_id
+		if resolved_device_id not in Input.get_connected_joypads():
+			return ERR_DOES_NOT_EXIST
+	else:
+		return ERR_INVALID_PARAMETER
+
+	if (
+		source == NucleusInputTypes.Source.GAMEPAD
+		and _gamepad_to_player.has(resolved_device_id)
+		and _gamepad_to_player[resolved_device_id] != player_index
+	):
+		return ERR_ALREADY_IN_USE
+
+	var previous_source: int = player.source
+	var previous_device_id: int = player.device_id
+
+	if player.is_gamepad() and player.device_id != -1:
+		_gamepad_to_player.erase(player.device_id)
+
+	if not player._set_input_device(source, resolved_device_id):
+		return OK
+
+	if player.is_gamepad():
+		_gamepad_to_player[player.device_id] = player.player_index
+
+	player_device_changed.emit(
+		player,
+		previous_source,
+		previous_device_id,
+	)
+	return OK
 
 
 func leave_player(player_index: int) -> void:
@@ -207,6 +277,52 @@ func _route_gamepad_event(event: InputEvent) -> void:
 
 	player._dispatch_input(event)
 	player_input.emit(player, event)
+
+
+func _uses_single_player_hot_swap() -> bool:
+	return single_player_hot_swap and max_players == 1
+
+
+func _hot_swap_single_player(source: int) -> void:
+	if not _uses_single_player_hot_swap():
+		return
+
+	var players: Array[NucleusLocalPlayerInput] = get_players()
+
+	if players.size() != 1:
+		return
+
+	var device_id: int = -1
+
+	if source == NucleusInputTypes.Source.GAMEPAD:
+		device_id = NucleusInput.active_gamepad_id
+		if device_id == -1:
+			return
+
+	set_player_device(
+		players[0].player_index,
+		source,
+		device_id,
+	)
+
+
+func _on_input_source_changed(
+	source: int,
+	_previous_source: int,
+) -> void:
+	if source in [
+		NucleusInputTypes.Source.KEYBOARD_MOUSE,
+		NucleusInputTypes.Source.GAMEPAD,
+	]:
+		_hot_swap_single_player(source)
+
+
+func _on_active_gamepad_changed(
+	_device_id: int,
+	_family: int,
+) -> void:
+	if NucleusInput.active_source == NucleusInputTypes.Source.GAMEPAD:
+		_hot_swap_single_player(NucleusInputTypes.Source.GAMEPAD)
 
 
 func _on_gamepad_disconnected(

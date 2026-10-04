@@ -5,6 +5,9 @@ extends RefCounted
 ## Games are free to add or remove actions. Core systems never require these
 ## actions to exist; they are provided as useful, device-agnostic defaults.
 
+const UI_ACCEPT: StringName = &"ui_accept"
+const UI_CANCEL: StringName = &"ui_cancel"
+
 const MOVE_LEFT: StringName = &"move_left"
 const MOVE_RIGHT: StringName = &"move_right"
 const MOVE_FORWARD: StringName = &"move_forward"

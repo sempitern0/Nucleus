@@ -35,6 +35,29 @@ MANIFEST_SUITE_RE = re.compile(
 	r'preload\("(res://tests/headless/[^"]+_test\.gd)"\)'
 )
 
+NUCLEUS_OWNED_API_RULES = (
+	(
+		re.compile(r"\bInput\.mouse_mode\s*="),
+		frozenset({"core/input/cursor.gd"}),
+		"use NucleusCursor instead of assigning Input.mouse_mode directly",
+	),
+	(
+		re.compile(r"\bDisplayServer\.window_set_mode\s*\("),
+		frozenset({"core/settings/appliers/display_settings_applier.gd"}),
+		"use NucleusSettings; display window mode is owned by its applier",
+	),
+	(
+		re.compile(r"\bDisplayServer\.window_set_vsync_mode\s*\("),
+		frozenset({"core/settings/appliers/display_settings_applier.gd"}),
+		"use NucleusSettings; VSync is owned by its display applier",
+	),
+	(
+		re.compile(r"\bEngine\.max_fps\s*="),
+		frozenset({"core/settings/appliers/display_settings_applier.gd"}),
+		"use NucleusSettings; the frame limit is owned by its display applier",
+	),
+)
+
 
 def iter_text_files(root: Path):
 	for path in root.rglob("*"):
@@ -43,6 +66,10 @@ def iter_text_files(root: Path):
 		if any(part in SKIP_DIRS for part in path.parts):
 			continue
 		yield path
+
+
+def _is_test_path(relative: str) -> bool:
+	return relative.startswith("tests/") or "/tests/" in relative
 
 
 def check_file(path: Path, repository_root: Path) -> list[str]:
@@ -84,6 +111,17 @@ def check_file(path: Path, repository_root: Path) -> list[str]:
 				errors.append(
 					f"{relative}:{number}: public class_name must use Nucleus prefix"
 				)
+
+		if not _is_test_path(relative):
+			for pattern, allowed_paths, guidance in NUCLEUS_OWNED_API_RULES:
+				if relative in allowed_paths:
+					continue
+
+				for match in pattern.finditer(text):
+					number = text.count("\n", 0, match.start()) + 1
+					errors.append(
+						f"{relative}:{number}: Nucleus-owned API bypass; {guidance}"
+					)
 
 	return errors
 

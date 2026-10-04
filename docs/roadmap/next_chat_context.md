@@ -472,3 +472,54 @@ Stop broad template expansion and move into the planned real game.
 
 Further Nucleus changes should be driven by observed production friction rather
 than roadmap completion.
+
+## First production feedback — Nautica bootstrap
+
+Observed against Nautica branch:
+
+```text
+codex/nautica-project-bootstrap
+760b96058338c2a462af0e7e3e7afe5362e6a140
+```
+
+### Display settings
+
+Nautica confirmed that the settings UI, catalog, persistence, binding, and
+`NucleusDisplaySettingsApplier` path are present. `display/window_mode` already
+reaches `DisplayServer.window_set_mode()` on desktop.
+
+The apparent fullscreen failure while running from the Godot 4.7 editor is not
+a missing Nucleus feature. Godot game embedding is enabled by default and does
+not support window-mode/window-flag transitions.
+
+Hardening derived from this production feedback:
+
+```text
+display applier
+→ avoid unsupported embedded-editor window transitions
+→ emit an actionable diagnostic
+→ keep the preference persisted for the next non-embedded run
+```
+
+Validate fullscreen with **Embed Game on Next Play** disabled or in an exported
+build. Do not write `ProjectSettings` at runtime to work around this limitation.
+
+### Nucleus-first agent contract
+
+Nautica also exposed coding-agent drift: game code duplicated
+`Input.mouse_mode = ...` even though `NucleusCursor` already owns cursor mode.
+
+The repository contract is now:
+
+```text
+search Nucleus first
+→ use the existing Nucleus owner when one exists
+→ otherwise prefer the native Godot API
+```
+
+A short root `AGENTS.md` provides the map for Codex/Astra, while
+`scripts/ci/static_checks.py` mechanically rejects selected high-value bypasses
+such as direct cursor-mode assignment and direct built-in display-setting
+application outside their Nucleus owners.
+
+This is production hardening, not a new broad template iteration.

@@ -314,6 +314,31 @@ provider achievement wrappers
 
 should now wait for concrete project evidence.
 
+## First real-game feedback — Nautica
+
+The first production-driven hardening pass does not add a new subsystem.
+
+Nautica validated two existing architectural rules:
+
+```text
+settings persistence != runtime ProjectSettings mutation
+existing Nucleus owner > duplicated lower-level Godot call
+```
+
+`NucleusDisplaySettingsApplier` already applies desktop window mode through
+`DisplayServer`. Godot 4.7 game embedding does not support fullscreen/window
+mode changes, so Nucleus documents and diagnoses that editor limitation instead
+of introducing another display abstraction.
+
+Nautica also showed that coding agents can bypass an existing helper such as
+`NucleusCursor`. A short root `AGENTS.md` plus narrow static ownership checks now
+make the "Nucleus first, Godot second when Nucleus already owns the concern"
+rule both discoverable and mechanically enforceable.
+
+This fits the post-Iteration-25 policy: production friction hardens the existing
+baseline without reopening broad template expansion.
+
+
 ## Dedicated plugin horizon
 
 Keep these outside the baseline:

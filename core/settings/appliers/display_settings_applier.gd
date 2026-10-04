@@ -3,6 +3,10 @@ extends Node
 ## Applies built-in display and rendering settings to Godot runtime APIs.
 
 const LOG_CONTEXT: StringName = &"DisplaySettings"
+const EMBEDDED_WINDOW_WARNING: String = (
+	"Window changes are unavailable while Godot game embedding is enabled. "
+	+ "Disable 'Embed Game on Next Play' to validate this setting."
+)
 
 var _settings: NucleusSettingsService
 
@@ -78,11 +82,25 @@ func _apply_window_mode(value: int) -> void:
 	if NucleusPlatform.uses_managed_window_mode():
 		return
 
+	if DisplayServer.window_get_mode() == value:
+		return
+
+	if Engine.is_embedded_in_editor():
+		NucleusLog.warning(EMBEDDED_WINDOW_WARNING, LOG_CONTEXT)
+		return
+
 	DisplayServer.window_set_mode(value)
 
 
 func _apply_borderless(value: bool) -> void:
 	if NucleusPlatform.uses_managed_window_mode():
+		return
+
+	if DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS) == value:
+		return
+
+	if Engine.is_embedded_in_editor():
+		NucleusLog.warning(EMBEDDED_WINDOW_WARNING, LOG_CONTEXT)
 		return
 
 	DisplayServer.window_set_flag(
@@ -102,4 +120,5 @@ func _apply_max_fps(value: int) -> void:
 
 @warning_ignore("int_as_enum_without_cast")
 func _apply_msaa_3d(value: int) -> void:
+	@warning_ignore("int_as_enum_without_cast")
 	get_tree().root.msaa_3d = value

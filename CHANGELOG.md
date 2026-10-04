@@ -52,6 +52,9 @@ summarized under **Unreleased** until the first release is cut.
   dependency.
 - Productization packaging moved to `scripts/package_release.py` so the
   source tool is not hidden by Visual Studio's generic `Release/` ignore.
+- Root `AGENTS.md` guidance and static ownership checks that keep coding agents
+  on existing Nucleus cursor and display-settings APIs instead of duplicating
+  their lower-level Godot calls.
 
 ### Changed
 
@@ -72,6 +75,8 @@ summarized under **Unreleased** until the first release is cut.
   public APIs.
 - Development version advances to `0.7.0-dev.1` for the final pre-game
   online replication and Platform Services public APIs.
+- Display settings now detect Godot editor game embedding before requesting an
+  unsupported window-mode/window-flag transition and emit a useful diagnostic.
 
 ### Notes
 
@@ -79,3 +84,5 @@ summarized under **Unreleased** until the first release is cut.
   stabilization before a 1.0 release.
 - Breaking changes before 1.0 must still be explicit in this changelog and the
   relevant migration notes.
+- Godot 4.7 game embedding does not support fullscreen/window-mode changes;
+  disable embedding or validate an exported/separate game window.

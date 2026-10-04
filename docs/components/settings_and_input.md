@@ -33,6 +33,46 @@ Bindings connect UI or other consumers without duplicating settings logic.
 Do not make UI widgets write `ProjectSettings`, `DisplayServer`, or audio buses
 independently when a Nucleus setting/applier already owns that behavior.
 
+## Runtime application
+
+Changing a setting through `NucleusSettings.set_value()` updates the runtime
+value, emits `setting_changed`, and lets the matching applier update Godot state.
+Persistence and runtime application are related but separate responsibilities.
+
+For built-in display settings, `NucleusDisplaySettingsApplier` owns:
+
+```text
+display/window_mode
+display/borderless
+display/vsync_mode
+graphics/max_fps
+graphics/msaa_3d
+```
+
+Do not try to make a runtime preference effective by writing the corresponding
+`ProjectSettings` key. Many project settings are read only during startup.
+Nucleus intentionally uses runtime APIs such as `DisplayServer`, `Engine`, and
+the root `Viewport` from the applier.
+
+### Godot editor game embedding
+
+Godot 4.7 enables game embedding by default. Embedded runs do not support window
+mode or window-flag changes such as fullscreen.
+
+Nucleus therefore keeps the preference persisted but does not treat an embedded
+editor run as proof that fullscreen is broken. The display applier emits a
+diagnostic when an actual embedded window change is requested.
+
+To validate window mode:
+
+1. Open the editor's **Game** workspace.
+2. Disable **Embed Game on Next Play**.
+3. Run the project again, or validate an exported build.
+4. Compare the runtime state with `DisplayServer.window_get_mode()` if needed.
+
+Web and native-mobile platforms also use managed window behavior and intentionally
+ignore desktop window-mode requests.
+
 ## Input ownership
 
 `NucleusInput` is the default input Autoload.
@@ -48,6 +88,25 @@ The public surface includes:
 - prompt bindings;
 - cursor and gamepad helpers;
 - local multiplayer input sessions/readers.
+
+### Cursor ownership
+
+`NucleusCursor` is the public cursor-mode boundary.
+
+Use:
+
+```gdscript
+NucleusCursor.show()
+NucleusCursor.hide()
+NucleusCursor.capture()
+NucleusCursor.confine()
+NucleusCursor.confine_hidden()
+NucleusCursor.set_mode(custom_mode)
+```
+
+Game-facing code should not assign `Input.mouse_mode` directly. Keeping the raw
+Godot assignment inside `NucleusCursor` gives agents and humans one searchable
+owner for cursor policy without hiding Godot's actual modes.
 
 ## Runtime rebinding
 
@@ -81,7 +140,23 @@ rebind request
 → serialized binding
 → settings persistence
 → prompt/label refresh
+
+settings binding
+→ NucleusSettings.set_value()
+→ setting_changed
+→ settings applier
+→ Godot runtime API
 ```
+
+## Agent and CI guardrail
+
+The root `AGENTS.md` tells coding agents to search Nucleus before duplicating a
+lower-level Godot call. `scripts/ci/static_checks.py` mechanically protects a
+small set of high-value ownership boundaries, including cursor mode and built-in
+display settings.
+
+The guardrail is intentionally narrow. Nucleus still prefers native Godot APIs
+when no Nucleus system owns the concern.
 
 ## Persistence boundary
 

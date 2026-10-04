@@ -44,8 +44,6 @@ Chest
 └── Inventory
 ```
 
-Use `NucleusItemCatalog` as explicit shared definition data.
-
 See:
 
 ```text
@@ -67,16 +65,42 @@ Chest
 └── LootRoller
 ```
 
-The table is a shared Resource. RNG and unique-entry state belong to each
-scene-owned `NucleusLootRoller`.
-
-Loot does not require Inventory. When both modules are enabled, an item
-definition can simply be used as a loot-entry payload.
+Loot does not require Inventory.
 
 See:
 
 ```text
 docs/guides/loot_quickstart.md
+```
+
+## Persistent World State
+
+`modules/world_state` gives authored/runtime world objects stable identity and
+explicit cross-scene state.
+
+If the game replaces whole level scenes, its `NucleusWorldStateService` must live
+outside those scenes.
+
+Use either:
+
+```text
+persistent GameSession
+```
+
+or intentionally add:
+
+```text
+modules/world_state/world_state.tscn
+```
+
+as an opt-in Autoload.
+
+This service is not added to the default Nucleus project.
+
+See:
+
+```text
+docs/guides/persistent_world_quickstart.md
 ```
 
 ## Keep optional modules optional

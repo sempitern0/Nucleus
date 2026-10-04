@@ -22,6 +22,7 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Add camera/game-feel feedback | `guides/camera_game_feel_quickstart.md` |
 | Use Inventory / Equipment | `guides/inventory_equipment_quickstart.md` |
 | Build deterministic loot tables | `guides/loot_quickstart.md` |
+| Persist world state across scenes | `guides/persistent_world_quickstart.md` |
 | Opt into optional modules | `guides/optional_modules_quickstart.md` |
 | Run validation and CI | `guides/validation_ci_quickstart.md` |
 | Package a Nucleus release | `guides/releasing.md` |
@@ -66,6 +67,7 @@ infrastructure:
 - `networking.md`
 - `inventory_equipment.md`
 - `probability_loot.md`
+- `persistent_world_state.md`
 
 Neither module is an Autoload in the default `project.godot`.
 
@@ -93,6 +95,8 @@ Use `docs/roadmap/` for status and future direction.
 `iteration_21.md` records Inventory / Equipment.
 
 `iteration_22.md` records Probability / Loot.
+
+`iteration_23.md` records Persistent World State / Identity.
 
 `next_chat_context.md` is the portable handoff document and should always
 distinguish implemented, CI-validated, and future work.

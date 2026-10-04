@@ -103,6 +103,7 @@ EventBus
 NetworkHandler / LAN helpers
 Inventory / Equipment
 Probability / Loot
+Persistent World State
 ```
 
 ## Start a new game

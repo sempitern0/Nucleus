@@ -38,6 +38,9 @@ summarized under **Unreleased** until the first release is cut.
 - Optional Probability / Loot module with weighted and independent chance
   rolls, guaranteed/unique entries, injectable deterministic RNG, runtime
   unique state, conditions, result amounts, and saveable LootRollers.
+- Optional Persistent World State module with stable region/entity IDs,
+  explicit state adapters, persistent removal, cross-scene reconciliation,
+  runtime scene rematerialization, and SaveSession integration.
 
 ### Changed
 
@@ -52,6 +55,8 @@ summarized under **Unreleased** until the first release is cut.
   Equipment public APIs.
 - Development version advances to `0.4.0-dev.1` for the optional Probability /
   Loot public APIs.
+- Development version advances to `0.5.0-dev.1` for Persistent World State /
+  Identity public APIs.
 
 ### Notes
 

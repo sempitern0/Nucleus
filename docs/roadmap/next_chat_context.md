@@ -74,10 +74,10 @@ nucleus stable release
 
 ## Versioning
 
-Nucleus development version after Iteration 22:
+Nucleus development version after Iteration 23:
 
 ```text
-0.4.0-dev.1
+0.5.0-dev.1
 ```
 
 Source of truth:
@@ -93,8 +93,8 @@ version.
 
 Iteration 18 established the operational validation pipeline.
 
-Iteration 22 must remain runtime-validation pending until CI parses and executes
-the new Loot suite successfully.
+Iteration 23 must remain runtime-validation pending until CI parses and executes
+the new Persistent World State suite successfully.
 
 Current CI covers:
 
@@ -137,6 +137,7 @@ EventBus
 NetworkHandler / LAN helpers
 Inventory / Equipment
 Probability / Loot
+Persistent World State
 ```
 
 Neither is loaded by default.
@@ -350,4 +351,56 @@ Recommended next module:
 
 ```text
 Persistent World Identity
+```
+
+## Iteration 23 — Persistent World State
+
+Optional module:
+
+```text
+modules/world_state/
+```
+
+Public types:
+
+```text
+NucleusWorldStateStore
+NucleusWorldStateService
+NucleusWorldRegion
+NucleusWorldEntity
+NucleusWorldStateAdapter
+NucleusNodeStateAdapter
+NucleusPropertyStateAdapter
+NucleusTransform2DStateAdapter
+NucleusTransform3DStateAdapter
+```
+
+Key model:
+
+```text
+region_id + persistent_id
+→ one persistent world record
+```
+
+Authored object identity never uses SceneTree paths.
+
+Permanent removal is explicit:
+
+```text
+NucleusWorldEntity.remove_persistently()
+```
+
+Runtime persistent PackedScenes use:
+
+```text
+NucleusWorldRegion.spawn_persistent()
+```
+
+When full scenes are replaced, WorldStateService must be kept outside the level
+scene, usually in a persistent GameSession or intentional optional Autoload.
+
+Recommended next optional module:
+
+```text
+AI / Navigation helpers
 ```

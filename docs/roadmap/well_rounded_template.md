@@ -195,6 +195,37 @@ Recommended next module:
 Persistent World Identity
 ```
 
+## Iteration 23 — optional Persistent World State
+
+The third post-Core optional module provides:
+
+```text
+stable world region IDs
+stable authored entity UUIDs
+explicit state adapters
+persistent removal semantics
+runtime world-state store
+scene reconciliation
+persistent runtime PackedScene spawning
+SaveSession integration
+JSON-safe 2D/3D transform adapters
+```
+
+The state service remains opt-in. Cross-scene projects may intentionally keep it
+under a persistent GameSession or promote its provided scene to an Autoload.
+
+Development version:
+
+```text
+0.5.0-dev.1
+```
+
+Recommended next module:
+
+```text
+AI / Navigation helpers
+```
+
 ## Baseline completion rule
 
 The general reusable baseline is complete.
@@ -234,7 +265,6 @@ Only proven baseline defects/gaps should expand the default template.
 Candidates remain:
 
 ```text
-Persistent world identity
 AI / Navigation helpers
 Save-slot presentation UI
 online gameplay replication

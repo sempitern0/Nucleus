@@ -55,6 +55,9 @@
     "modules/networking": [
       "docs/modules/networking.md"
     ],
+    "modules/world_state": [
+      "docs/modules/persistent_world_state.md"
+    ],
     "components/gameplay/actions": [
       "docs/components/gameplay_actions_attributes_status.md"
     ],

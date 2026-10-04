@@ -60,7 +60,7 @@ static func random_name(
 		enum_dictionary,
 		rng,
 	)
-	
+
 	if value == null:
 		return &""
 

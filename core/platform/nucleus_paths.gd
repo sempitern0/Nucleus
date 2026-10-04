@@ -7,6 +7,7 @@ extends RefCounted
 
 const LOGS_DIRECTORY: String = "logs"
 const SAVES_DIRECTORY: String = "saves"
+const SCREENSHOTS_DIRECTORY: String = "screenshots"
 const SETTINGS_DIRECTORY: String = "settings"
 const SETTINGS_FILE_NAME: String = "settings.cfg"
 
@@ -21,6 +22,10 @@ static func logs_directory() -> String:
 
 static func saves_directory() -> String:
 	return user_data_directory().path_join(SAVES_DIRECTORY)
+
+
+static func screenshots_directory() -> String:
+	return user_data_directory().path_join(SCREENSHOTS_DIRECTORY)
 
 
 static func settings_directory() -> String:

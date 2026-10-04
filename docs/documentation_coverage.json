@@ -68,6 +68,9 @@
     "components/gameplay/control": [
       "docs/components/gameplay_movement_camera.md"
     ],
+    "components/gameplay/decals": [
+      "docs/components/world_decals.md"
+    ],
     "components/gameplay/feedback": [
       "docs/components/camera_game_feel.md"
     ],

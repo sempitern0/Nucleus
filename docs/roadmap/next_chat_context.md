@@ -41,9 +41,6 @@ Godot 4.7.2-stable
 
 Nucleus is a clean reusable Godot foundation/template for new games.
 
-The objective is professional cross-project infrastructure and composition, not
-a toolkit containing every mechanic found in any game.
-
 ## Working style
 
 - Inspect current `main` before every iteration.
@@ -62,21 +59,25 @@ a toolkit containing every mechanic found in any game.
 
 ## Current checkpoint
 
-Productization was prepared read-only against:
+Iteration 20 was prepared read-only against:
 
 ```text
 main
-285ba33a81a001647c79e2b0aef10303039a9e4e
+8b0f4baac882563a603b53ffd98361ef4eb3c8ef
 ```
 
-That commit has a successful Nucleus CI run.
+Commit message:
+
+```text
+nucleus stable release
+```
 
 ## Versioning
 
-Nucleus template version:
+Nucleus development version after Iteration 20:
 
 ```text
-0.1.0-dev.1
+0.2.0-dev.1
 ```
 
 Source of truth:
@@ -88,15 +89,12 @@ VERSION
 Nucleus uses Semantic Versioning independently from the consuming game's
 version.
 
-Policy:
-
-```text
-docs/policies/versioning.md
-```
-
 ## Runtime / CI status
 
-The Iteration 18 validation pipeline is operational.
+Iteration 18 established the operational validation pipeline.
+
+Iteration 20 must remain runtime-validation pending until the updated CI passes
+and `examples/validation/smart_decal_3d.tscn` is visually checked in Godot.
 
 Current CI covers:
 
@@ -113,9 +111,6 @@ Windows smoke export
 Web smoke export
 ```
 
-Iteration 17-specific gameplay feel/animation behavior should still be judged in
-the consuming game where subjective integration behavior can be exercised.
-
 ## Implemented foundation
 
 ### Core
@@ -131,6 +126,7 @@ Audio
 Save/encryption/migrations/autosave
 Scene flow
 Localization
+Window / screenshot helpers
 utilities
 ```
 
@@ -172,84 +168,41 @@ Attributes / modifier sources
 Status Effects
 Object Pooling / Spawners
 Targeting / Sensing
+SmartDecal3D
 AnimationTree integration
 camera/game-feel feedback
 ```
 
-## Productization
+## Iteration 20
 
-The repository now has explicit contracts for:
-
-```text
-top-level README
-MIT license
-changelog
-semantic versioning
-Godot compatibility
-deprecation
-installation
-API stability
-release packaging
-```
-
-Key files:
+### SmartDecal3D
 
 ```text
-README.md
-LICENSE
-CHANGELOG.md
-VERSION
-
-docs/policies/
-docs/guides/installation.md
-docs/guides/releasing.md
-
-scripts/ci/productization_audit.py
-scripts/release/package_release.py
-.github/workflows/nucleus-package.yml
+components/gameplay/decals/smart_decal_3d.gd
 ```
 
-## Key architecture
+It uses native Godot Decal projection, aligns local +Y with the outward surface
+normal, supports tangent hints, planar size/roll variation, fade, and optional
+NucleusPoolable release.
 
-### GameplayAction pipeline
+It does not own raycasts, impact classification, or a global decal manager.
+
+### Screenshot capture
+
+`NucleusWindow` now supports:
 
 ```text
-requirements
-→ costs
-→ effect prevalidation
-→ pay
-→ cooldown
-→ commit
-→ effects
+Viewport → Image
+await frame_post_draw capture
+PNG/JPEG/WebP save
+collision-safe timestamped paths
 ```
 
-Actions support source-owned blockers and context providers.
+`NucleusPaths.screenshots_directory()` owns the default writable location.
 
-### Attributes
+This is still-image tooling, not video recording.
 
-Runtime numeric attributes use source-owned modifiers.
-
-Status Effects are one modifier producer; future Equipment may be another.
-
-### Pooling
-
-Pools are scene-owned and type-specific.
-
-No global PoolManager.
-
-Spawners use reserve → transform → activate.
-
-### Targeting
-
-Sensors register source-owned candidates.
-
-Filters decide validity.
-
-Scorers rank.
-
-TargetingAgent owns current/lock state.
-
-### Documentation
+## Documentation
 
 One source of truth:
 
@@ -260,6 +213,13 @@ editor workflow → docs/guides/
 cross-cutting product promises → docs/policies/
 design rationale → docs/architecture/
 future/status → docs/roadmap/
+```
+
+New guides:
+
+```text
+docs/guides/smart_decals_quickstart.md
+docs/guides/screenshot_capture_quickstart.md
 ```
 
 ## Validation commands
@@ -283,55 +243,22 @@ godot \
   --headless \
   --path . \
   --script res://tests/headless/test_runner.gd
-
-godot \
-  --headless \
-  --path . \
-  res://tests/smoke/smoke_main.tscn
 ```
 
-Then run CI for smoke exports.
+Then:
+
+```text
+F6 examples/validation/smart_decal_3d.tscn
+```
+
+and run CI for smoke exports.
 
 ## Natural next step
 
-Use Nucleus as the base of the planned real game.
+After Iteration 20 validates, start the planned real game from the resulting
+Nucleus snapshot.
 
-Do not immediately add another broad baseline subsystem.
-
-When the project exposes a need, decide whether it is:
-
-1. a Nucleus defect;
-2. a reusable Nucleus API gap;
-3. an optional module/plugin;
-4. game-specific.
-
-Only the first two should automatically change the baseline.
-
-## Optional module candidates
-
-```text
-Inventory / Equipment
-AI / Navigation helpers
-Probability / Loot
-Persistent world identity
-Save-slot UI
-online gameplay replication
-platform services
-dialogue / quests
-world streaming
-```
-
-## Independent plugin horizon
-
-Do not integrate these into the Nucleus baseline:
-
-```text
-Day / Night + Environment
-Planet Generator
-Terrainy
-```
-
-See `docs/roadmap/plugin_horizon.md`.
+Further baseline changes should come from concrete production evidence.
 
 ## Decision rule
 

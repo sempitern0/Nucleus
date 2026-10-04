@@ -61,6 +61,8 @@ SemanticVersion parsing / precedence
 ValuePool limits / overflow / state restoration
 network utility validation
 InputBindingCodec serialization round-trips
+SmartDecal surface-basis contracts
+NucleusWindow screenshot path/file helpers
 editor configuration warnings
 ```
 
@@ -74,10 +76,15 @@ The following scenes are intentionally small composition fixtures:
 ```text
 examples/validation/gameplay_2d.tscn
 examples/validation/gameplay_3d.tscn
+examples/validation/smart_decal_3d.tscn
 ```
 
-Open either scene and press **F6**. Use the Scene dock configuration warnings and
-Output panel to detect invalid wiring or runtime errors.
+Open a relevant scene and press **F6**. Use the Scene dock configuration warnings
+and Output panel to detect invalid wiring/runtime errors.
+
+`smart_decal_3d.tscn` is also a visual validation fixture. It confirms decal
+orientation/projection against flat and curved geometry and therefore cannot be
+fully replaced by headless assertions.
 
 The automated bootstrap fixture is:
 
@@ -96,6 +103,7 @@ From the repository root:
 ```bash
 python3 scripts/ci/static_checks.py
 python3 scripts/ci/documentation_audit.py
+python3 scripts/ci/productization_audit.py
 ```
 
 On PowerShell:
@@ -103,9 +111,8 @@ On PowerShell:
 ```powershell
 python .\scripts\ci\static_checks.py
 python .\scripts\ci\documentation_audit.py
+python .\scripts\ci\productization_audit.py
 ```
-
-Both scripts use only the Python standard library.
 
 Run these before launching the more expensive Godot validation path.
 
@@ -177,9 +184,6 @@ Cheap repository checks run first. Godot is installed only after static and
 documentation checks pass. Export templates are installed only after import,
 test-graph parsing, runtime tests, and the bootstrap smoke scene pass.
 
-This keeps early failures fast and avoids downloading the large export-template
-archive when the project is not yet ready to export.
-
 ## Recommended local order
 
 For normal development:
@@ -202,3 +206,6 @@ Static generation checks are not equivalent to executing Godot.
 Only mark an iteration runtime-validated after local Godot validation or a
 successful CI run of import, test parsing, runtime tests, smoke scene, and
 exports.
+
+Visual-only contracts such as decal projection should additionally be inspected
+in their validation scene.

@@ -36,7 +36,15 @@ It does not own gameplay state.
 
 `NucleusPlatform` centralizes runtime capability/platform queries.
 
-`NucleusPaths` centralizes writable `user://` locations and path normalization.
+`NucleusPaths` centralizes writable user-data locations:
+
+```text
+logs
+saves
+screenshots
+settings
+```
+
 Project assets continue to use `res://`.
 
 Prefer capability checks over scattered operating-system name comparisons.
@@ -45,8 +53,41 @@ requested.
 
 ## Window helpers
 
-`NucleusWindow` contains stateless viewport/desktop-window calculations. Godot's
-`Window` and `DisplayServer` remain the underlying source of truth.
+`NucleusWindow` contains stateless viewport/desktop-window calculations and
+still-image viewport capture.
+
+Godot's:
+
+```text
+Viewport
+Window
+DisplayServer
+RenderingServer
+Image
+```
+
+remain the underlying source of truth.
+
+Screenshot capture follows this boundary:
+
+```text
+Viewport last rendered texture
+→ Image
+→ optional PNG/JPEG/WebP save
+```
+
+For a current rendered frame, use the async helper that waits for
+`RenderingServer.frame_post_draw`.
+
+The default save directory comes from `NucleusPaths.screenshots_directory()`.
+Directory creation reuses `NucleusFileUtils`.
+
+Screenshot capture performs a rendering-data readback and is intended for
+occasional still images. It is not a video/trailer recorder and should not run
+every frame.
+
+Any Viewport may be supplied, including a dedicated high-resolution
+`SubViewport`.
 
 ## Diagnostics
 
@@ -79,6 +120,8 @@ important engine behavior.
 Unless an individual API explicitly documents otherwise, treat the application
 and SceneTree-facing infrastructure as main-thread code. Pure value helpers may
 be used wherever the Godot API they call is thread-safe.
+
+Rendering capture is main-thread/render-frame work.
 
 ## Extension rule
 

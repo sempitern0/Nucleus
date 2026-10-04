@@ -15,6 +15,8 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Compose common gameplay building blocks | `guides/gameplay_foundation_quickstart.md` |
 | Use actions, attributes, and status effects | `guides/actions_attributes_status_quickstart.md` |
 | Set up pooling and targeting | `guides/pooling_targeting_quickstart.md` |
+| Place adaptive world decals | `guides/smart_decals_quickstart.md` |
+| Capture screenshots/marketing stills | `guides/screenshot_capture_quickstart.md` |
 | Build production UI and accessibility | `guides/ui_quickstart.md` |
 | Wire AnimationTree | `guides/animation_integration_quickstart.md` |
 | Add camera/game-feel feedback | `guides/camera_game_feel_quickstart.md` |
@@ -48,6 +50,7 @@ The baseline is grouped into contracts rather than one file per script:
 - `gameplay_actions_attributes_status.md`
 - `gameplay_movement_camera.md`
 - `gameplay_pooling_targeting.md`
+- `world_decals.md`
 - `ui_and_accessibility.md`
 - `animation_integration.md`
 - `camera_game_feel.md`
@@ -80,6 +83,9 @@ Use `docs/roadmap/` for status and future direction.
 `iteration_18.md` records production hardening.
 
 `iteration_19.md` records productization and first-project readiness.
+
+`iteration_20.md` records the final proven Barebone reuse additions before the
+first game project.
 
 `next_chat_context.md` is the portable handoff document and should always
 distinguish implemented, CI-validated, and future work.

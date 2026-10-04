@@ -22,6 +22,7 @@ audio/music/one-shots
 save/encryption/migrations/autosave
 scene flow
 localization
+viewport/window/screenshot helpers
 general utilities
 ```
 
@@ -52,6 +53,7 @@ Attributes / modifier sources
 Status Effects
 pooling / spawners
 Targeting / Sensing
+surface-aligned 3D decals
 AnimationTree integration
 camera / game-feel feedback
 ```
@@ -83,31 +85,14 @@ It also established the current documentation model.
 
 ## Iteration 18 — production hardening validated
 
-Iteration 18 added:
+Iteration 18 established automated tests, validation fixtures, editor warnings,
+documentation coverage, GitHub Actions, and Linux/Windows/Web smoke exports.
 
-```text
-dependency-free headless GDScript tests
-bootstrap smoke scene
-2D/3D validation scenes
-native editor configuration warnings
-static source/style checks
-machine-checkable documentation coverage
-GitHub Actions validation
-Linux/Windows/Web smoke exports
-recovered documentation for Core/Components/Modules
-```
-
-After test-infrastructure fixes, Nucleus CI passed on:
-
-```text
-285ba33a81a001647c79e2b0aef10303039a9e4e
-```
-
-The hardening layer is therefore operational rather than merely proposed.
+The hardening layer is operational rather than merely proposed.
 
 ## Iteration 19 — productization / first-project readiness
 
-The productization layer establishes:
+Iteration 19 established:
 
 ```text
 top-level README
@@ -123,14 +108,26 @@ reproducible source-template release packaging
 productization CI audit
 ```
 
-Initial version:
-
-```text
-0.1.0-dev.1
-```
-
 Nucleus remains pre-1.0 until a real game provides enough evidence to stabilize
 the public API.
+
+## Iteration 20 — proven presentation reuse
+
+Two small Barebone-era capabilities passed the baseline rule:
+
+```text
+surface-adaptive native Decal placement
+stateless Viewport screenshot capture
+```
+
+They were redesigned around current Nucleus boundaries rather than copied
+verbatim.
+
+The development version is:
+
+```text
+0.2.0-dev.1
+```
 
 ## Baseline completion rule
 

@@ -61,7 +61,7 @@ audio
 save, encryption, migrations, autosave
 scene flow
 localization
-window and utility helpers
+window, screenshot, and utility helpers
 ```
 
 ### Gameplay composition
@@ -79,6 +79,7 @@ attributes and modifiers
 status effects
 pooling and spawners
 targeting and sensing
+surface-aligned 3D decals
 AnimationTree integration
 camera and game-feel feedback
 ```

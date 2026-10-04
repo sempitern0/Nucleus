@@ -27,6 +27,11 @@ summarized under **Unreleased** until the first release is cut.
   deprecation, installation, and release packaging.
 - Reproducible source-template packaging with a release manifest and SHA-256
   checksum.
+- `NucleusSmartDecal3D` for surface-normal-aligned native Godot decals with
+  planar variation, fade, and optional `NucleusPoolable` release.
+- `NucleusWindow` viewport screenshot capture and PNG/JPEG/WebP saving for
+  marketing/development stills.
+- `NucleusPaths.screenshots_directory()` as the default writable capture path.
 
 ### Changed
 
@@ -35,6 +40,8 @@ summarized under **Unreleased** until the first release is cut.
 - Godot 4.7.2-stable is the initial release-gated engine reference.
 - The template version is independent from the consuming game's application
   version.
+- Development version advances to `0.2.0-dev.1` for the new public world
+  presentation APIs.
 
 ### Notes
 

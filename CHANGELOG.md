@@ -41,6 +41,9 @@ summarized under **Unreleased** until the first release is cut.
 - Optional Persistent World State module with stable region/entity IDs,
   explicit state adapters, persistent removal, cross-scene reconciliation,
   runtime scene rematerialization, and SaveSession integration.
+- Optional AI / Navigation module with Utility AI, context providers,
+  considerations, TargetingAgent/FSM integration, efficient native
+  NavigationAgent followers, avoidance handoff, and reusable patrol/wander.
 
 ### Changed
 
@@ -57,6 +60,8 @@ summarized under **Unreleased** until the first release is cut.
   Loot public APIs.
 - Development version advances to `0.5.0-dev.1` for Persistent World State /
   Identity public APIs.
+- Development version advances to `0.6.0-dev.1` for optional AI / Navigation
+  public APIs.
 
 ### Notes
 

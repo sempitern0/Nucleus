@@ -63,6 +63,10 @@ camera / game-feel feedback
 ```text
 EventBus
 NetworkHandler / LAN helpers
+Inventory / Equipment
+Probability / Loot
+Persistent World State
+AI / Navigation
 ```
 
 ## Iteration 17 — feature baseline complete
@@ -155,15 +159,6 @@ Development version:
 0.3.0-dev.1
 ```
 
-Recommended next module:
-
-```text
-Probability / Loot
-```
-
-Loot should consume/produce generic IDs/definitions rather than depend on a
-specific game inventory UI or pickup implementation.
-
 ## Iteration 22 — optional Probability / Loot
 
 The second post-Core optional gameplay module provides:
@@ -187,12 +182,6 @@ Development version:
 
 ```text
 0.4.0-dev.1
-```
-
-Recommended next module:
-
-```text
-Persistent World Identity
 ```
 
 ## Iteration 23 — optional Persistent World State
@@ -220,10 +209,29 @@ Development version:
 0.5.0-dev.1
 ```
 
-Recommended next module:
+## Iteration 24 — optional AI / Navigation
+
+The fourth post-Core optional gameplay module provides:
 
 ```text
-AI / Navigation helpers
+Utility AI intentions
+context providers and normalized considerations
+TargetingAgent context integration
+StateMachine decision bridge
+efficient NavigationAgent2D/3D followers
+moving-target repath throttling
+native RVO safe-velocity integration
+NavigationLink extension signals
+2D/3D patrol/wander goal producers
+```
+
+No AI manager, Enemy base class, Behavior Tree, perception duplicate, or
+navigation replacement is introduced.
+
+Development version:
+
+```text
+0.6.0-dev.1
 ```
 
 ## Baseline completion rule
@@ -244,10 +252,8 @@ Otherwise they belong in an optional module/plugin or in the game itself.
 
 ## Next phase — use Nucleus in a real game
 
-The preferred next step is not another broad subsystem.
-
-Start the planned game from a pinned Nucleus version/commit and use production
-friction to drive changes.
+The preferred next step is increasingly to start the planned game from a pinned
+Nucleus version/commit and use production friction to drive changes.
 
 Classify new requirements as:
 
@@ -262,10 +268,9 @@ Only proven baseline defects/gaps should expand the default template.
 
 ## Optional modules after hardening
 
-Candidates remain:
+Candidates that remain:
 
 ```text
-AI / Navigation helpers
 Save-slot presentation UI
 online gameplay replication
 platform services
@@ -273,7 +278,11 @@ dialogue / quests
 world streaming
 ```
 
-These should remain opt-in unless cross-project evidence proves otherwise.
+`Save-slot presentation UI` is the next roadmap candidate, but Iteration 24 is a
+good checkpoint to reassess which of these are actually needed before the first
+real project starts.
+
+They should remain opt-in unless cross-project evidence proves otherwise.
 
 ## Dedicated plugin horizon
 

@@ -28,9 +28,7 @@ return finish()
 be registered in tests/headless/test_manifest.gd
 ```
 
-`scripts/ci/static_checks.py` validates that contract before Godot starts. This
-catches missing manifest entries, unknown `expect_*` helpers, legacy
-`check()`/`result()` calls, and malformed suite entry points.
+`scripts/ci/static_checks.py` validates that contract before Godot starts.
 
 Engine API symbols and GDScript parsing still require Godot itself. CI therefore
 has a separate `--check-only` test-graph parse gate before executing assertions.
@@ -45,33 +43,34 @@ tests/editor/test_runner.tscn
 
 Press **F6 — Run Current Scene**.
 
-The scene executes the same dependency-free suites used by the headless runner,
-prints one PASS/FAIL summary in Output, then exits the running scene.
-
 A clean result looks like:
 
 ```text
 Nucleus editor tests: PASS (... checks, ... suites).
 ```
 
-The current automated suites cover:
+The automated suites now cover:
 
 ```text
 SemanticVersion parsing / precedence
-ValuePool limits / overflow / state restoration
+ValuePool limits / overflow / restoration
 network utility validation
-InputBindingCodec serialization round-trips
+InputBindingCodec serialization
 SmartDecal surface-basis contracts
 NucleusWindow screenshot path/file helpers
+Inventory / Equipment
+Probability / Loot
+Persistent World State
+AI utility / navigation policies
 editor configuration warnings
 ```
 
-Do not treat this editor runner as a replacement for headless parsing or export
-smoke tests. It is the convenient inner development loop.
+The editor runner is the convenient inner loop; headless parsing/runtime and
+export smoke tests remain authoritative.
 
-## Run validation fixtures from the editor
+## Run validation fixtures
 
-The following scenes are intentionally small composition fixtures:
+Useful fixtures include:
 
 ```text
 examples/validation/gameplay_2d.tscn
@@ -79,12 +78,7 @@ examples/validation/gameplay_3d.tscn
 examples/validation/smart_decal_3d.tscn
 ```
 
-Open a relevant scene and press **F6**. Use the Scene dock configuration warnings
-and Output panel to detect invalid wiring/runtime errors.
-
-`smart_decal_3d.tscn` is also a visual validation fixture. It confirms decal
-orientation/projection against flat and curved geometry and therefore cannot be
-fully replaced by headless assertions.
+Use F6 and inspect configuration warnings and Output.
 
 The automated bootstrap fixture is:
 
@@ -92,13 +86,7 @@ The automated bootstrap fixture is:
 tests/smoke/smoke_main.tscn
 ```
 
-When run with F6, it validates the mandatory Autoloads and supported engine line,
-then exits. Exiting with the PASS line and no errors means that smoke execution
-passed.
-
 ## Local static checks
-
-From the repository root:
 
 ```bash
 python3 scripts/ci/static_checks.py
@@ -106,7 +94,7 @@ python3 scripts/ci/documentation_audit.py
 python3 scripts/ci/productization_audit.py
 ```
 
-On PowerShell:
+PowerShell:
 
 ```powershell
 python .\scripts\ci\static_checks.py
@@ -114,21 +102,13 @@ python .\scripts\ci\documentation_audit.py
 python .\scripts\ci\productization_audit.py
 ```
 
-Run these before launching the more expensive Godot validation path.
-
 ## Godot headless import
-
-With Godot 4.7.x available:
 
 ```bash
 godot --headless --path . --import
 ```
 
-This catches project import/parse failures.
-
 ## Parse the native test graph
-
-Before executing assertions:
 
 ```bash
 godot \
@@ -138,8 +118,8 @@ godot \
   --script res://tests/headless/test_runner.gd
 ```
 
-This is the dedicated compile/parse gate for the runner, manifest, preloaded
-suites, and the symbols they reference.
+This gate catches engine symbols and transitive GDScript compile errors before
+runtime assertions execute.
 
 ## Native headless tests
 
@@ -150,9 +130,6 @@ godot \
   --script res://tests/headless/test_runner.gd
 ```
 
-The headless runner uses the same suite manifest as the editor runner and exits
-non-zero when a suite fails.
-
 ## Bootstrap smoke scene
 
 ```bash
@@ -162,50 +139,36 @@ godot \
   res://tests/smoke/smoke_main.tscn
 ```
 
-This checks mandatory Autoloads and the target engine line.
-
 ## Smoke exports
 
-Install the official Godot 4.7.2 export templates, then run:
+With official Godot 4.7.2 templates installed:
 
 ```bash
 GODOT_BIN=/path/to/godot \
   bash scripts/ci/smoke_exports.sh "$PWD"
 ```
 
-The script exports disposable Linux, Windows, and Web builds without changing
-your working `project.godot` or requiring committed project export presets.
-
 ## GitHub Actions
 
-`.github/workflows/nucleus-ci.yml` performs the complete sequence automatically.
-
-Cheap repository checks run first. Godot is installed only after static and
-documentation checks pass. Export templates are installed only after import,
-test-graph parsing, runtime tests, and the bootstrap smoke scene pass.
+`.github/workflows/nucleus-ci.yml` runs repository audits first, then Godot
+import, test parsing/runtime, smoke execution, and Linux/Windows/Web exports.
 
 ## Recommended local order
 
-For normal development:
-
 ```text
-1. python scripts/ci/static_checks.py
-2. F6 tests/editor/test_runner.tscn
-3. F6 the affected examples/validation scene
-4. F6 tests/smoke/smoke_main.tscn when Core/Autoloads change
+1. static checks
+2. editor test runner
+3. affected visual validation scene when applicable
+4. bootstrap smoke if Core/Autoloads changed
 5. headless import
 6. headless --check-only test graph
 7. headless runtime tests
-8. smoke exports / CI before marking the iteration fully validated
+8. CI smoke exports
 ```
 
 ## Runtime validation status
 
 Static generation checks are not equivalent to executing Godot.
 
-Only mark an iteration runtime-validated after local Godot validation or a
-successful CI run of import, test parsing, runtime tests, smoke scene, and
-exports.
-
-Visual-only contracts such as decal projection should additionally be inspected
-in their validation scene.
+Mark an iteration runtime-validated only after local Godot validation or a
+successful CI run of import, parsing, runtime tests, smoke scene, and exports.

@@ -44,7 +44,7 @@ NucleusSave
 NucleusSceneFlow
 ```
 
-`EventBus` and networking remain opt-in modules.
+`EventBus`, networking, and later modules remain opt-in.
 
 ## Included baseline
 
@@ -104,6 +104,7 @@ NetworkHandler / LAN helpers
 Inventory / Equipment
 Probability / Loot
 Persistent World State
+AI / Navigation
 ```
 
 ## Start a new game

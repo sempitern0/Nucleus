@@ -43,6 +43,9 @@
     "core/window": [
       "docs/components/core_runtime.md"
     ],
+    "modules/ai": [
+      "docs/modules/ai_navigation.md"
+    ],
     "modules/event_bus": [
       "docs/modules/event_bus.md"
     ],

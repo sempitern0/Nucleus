@@ -50,34 +50,30 @@ Nucleus is a clean reusable Godot foundation/template for new games.
 - Scene-owned systems unless cross-scene lifetime truly requires an Autoload.
 - No Service Locator.
 - Local signals before global EventBus.
-- EventBus and NetworkHandler remain optional/not loaded by default.
+- Optional modules are not loaded by default.
 - No Barebone compatibility aliases.
 - Public `class_name` names use `Nucleus` prefix.
 - GDScript: tabs, <=100 columns, LF, final newline.
 - Generate a delta ZIP; do not mutate GitHub unless explicitly requested.
-- Use CI/runtime results as the acceptance source of truth.
+- Use Godot/CI runtime results as the acceptance source of truth.
 
 ## Current checkpoint
 
-Iteration 20 was prepared read-only against:
+Iteration 24 was prepared read-only against:
 
 ```text
 main
-8b0f4baac882563a603b53ffd98361ef4eb3c8ef
+3a5fa19ec9b2e6329798e054928e7e46c47c7390
 ```
 
-Commit message:
-
-```text
-nucleus stable release
-```
+That commit already contains the user-validated Persistent World State module.
 
 ## Versioning
 
-Nucleus development version after Iteration 23:
+Nucleus development version after Iteration 24:
 
 ```text
-0.5.0-dev.1
+0.6.0-dev.1
 ```
 
 Source of truth:
@@ -87,14 +83,14 @@ VERSION
 ```
 
 Nucleus uses Semantic Versioning independently from the consuming game's
-version.
+application version.
 
 ## Runtime / CI status
 
-Iteration 18 established the operational validation pipeline.
+Iterations through 23 were validated by the user.
 
-Iteration 23 must remain runtime-validation pending until CI parses and executes
-the new Persistent World State suite successfully.
+Iteration 24 remains runtime-validation pending until Godot parses and executes
+the new AI / Navigation suite and the normal CI/export pipeline succeeds.
 
 Current CI covers:
 
@@ -111,61 +107,44 @@ Windows smoke export
 Web smoke export
 ```
 
-## Implemented foundation
-
-### Core
+## Core
 
 ```text
 Application lifecycle
 platform/path normalization
-Logging/diagnostics
-Settings
-Input + rebinding
+logging/diagnostics
+settings
+input + rebinding
 local multiplayer input ownership
-Audio
-Save/encryption/migrations/autosave
-Scene flow
-Localization
-Window / screenshot helpers
+audio
+save/encryption/migrations/autosave
+scene flow
+localization
+window / screenshot helpers
 utilities
 ```
 
-### Optional modules
+Mandatory Autoloads:
 
 ```text
-EventBus
-NetworkHandler / LAN helpers
-Inventory / Equipment
-Probability / Loot
-Persistent World State
+NucleusApp
+NucleusSettings
+NucleusInput
+NucleusAudio
+NucleusSave
+NucleusSceneFlow
 ```
 
-Neither is loaded by default.
-
-### UI
-
-```text
-production UI composition
-settings bindings
-focus/navigation
-motion
-feedback
-screen effects
-modal/toast/tooltip
-layout/presentation/data helpers
-accessibility-oriented helpers
-```
-
-### Gameplay
+## Gameplay baseline
 
 ```text
 ValuePool / regeneration
-DamageReceiver / Hitbox / Hurtbox
-Interaction
-Cooldown / Lifetime
+damage / hitbox / hurtbox
+interaction
+cooldowns / lifetime
 StateMachine
-Movement 2D/3D
-Camera 2D/3D
+movement 2D/3D
+camera 2D/3D
 GameplayActions
 Attributes / modifier sources
 Status Effects
@@ -176,34 +155,161 @@ AnimationTree integration
 camera/game-feel feedback
 ```
 
-## Iteration 20
-
-### SmartDecal3D
+## Optional modules
 
 ```text
-components/gameplay/decals/smart_decal_3d.gd
+EventBus
+NetworkHandler / LAN helpers
+Inventory / Equipment
+Probability / Loot
+Persistent World State
+AI / Navigation
 ```
 
-It uses native Godot Decal projection, aligns local +Y with the outward surface
-normal, supports tangent hints, planar size/roll variation, fade, and optional
-NucleusPoolable release.
+None is loaded by default.
 
-It does not own raycasts, impact classification, or a global decal manager.
+Persistent World State is the exception where an intentional game-level
+Autoload can be appropriate when complete level scenes are replaced.
 
-### Screenshot capture
+## Iteration 21 — Inventory / Equipment
 
-`NucleusWindow` now supports:
+Important contracts:
 
 ```text
-Viewport → Image
-await frame_post_draw capture
-PNG/JPEG/WebP save
-collision-safe timestamped paths
+NucleusItemDefinition
+NucleusItemCatalog
+NucleusItemStack
+NucleusInventory
+NucleusEquipment
 ```
 
-`NucleusPaths.screenshots_directory()` owns the default writable location.
+Runtime stack lookup is:
 
-This is still-image tooling, not video recording.
+```text
+get_stack_by_id(stack_id)
+```
+
+Do not reintroduce `get_stack(stack_id)` because it collides with GDScript's
+global `get_stack()` diagnostic function.
+
+Equipment reuses `NucleusAttributeSet` modifier sources.
+
+Save integration uses explicit `NucleusSaveSession` participants.
+
+## Iteration 22 — Probability / Loot
+
+Optional module:
+
+```text
+modules/loot/
+```
+
+Key rule:
+
+```text
+Loot Resources are configuration.
+LootRoller owns RNG/runtime unique state.
+```
+
+Godot `RandomNumberGenerator` remains the probability source of truth.
+
+Loot does not depend on Inventory.
+
+## Iteration 23 — Persistent World State
+
+Optional module:
+
+```text
+modules/world_state/
+```
+
+Key model:
+
+```text
+region_id + persistent_id
+→ one persistent world record
+```
+
+Authored object identity never uses SceneTree paths.
+
+Permanent removal is explicit:
+
+```text
+NucleusWorldEntity.remove_persistently()
+```
+
+Runtime persistent scenes use:
+
+```text
+NucleusWorldRegion.spawn_persistent()
+```
+
+WorldStateService must outlive replaced level scenes when cross-scene state is
+required.
+
+## Iteration 24 — AI / Navigation
+
+Optional module:
+
+```text
+modules/ai/
+```
+
+Decision types:
+
+```text
+NucleusAIContextProvider
+NucleusAIConsideration
+NucleusAIContextBoolConsideration
+NucleusAIContextFloatConsideration
+NucleusAIUtilityOption
+NucleusAIUtilityBrain
+NucleusAITargetContextProvider
+NucleusAIStateBinding
+NucleusAIStateMachineBridge
+```
+
+Navigation types:
+
+```text
+NucleusNavigationPolicy
+NucleusNavigationFollower2D
+NucleusNavigationFollower3D
+NucleusNavigationQueries2D
+NucleusNavigationQueries3D
+NucleusNavigationWander2D
+NucleusNavigationWander3D
+```
+
+Responsibility split:
+
+```text
+TargetingAgent
+    perception and selected target
+
+UtilityBrain
+    intention selection
+
+StateMachine
+    behavior execution
+
+NavigationAgent
+    native pathfinding / optional RVO
+
+NavigationFollower
+    path-follow orchestration and output velocity
+
+CharacterBody / gameplay movement
+    actual locomotion
+```
+
+No AIManager, Enemy base class, Behavior Tree, duplicate perception layer, or
+custom pathfinder exists.
+
+Moving targets are repathed only after distance and interval thresholds.
+
+Utility ContextProviders can emit `context_changed`; the brain requests
+reevaluation without requiring every NPC to evaluate every frame.
 
 ## Documentation
 
@@ -218,11 +324,12 @@ design rationale → docs/architecture/
 future/status → docs/roadmap/
 ```
 
-New guides:
+Iteration 24 docs:
 
 ```text
-docs/guides/smart_decals_quickstart.md
-docs/guides/screenshot_capture_quickstart.md
+docs/modules/ai_navigation.md
+docs/guides/ai_navigation_quickstart.md
+docs/roadmap/iteration_24.md
 ```
 
 ## Validation commands
@@ -248,20 +355,29 @@ godot \
   --script res://tests/headless/test_runner.gd
 ```
 
-Then:
+Then run the normal smoke/export CI.
+
+## Next decision
+
+Roadmap candidate:
 
 ```text
-F6 examples/validation/smart_decal_3d.tscn
+Save-slot presentation UI
 ```
 
-and run CI for smoke exports.
+However, after AI / Navigation the template is already broad enough that the
+planned real game should increasingly decide whether remaining optional modules
+are worth implementing before production starts.
 
-## Natural next step
+Potential later candidates remain:
 
-After Iteration 20 validates, start the planned real game from the resulting
-Nucleus snapshot.
-
-Further baseline changes should come from concrete production evidence.
+```text
+Save-slot presentation UI
+online gameplay replication
+platform services
+dialogue / quests
+world streaming
+```
 
 ## Decision rule
 
@@ -270,137 +386,9 @@ When considering a feature:
 1. Is it broadly reusable across genres?
 2. Does Godot already solve it?
 3. Does Nucleus already expose a helper/component that should be reused?
-4. Is its correct home Core, scene-owned Components, optional module, plugin, or
-   the game itself?
+4. Is its correct home Core, Components, optional module, plugin, or the game?
 5. Does the abstraction remove repeated work without hiding useful Godot
    behavior?
 
-The baseline should remain coherent even if that means saying no to useful but
-project-specific features.
-
-## Iteration 21 — Inventory / Equipment
-
-The optional module lives under:
-
-```text
-modules/inventory/
-```
-
-It provides:
-
-```text
-NucleusItemDefinition
-NucleusItemCatalog
-NucleusItemStack
-NucleusInventory
-NucleusEquipmentItemDefinition
-NucleusEquipmentSlotDefinition
-NucleusEquipment
-NucleusInventoryItemRequirement
-NucleusInventoryItemCost
-```
-
-Inventory and Equipment are scene-owned.
-
-Equipment reuses `NucleusAttributeSet` modifier sources instead of owning a
-parallel stat model.
-
-Save integration uses explicit `NucleusSaveSession` participant registration.
-
-Recommended next optional module:
-
-```text
-Probability / Loot
-```
-
-Use Barebone only as a concept/source audit; do not carry forward its global Loot
-manager automatically.
-
-## Iteration 22 — Probability / Loot
-
-Optional module:
-
-```text
-modules/loot/
-```
-
-Public types:
-
-```text
-NucleusLootCondition
-NucleusLootEntry
-NucleusLootResult
-NucleusLootState
-NucleusLootTable
-NucleusLootRoller
-```
-
-Key rule:
-
-```text
-Loot Resources are configuration.
-LootRoller owns RNG/runtime unique state.
-```
-
-Godot `RandomNumberGenerator` remains the PRNG source of truth.
-
-Loot does not depend on Inventory, but `NucleusItemDefinition` may be used as a
-payload when both optional modules are enabled.
-
-Recommended next module:
-
-```text
-Persistent World Identity
-```
-
-## Iteration 23 — Persistent World State
-
-Optional module:
-
-```text
-modules/world_state/
-```
-
-Public types:
-
-```text
-NucleusWorldStateStore
-NucleusWorldStateService
-NucleusWorldRegion
-NucleusWorldEntity
-NucleusWorldStateAdapter
-NucleusNodeStateAdapter
-NucleusPropertyStateAdapter
-NucleusTransform2DStateAdapter
-NucleusTransform3DStateAdapter
-```
-
-Key model:
-
-```text
-region_id + persistent_id
-→ one persistent world record
-```
-
-Authored object identity never uses SceneTree paths.
-
-Permanent removal is explicit:
-
-```text
-NucleusWorldEntity.remove_persistently()
-```
-
-Runtime persistent PackedScenes use:
-
-```text
-NucleusWorldRegion.spawn_persistent()
-```
-
-When full scenes are replaced, WorldStateService must be kept outside the level
-scene, usually in a persistent GameSession or intentional optional Autoload.
-
-Recommended next optional module:
-
-```text
-AI / Navigation helpers
-```
+The baseline should remain coherent even when that means keeping useful
+game-specific features outside Nucleus.

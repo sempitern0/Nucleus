@@ -103,6 +103,41 @@ See:
 docs/guides/persistent_world_quickstart.md
 ```
 
+## AI / Navigation
+
+`modules/ai` composes Utility AI with Godot `NavigationAgent2D/3D`.
+
+It intentionally reuses:
+
+```text
+NucleusTargetingAgent
+NucleusStateMachine
+Godot NavigationServer
+```
+
+instead of introducing another perception system, another FSM, or custom
+pathfinding.
+
+Typical 3D ownership:
+
+```text
+Enemy
+├── NavigationAgent3D
+├── NavigationFollower3D
+├── TargetingAgent
+├── UtilityBrain
+├── StateMachine
+└── AIStateMachineBridge
+```
+
+There is no AI Autoload.
+
+See:
+
+```text
+docs/guides/ai_navigation_quickstart.md
+```
+
 ## Keep optional modules optional
 
 The default Nucleus `project.godot` intentionally does not load these modules.

@@ -23,6 +23,7 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Use Inventory / Equipment | `guides/inventory_equipment_quickstart.md` |
 | Build deterministic loot tables | `guides/loot_quickstart.md` |
 | Persist world state across scenes | `guides/persistent_world_quickstart.md` |
+| Compose Utility AI and navigation | `guides/ai_navigation_quickstart.md` |
 | Opt into optional modules | `guides/optional_modules_quickstart.md` |
 | Run validation and CI | `guides/validation_ci_quickstart.md` |
 | Package a Nucleus release | `guides/releasing.md` |
@@ -68,8 +69,9 @@ infrastructure:
 - `inventory_equipment.md`
 - `probability_loot.md`
 - `persistent_world_state.md`
+- `ai_navigation.md`
 
-Neither module is an Autoload in the default `project.godot`.
+No optional module is loaded by default in `project.godot`.
 
 ## Architecture
 
@@ -97,6 +99,8 @@ Use `docs/roadmap/` for status and future direction.
 `iteration_22.md` records Probability / Loot.
 
 `iteration_23.md` records Persistent World State / Identity.
+
+`iteration_24.md` records AI / Navigation.
 
 `next_chat_context.md` is the portable handoff document and should always
 distinguish implemented, CI-validated, and future work.

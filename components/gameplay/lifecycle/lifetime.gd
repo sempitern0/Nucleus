@@ -1,9 +1,9 @@
 class_name NucleusLifetime
 extends Node
-## Frees a target Node after a configurable lifetime.
+## Expires a target Node after a configurable lifetime.
 ##
-## Useful for transient VFX, projectiles, decals, pickups, and one-shot helpers.
-## This component delegates timing to Godot's native Timer.
+## By default the target is queue_free()'d. Pooling adapters can disable
+## auto_free_on_expire and consume the expired signal instead.
 
 signal started(duration: float)
 signal canceled
@@ -14,6 +14,7 @@ signal expired
 var duration: float = 1.0
 @export var start_on_ready: bool = true
 @export var ignore_time_scale: bool = false
+@export var auto_free_on_expire: bool = true
 
 var _timer: Timer
 
@@ -67,5 +68,9 @@ func is_running() -> bool:
 func _on_timeout() -> void:
 	expired.emit()
 
-	if target and is_instance_valid(target):
+	if (
+		auto_free_on_expire
+		and target
+		and is_instance_valid(target)
+	):
 		target.queue_free()

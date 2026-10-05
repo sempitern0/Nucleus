@@ -98,6 +98,7 @@ Optional modules are not silently promoted to Autoloads.
 Optional modules cover:
 
 ```text
+Performance / Diagnostics
 EventBus
 Networking + online replication
 Inventory / Equipment
@@ -108,6 +109,11 @@ Platform Services
 Content Packs / DLC / data-only community mods
 Mobile Foundation
 ```
+
+Performance / Diagnostics adds opt-in sampling of Godot's native performance
+monitors, game-owned budgets, trace markers, reports, and a compact development
+panel while keeping the Profiler, Network Profiler, and Video RAM tools native.
+See [`performance.md`](docs/modules/performance.md).
 
 Content Packs deliberately distinguishes **signed trusted PCKs** from
 **untrusted data mods**. Community content is never mounted through Godot's
@@ -128,6 +134,7 @@ Start at [`docs/guides/tutorials/README.md`](docs/guides/tutorials/README.md) or
 choose a focused quickstart:
 
 - [Settings and input](docs/guides/settings_input_quickstart.md)
+- [Performance and diagnostics](docs/guides/performance_quickstart.md)
 - [Local multiplayer/device ownership](docs/guides/local_multiplayer_quickstart.md)
 - [Audio](docs/guides/audio_quickstart.md)
 - [Save](docs/guides/save_quickstart.md)

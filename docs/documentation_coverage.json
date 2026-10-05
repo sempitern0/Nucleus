@@ -65,6 +65,9 @@
       "docs/modules/networking.md",
       "docs/modules/online_replication.md"
     ],
+    "modules/performance": [
+      "docs/modules/performance.md"
+    ],
     "modules/platform_services": [
       "docs/modules/platform_services.md"
     ],

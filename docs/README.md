@@ -15,6 +15,7 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
 | Choose renderer/viewport/platform defaults | `guides/project_configuration.md` |
 | Build runtime graphics options | `guides/tutorials/graphics_settings.md` |
+| Profile and diagnose performance | `guides/performance_quickstart.md` |
 | Diagnose common integration problems | `guides/troubleshooting.md` |
 | Use audio, save, scene flow, and localization | `guides/runtime_services_quickstart.md` |
 | Compose common gameplay building blocks | `guides/gameplay_foundation_quickstart.md` |
@@ -48,6 +49,7 @@ Start with:
 guides/tutorials/core_services.md
 guides/tutorials/bindings.md
 guides/tutorials/graphics_settings.md
+guides/tutorials/performance_profiling.md
 guides/tutorials/localization.md
 guides/tutorials/audio.md
 guides/tutorials/save_system.md
@@ -67,6 +69,7 @@ Examples answer questions such as:
 - How do I get the most from settings/input bindings?
 - How do I create a user-facing graphics setting without bypassing ownership?
 - Which graphics options belong to the root Viewport versus an Environment?
+- How do I monitor performance continuously without replacing Godot's Profiler?
 - How do I create an InputMap action?
 - How do I build a responsive 2D or 3D controller?
 - How do I persist, localize, and route audio correctly?
@@ -145,6 +148,7 @@ infrastructure:
 
 - `event_bus.md`
 - `networking.md`
+- `performance.md`
 - `inventory_equipment.md`
 - `probability_loot.md`
 - `persistent_world_state.md`
@@ -191,6 +195,9 @@ checkpoint.
 `iteration_26.md` records first consuming-game feedback: seamless gamepad
 behavior, UI/gameplay input boundaries, project identity, and documentation
 discoverability.
+
+`iteration_27.md` records opt-in performance monitoring, budgets, trace markers,
+and profiler-assisted diagnostics.
 
 `next_chat_context.md` is the portable handoff document and should always
 distinguish implemented, CI-validated, and future work.

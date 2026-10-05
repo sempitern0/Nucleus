@@ -29,22 +29,24 @@ requiring you to read the architecture first:
 2. [`bindings.md`](bindings.md) — build settings/input UI through composition.
 3. [`graphics_settings.md`](graphics_settings.md) — configure runtime graphics
    while preserving scene ownership.
-4. [`localization.md`](localization.md) — ship two languages and persist choice.
-5. [`audio.md`](audio.md) — use cues, one-shots, buses and volume bindings.
-6. [`save_system.md`](save_system.md) — save scene-owned participant state.
-7. [`scene_flow.md`](scene_flow.md) — build a loading overlay around SceneFlow.
-8. Choose a movement path:
+4. [`performance_profiling.md`](performance_profiling.md) — add lightweight
+   monitoring and route bottlenecks into Godot's native profilers.
+5. [`localization.md`](localization.md) — ship two languages and persist choice.
+6. [`audio.md`](audio.md) — use cues, one-shots, buses and volume bindings.
+7. [`save_system.md`](save_system.md) — save scene-owned participant state.
+8. [`scene_flow.md`](scene_flow.md) — build a loading overlay around SceneFlow.
+9. Choose a movement path:
    - [`platformer_2d.md`](platformer_2d.md)
    - [`third_person_3d.md`](third_person_3d.md)
-9. [`gameplay_actions.md`](gameplay_actions.md) — executable gameplay actions.
-10. [`components_first_steps.md`](components_first_steps.md) — common components.
-11. [`local_multiplayer.md`](local_multiplayer.md) — explicit local input seats.
-12. [`modules_first_steps.md`](modules_first_steps.md) — optional module survey.
-13. [`networking.md`](networking.md) — prove host/join transport lifecycle.
-14. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
+10. [`gameplay_actions.md`](gameplay_actions.md) — executable gameplay actions.
+11. [`components_first_steps.md`](components_first_steps.md) — common components.
+12. [`local_multiplayer.md`](local_multiplayer.md) — explicit local input seats.
+13. [`modules_first_steps.md`](modules_first_steps.md) — optional module survey.
+14. [`networking.md`](networking.md) — prove host/join transport lifecycle.
+15. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
     move from connection to authoritative gameplay replication.
-15. [`content_packs.md`](content_packs.md) — signed DLC and safe community data.
-16. [`mobile.md`](mobile.md) — touch, haptics, orientation, and lifecycle.
+16. [`content_packs.md`](content_packs.md) — signed DLC and safe community data.
+17. [`mobile.md`](mobile.md) — touch, haptics, orientation, and lifecycle.
 
 Before choosing project-wide renderer or viewport defaults, read
 [`../project_configuration.md`](../project_configuration.md). When behavior is
@@ -58,6 +60,7 @@ an ownership boundary.
 | Core | [`core_services.md`](core_services.md) | tiny game shell using default services |
 | Settings/Input | [`bindings.md`](bindings.md) | options + prompts + rebinding |
 | Graphics | [`graphics_settings.md`](graphics_settings.md) | runtime graphics + Environment policy |
+| Performance | [`performance_profiling.md`](performance_profiling.md) | target budgets + diagnostics + traces |
 | Localization | [`localization.md`](localization.md) | English/Spanish menu + selector |
 | Audio | [`audio.md`](audio.md) | reusable UI cue + persistent volume |
 | Save | [`save_system.md`](save_system.md) | participant save/load/autosave |
@@ -81,6 +84,7 @@ project_configuration
 → core_services
 → bindings
 → graphics_settings when user-facing quality options are needed
+→ performance_profiling when target hardware/workloads exist
 → localization/audio/save as needed
 → platformer_2d
 → gameplay_actions
@@ -94,6 +98,7 @@ project_configuration
 → core_services
 → bindings
 → graphics_settings
+→ performance_profiling
 → localization/audio/save/scene_flow
 → third_person_3d
 → gameplay_actions
@@ -127,7 +132,8 @@ bindings
 Build the local game first, then:
 
 ```text
-networking
+performance_profiling
+→ networking
 → online_replication_quickstart
 → platform_services_quickstart when provider integration is needed
 ```

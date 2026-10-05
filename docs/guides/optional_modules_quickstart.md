@@ -6,6 +6,33 @@ For a first-use recipe for every optional module, see:
 
 [`tutorials/modules_first_steps.md`](tutorials/modules_first_steps.md)
 
+## Performance / Diagnostics
+
+Use `modules/performance` when the project needs continuous lightweight
+performance visibility, configurable target budgets, trace markers, and
+human-readable routing into Godot's native profiling tools.
+
+Fastest setup:
+
+```text
+res://modules/performance/performance_panel.tscn
+```
+
+The module reads native `Performance` monitors and can publish summary/custom
+monitors back into Godot Debugger. It does not replace the Profiler, Network
+Profiler, Video RAM panel, or GPU profilers.
+
+Budgets are game-owned. Do not invent low-end hardware requirements merely
+because the module can express them.
+
+See:
+
+```text
+docs/guides/performance_quickstart.md
+docs/guides/tutorials/performance_profiling.md
+docs/modules/performance.md
+```
+
 ## EventBus
 
 Use the EventBus only when you intentionally need mediator semantics.

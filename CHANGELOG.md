@@ -91,6 +91,14 @@ summarized under **Unreleased** until the first release is cut.
   preserving scene ownership.
 - Practical guides for extending settings, choosing project/rendering defaults,
   configuring graphics, and troubleshooting common integration problems.
+- Optional Performance / Diagnostics module backed by Godot `Performance`
+  monitors, with target profiles, bounded recommendations, trace markers,
+  custom game probes, JSON reports, and an opt-in development panel.
+- Native Debugger custom-monitor integration for Nucleus frame-budget and
+  diagnostic summaries without replacing Godot Profiler, Network Profiler, or
+  Video RAM tooling.
+- Detailed performance quickstart/tutorial guidance for evidence-driven profiling
+  across rendering, physics, navigation, memory, and target hardware.
 
 ### Changed
 
@@ -115,6 +123,8 @@ summarized under **Unreleased** until the first release is cut.
   the first mobile/touch public APIs.
 - Development version advances to `0.9.0-dev.1` for expanded graphics settings
   and the public scene-owned Environment settings applier.
+- Development version advances to `0.10.0-dev.1` for the optional performance
+  monitoring, profiling-assistance, and diagnostics public APIs.
 - Display settings now detect Godot editor game embedding before requesting an
   unsupported window-mode/window-flag transition and emit a useful diagnostic.
 - Input documentation now treats `ui_*` actions as active UI-navigation

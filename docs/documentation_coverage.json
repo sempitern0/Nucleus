@@ -46,6 +46,9 @@
     "modules/ai": [
       "docs/modules/ai_navigation.md"
     ],
+    "modules/content_packs": [
+      "docs/modules/content_packs.md"
+    ],
     "modules/event_bus": [
       "docs/modules/event_bus.md"
     ],
@@ -54,6 +57,9 @@
     ],
     "modules/loot": [
       "docs/modules/probability_loot.md"
+    ],
+    "modules/mobile": [
+      "docs/modules/mobile.md"
     ],
     "modules/networking": [
       "docs/modules/networking.md",
@@ -161,6 +167,9 @@
     ],
     "components/ui/tooltip": [
       "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/touch": [
+      "docs/modules/mobile.md"
     ],
     "components/ui/virtualization": [
       "docs/components/ui_and_accessibility.md"

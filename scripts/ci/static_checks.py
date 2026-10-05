@@ -56,6 +56,26 @@ NUCLEUS_OWNED_API_RULES = (
 		frozenset({"core/settings/appliers/display_settings_applier.gd"}),
 		"use NucleusSettings; the frame limit is owned by its display applier",
 	),
+	(
+		re.compile(r"\bProjectSettings\.load_resource_pack\s*\("),
+		frozenset({"modules/content_packs/content_pack_loader.gd"}),
+		"use the verified Content Packs loader before mounting resource packs",
+	),
+	(
+		re.compile(r"\bInput\.vibrate_handheld\s*\("),
+		frozenset({"core/input/haptics.gd"}),
+		"use NucleusHaptics so vibration settings apply across devices",
+	),
+	(
+		re.compile(r"\bDisplayServer\.screen_set_orientation\s*\("),
+		frozenset({"modules/mobile/orientation_policy.gd"}),
+		"use NucleusMobileOrientationPolicy for reusable orientation policy",
+	),
+	(
+		re.compile(r"\bOS\.request_permissions?\s*\("),
+		frozenset({"modules/mobile/mobile_permissions.gd"}),
+		"use NucleusMobilePermissions at the user-visible permission boundary",
+	),
 )
 
 

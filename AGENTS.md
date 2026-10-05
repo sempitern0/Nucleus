@@ -24,6 +24,8 @@ Detailed contracts live under `docs/`. This file is the fast decision map.
    the baseline.
 7. **Public names are deliberate.** Public `class_name` identifiers use the
    `Nucleus` prefix and public-contract changes follow the versioning policy.
+8. **Trust boundaries are code boundaries.** Never weaken a content-security
+   boundary for convenience without an explicit public policy change and tests.
 
 ## Before editing
 
@@ -48,9 +50,12 @@ Detailed contracts live under `docs/`. This file is the fast decision map.
 | Application quit/back | `NucleusApp` | platform-specific exit wiring |
 | Input device state/rebinding | `NucleusInput` | physical-key logic in gameplay |
 | Local player devices | `NucleusLocalInputSession` | global active-device ownership |
+| Cross-device haptics | `NucleusHaptics` | scattered vibration policy |
 | Audio routing already modeled | `NucleusAudio` | parallel bus policy |
 | Save-game persistence | `NucleusSave` | unrelated `user://` save formats |
 | Transient UI messages | scene-owned toast host | global notification singleton |
+| Trusted DLC/PCK loading | Content Packs module | arbitrary `load_resource_pack()` |
+| Community mods | data-only Content Packs API | ResourceLoader/untrusted PCK mount |
 | Optional networking/game systems | matching `modules/*` contract | hidden baseline dependency |
 
 The rule is not "wrap every Godot API". The rule is "do not bypass an existing
@@ -70,10 +75,12 @@ Input code must distinguish **physical bindings**, **UI navigation actions**, an
   or another gameplay action.
 - Gameplay pause/menu behavior uses a gameplay action such as
   `NucleusInputActions.PAUSE`, then lets the opened UI consume `ui_cancel`.
-- A one-player `NucleusLocalInputSession` should hot-swap keyboard/mouse and
-  gamepad ownership without replacing the stable local-player object.
+- A one-player `NucleusLocalInputSession` should hot-swap keyboard/mouse,
+  gamepad, and touch ownership without replacing the stable local-player object.
 - Runtime rebinding goes through `NucleusInput`; gameplay does not cache physical
   keys, button indices, or prompt strings.
+- Touch controls feed the same semantic InputMap actions as other devices. Do not
+  create a parallel mobile-only gameplay API when the existing action fits.
 - UI actions are protected from rebinding by default. A project may explicitly
   enable `NucleusInput.allow_ui_action_rebinding`, but it must preserve a usable
   accept/cancel path.
@@ -81,6 +88,47 @@ Input code must distinguish **physical bindings**, **UI navigation actions**, an
 The same physical button may legally participate in multiple actions. Context is
 defined by the active consumer, not by assigning one global meaning to the
 button.
+
+## Content-pack and mod security rules
+
+Treat external content as a trust boundary.
+
+- **Never mount an untrusted community PCK/ZIP with
+  `ProjectSettings.load_resource_pack()`.** A Godot resource pack can contain
+  executable scripts, scenes, resources, native extensions, and overrides.
+- Official PCKs must pass the Content Packs verification pipeline before mount:
+  bounded manifest read, manifest validation, detached public-key signature,
+  archive SHA-256, compatibility, entitlement when declared, and dependencies.
+- Only public verification keys belong in the game. Private signing keys must
+  remain outside the repository, exports, Resources, CI artifacts, and logs.
+- Community mods use `NucleusDataModValidator` / `NucleusDataModPack`. Keep the
+  extension whitelist minimal and consume untrusted data as bytes/text/JSON.
+- Do not feed community-mod paths to `load()`, `preload()`, `ResourceLoader`,
+  `GDExtensionManager`, `OS.execute()`, or another code-loading boundary.
+- Validate game-specific data schemas and ranges after Nucleus package
+  validation. Package safety does not make arbitrary economy/gameplay data sane.
+- Resource-pack mounts have process lifetime. Do not pretend registry removal is
+  an unload operation.
+- Patches that replace base resources must mount during an explicit early boot
+  phase before affected resources are preloaded.
+
+Any proposal to support executable community mods must be a separate explicit
+trust mode, disabled by default, with user consent and platform/distribution
+policy review.
+
+## Mobile rules
+
+Mobile support composes native Godot APIs; there is no global MobileManager.
+
+- Reuse `NucleusApp` lifecycle, `NucleusUISafeArea`, and
+  `NucleusUIBreakpoints` before adding new platform abstractions.
+- Use `NucleusPlatform` capability checks instead of scattering OS-name checks.
+- Orientation policy is scene-owned. Responsive layout remains native Godot UI
+  plus Nucleus safe-area/breakpoint helpers.
+- Request dangerous permissions only at the user-visible feature boundary.
+  Android permissions still need export-preset declarations.
+- Provider SDKs, billing, notifications, analytics, and ads stay behind explicit
+  project/provider adapters; they are not baseline Core dependencies.
 
 ## Settings rules
 

@@ -1,9 +1,9 @@
 class_name NucleusLocalPlayerInput
 extends RefCounted
-## One local player's assigned input device.
+## One local player's assigned input source.
 ##
-## Held actions are polled per hardware device. Discrete events are routed by
-## [NucleusLocalInputSession] through [signal input_received].
+## Keyboard/mouse and gamepad held actions are polled per hardware device.
+## Touch actions are injected semantically by scene-owned touch controls.
 
 signal input_received(event: InputEvent)
 signal device_changed(
@@ -19,6 +19,8 @@ var device_guid: String = ""
 var gamepad_family: int = NucleusInputTypes.GamepadFamily.GENERIC
 var connected: bool = false
 
+var _touch_strengths: Dictionary[StringName, float] = {}
+
 
 func _init(
 	local_player_index: int,
@@ -32,6 +34,11 @@ func _init(
 
 	if source == NucleusInputTypes.Source.GAMEPAD:
 		_refresh_gamepad_metadata()
+	elif source == NucleusInputTypes.Source.KEYBOARD_MOUSE:
+		device_name = "Keyboard & Mouse"
+	elif source == NucleusInputTypes.Source.TOUCH:
+		device_id = -1
+		device_name = "Touchscreen"
 
 
 func is_keyboard_mouse() -> bool:
@@ -42,20 +49,27 @@ func is_gamepad() -> bool:
 	return source == NucleusInputTypes.Source.GAMEPAD
 
 
+func is_touch() -> bool:
+	return source == NucleusInputTypes.Source.TOUCH
+
+
 func is_action_pressed(action: StringName) -> bool:
 	if not connected:
 		return false
 
-	return NucleusLocalInputReader.is_action_pressed(
-		source,
-		device_id,
-		action,
-	)
+	return get_action_strength(action) > 0.0
 
 
 func get_action_strength(action: StringName) -> float:
 	if not connected:
 		return 0.0
+
+	if is_touch():
+		return clampf(
+			float(_touch_strengths.get(action, 0.0)),
+			0.0,
+			1.0,
+		)
 
 	return NucleusLocalInputReader.get_action_strength(
 		source,
@@ -71,11 +85,9 @@ func get_axis(
 	if not connected:
 		return 0.0
 
-	return NucleusLocalInputReader.get_axis(
-		source,
-		device_id,
-		negative_action,
-		positive_action,
+	return (
+		get_action_strength(positive_action)
+		- get_action_strength(negative_action)
 	)
 
 
@@ -89,14 +101,38 @@ func get_vector(
 	if not connected:
 		return Vector2.ZERO
 
-	return NucleusLocalInputReader.get_vector(
-		source,
-		device_id,
-		negative_x,
-		positive_x,
-		negative_y,
-		positive_y,
-		deadzone,
+	if not is_touch():
+		return NucleusLocalInputReader.get_vector(
+			source,
+			device_id,
+			negative_x,
+			positive_x,
+			negative_y,
+			positive_y,
+			deadzone,
+		)
+
+	var vector := Vector2(
+		get_action_strength(positive_x)
+		- get_action_strength(negative_x),
+		get_action_strength(positive_y)
+		- get_action_strength(negative_y),
+	).limit_length()
+
+	var resolved_deadzone: float = maxf(deadzone, 0.0)
+	if deadzone < 0.0:
+		resolved_deadzone = 0.0
+
+	var vector_length: float = vector.length()
+	if vector_length <= resolved_deadzone or is_zero_approx(vector_length):
+		return Vector2.ZERO
+
+	if resolved_deadzone >= 1.0:
+		return Vector2.ZERO
+
+	return (
+		vector / vector_length
+		* inverse_lerp(resolved_deadzone, 1.0, vector_length)
 	)
 
 
@@ -104,6 +140,9 @@ func get_binding_text(
 	action: StringName,
 	binding_index: int = 0,
 ) -> String:
+	if is_touch():
+		return ""
+
 	var events: Array[InputEvent] = NucleusInput.get_action_events(
 		action,
 		source,
@@ -146,6 +185,7 @@ func _set_input_device(
 	if new_source not in [
 		NucleusInputTypes.Source.KEYBOARD_MOUSE,
 		NucleusInputTypes.Source.GAMEPAD,
+		NucleusInputTypes.Source.TOUCH,
 	]:
 		return false
 
@@ -157,6 +197,8 @@ func _set_input_device(
 
 	if new_source == NucleusInputTypes.Source.KEYBOARD_MOUSE:
 		new_device_id = InputEvent.DEVICE_ID_KEYBOARD
+	elif new_source == NucleusInputTypes.Source.TOUCH:
+		new_device_id = -1
 
 	if source == new_source and device_id == new_device_id and connected:
 		return false
@@ -167,12 +209,19 @@ func _set_input_device(
 	if is_gamepad() and connected:
 		stop_vibration()
 
+	if is_touch():
+		_clear_touch_actions()
+
 	source = new_source
 	device_id = new_device_id
 	connected = true
 
 	if is_keyboard_mouse():
 		device_name = "Keyboard & Mouse"
+		device_guid = ""
+		gamepad_family = NucleusInputTypes.GamepadFamily.GENERIC
+	elif is_touch():
+		device_name = "Touchscreen"
 		device_guid = ""
 		gamepad_family = NucleusInputTypes.GamepadFamily.GENERIC
 	else:
@@ -187,6 +236,25 @@ func _set_gamepad_device(new_device_id: int) -> void:
 		NucleusInputTypes.Source.GAMEPAD,
 		new_device_id,
 	)
+
+
+func _set_touch_action(
+	action: StringName,
+	strength: float,
+) -> void:
+	if not is_touch() or not connected or action == &"":
+		return
+
+	var normalized: float = clampf(strength, 0.0, 1.0)
+
+	if is_zero_approx(normalized):
+		_touch_strengths.erase(action)
+	else:
+		_touch_strengths[action] = normalized
+
+
+func _clear_touch_actions() -> void:
+	_touch_strengths.clear()
 
 
 func _mark_disconnected() -> void:

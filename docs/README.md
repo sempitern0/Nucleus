@@ -4,10 +4,6 @@ Nucleus documentation is split by audience and responsibility. The objective is
 to make the template usable from the Godot editor without requiring users to
 understand its internals, while preserving explicit contracts for maintainers.
 
-The documentation is also intended to work as a self-guided learning path: a
-developer should be able to open Nucleus, follow a tutorial, build a small
-feature, and then transfer the same composition into a real game.
-
 ## Start here
 
 | Goal | Guide |
@@ -17,12 +13,7 @@ feature, and then transfer the same composition into a real game.
 | Match a game problem to a Nucleus component/module | `guides/real_game_patterns.md` |
 | Understand the baseline and Autoloads | `guides/foundation_quickstart.md` |
 | Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
-| Use explicit local-player/device seats | `guides/local_multiplayer_quickstart.md` |
-| Use audio buses, one-shots, and cues | `guides/audio_quickstart.md` |
-| Save and restore game-owned state | `guides/save_quickstart.md` |
-| Coordinate scene changes/loading | `guides/scene_flow_quickstart.md` |
-| Add languages and a language selector | `guides/localization_quickstart.md` |
-| Use runtime services as a group | `guides/runtime_services_quickstart.md` |
+| Use audio, save, scene flow, and localization | `guides/runtime_services_quickstart.md` |
 | Compose common gameplay building blocks | `guides/gameplay_foundation_quickstart.md` |
 | Use actions, attributes, and status effects | `guides/actions_attributes_status_quickstart.md` |
 | Set up pooling and targeting | `guides/pooling_targeting_quickstart.md` |
@@ -31,13 +22,14 @@ feature, and then transfer the same composition into a real game.
 | Build production UI and accessibility | `guides/ui_quickstart.md` |
 | Wire AnimationTree | `guides/animation_integration_quickstart.md` |
 | Add camera/game-feel feedback | `guides/camera_game_feel_quickstart.md` |
-| Host/join and manage network peer lifetime | `guides/networking_quickstart.md` |
 | Use Inventory / Equipment | `guides/inventory_equipment_quickstart.md` |
 | Build deterministic loot tables | `guides/loot_quickstart.md` |
 | Persist world state across scenes | `guides/persistent_world_quickstart.md` |
 | Compose Utility AI and navigation | `guides/ai_navigation_quickstart.md` |
 | Build authoritative gameplay replication | `guides/online_replication_quickstart.md` |
 | Integrate storefront/platform providers | `guides/platform_services_quickstart.md` |
+| Add signed DLC and safe community mods | `guides/content_packs_quickstart.md` |
+| Add touch/mobile support | `guides/mobile_quickstart.md` |
 | Opt into optional modules | `guides/optional_modules_quickstart.md` |
 | Run validation and CI | `guides/validation_ci_quickstart.md` |
 | Package a Nucleus release | `guides/releasing.md` |
@@ -45,8 +37,7 @@ feature, and then transfer the same composition into a real game.
 ## Learn by building
 
 The hands-on tutorial section is for developers who want concrete scene trees,
-Inspector values, minimal game-owned scripts, and an observable end result before
-reading a full technical contract.
+Inspector values, and minimal code before reading the full technical contract.
 
 Start with:
 
@@ -60,28 +51,23 @@ guides/tutorials/scene_flow.md
 guides/tutorials/platformer_2d.md
 guides/tutorials/third_person_3d.md
 guides/tutorials/gameplay_actions.md
-guides/tutorials/components_first_steps.md
 guides/tutorials/local_multiplayer.md
-guides/tutorials/modules_first_steps.md
 guides/tutorials/networking.md
+guides/tutorials/content_packs.md
+guides/tutorials/mobile.md
 ```
 
 Examples answer questions such as:
 
 - How do I use the default Core services from a real game scene?
 - How do I get the most from settings/input bindings?
-- How do I add English/Spanish and persist the selected language?
-- How do I play reusable UI sounds and bind a volume slider?
-- How do I register independent save participants and autosave them?
-- How do I display loading progress without putting UI in SceneFlow?
 - How do I create an InputMap action?
-- How do I create and execute a `NucleusGameplayAction`?
-- How do I build a responsive 2D platformer controller?
-- How do I build a 3D character with camera-relative movement and orbit camera?
-- How do I hot-swap one player between keyboard/gamepad or create couch seats?
-- How do I prove Host/Join/Leave before I attempt gameplay replication?
-- Which component should own health, damage, state, interaction, or pooling?
-- How do I opt into EventBus, inventory, loot, AI, world state, or networking?
+- How do I build a responsive 2D or 3D controller?
+- How do I persist, localize, and route audio correctly?
+- How do I host/join before designing gameplay replication?
+- How do I ship a signed DLC without auto-mounting arbitrary third-party PCKs?
+- How do I let community mods add data without executing their code?
+- How do I reuse the same gameplay actions on touchscreen?
 
 `real_game_patterns.md` remains the practical index when a developer knows the
 gameplay/product problem but not the Nucleus subsystem. Game references in that
@@ -94,7 +80,7 @@ Use the shortest layer that answers the current question:
 
 ```text
 guides/*_quickstart.md
-    fast ownership/setup summary + common mistakes
+    fast ownership/setup summary
 
 guides/tutorials/
     build concrete features step by step
@@ -111,54 +97,6 @@ docs/policies/
 
 Tutorials should not become a second source of truth for public contracts. When
 a public API changes, update both the contract and every affected tutorial.
-
-## Runtime-service learning map
-
-Historically audio, save, scene flow, and localization shared one short page. The
-runtime services now also have dedicated learning entries because they solve
-separate game-development tasks:
-
-```text
-Audio
-    guides/audio_quickstart.md
-    guides/tutorials/audio.md
-
-Save
-    guides/save_quickstart.md
-    guides/tutorials/save_system.md
-
-Scene Flow
-    guides/scene_flow_quickstart.md
-    guides/tutorials/scene_flow.md
-
-Localization
-    guides/localization_quickstart.md
-    guides/tutorials/localization.md
-```
-
-`guides/runtime_services_quickstart.md` remains the selection/ownership map.
-
-## Networking learning map
-
-Keep transport/bootstrap separate from gameplay replication while learning and
-debugging:
-
-```text
-guides/networking_quickstart.md
-    NucleusNetworkHandler ownership, transports, lifecycle
-
-        ↓
-
-guides/tutorials/networking.md
-    concrete ENet Host / Join / Leave lab
-
-        ↓
-
-guides/online_replication_quickstart.md
-    server authority, intents, native replication, transform snapshots
-```
-
-A connected peer is not yet a replicated/authorized player.
 
 ## Product policies
 
@@ -204,6 +142,8 @@ infrastructure:
 - `ai_navigation.md`
 - `online_replication.md`
 - `platform_services.md`
+- `content_packs.md`
+- `mobile.md`
 
 No optional module is loaded by default in `project.godot`.
 
@@ -271,6 +211,4 @@ Product-level files and policies are checked separately:
 python3 scripts/ci/productization_audit.py
 ```
 
-This keeps implementation documentation and release contracts inside CI.
-Tutorial quality still needs review: examples must remain reproducible and use
-the current public API.
+This keeps both implementation documentation and release contracts inside CI.

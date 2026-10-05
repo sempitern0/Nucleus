@@ -2,8 +2,8 @@ class_name NucleusLocalInputSession
 extends Node
 ## Optional scene-owned local multiplayer input router.
 ##
-## Add this Node to a game/session scene when couch multiplayer is needed.
-## It is deliberately not an Autoload.
+## Keyboard/mouse, gamepads, and one logical touchscreen can own local seats.
+## Single-player sessions may hot-swap the stable player object between sources.
 
 signal player_joined(player: NucleusLocalPlayerInput)
 signal player_left(player_index: int)
@@ -23,7 +23,7 @@ var max_players: int = 4
 @export_range(0, 15, 1, "or_greater")
 var keyboard_mouse_player_index: int = 0
 @export var auto_join_gamepads: bool = true
-## Lets a one-player session follow the last meaningful keyboard/gamepad source.
+## Lets a one-player session follow meaningful keyboard/gamepad/touch activity.
 @export var single_player_hot_swap: bool = true
 
 var _players: Dictionary[int, NucleusLocalPlayerInput] = {}
@@ -73,6 +73,10 @@ func _input(event: InputEvent) -> void:
 		_route_gamepad_event(event)
 		return
 
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		_route_touch_event(event)
+		return
+
 	if (
 		event is InputEventKey
 		or event is InputEventMouseButton
@@ -81,7 +85,6 @@ func _input(event: InputEvent) -> void:
 		_route_keyboard_mouse_event(event)
 
 
-## Assigns the shared keyboard/mouse seat to one local player slot.
 func join_keyboard_mouse(
 	preferred_player_index: int = -1,
 ) -> NucleusLocalPlayerInput:
@@ -89,25 +92,13 @@ func join_keyboard_mouse(
 		if player.is_keyboard_mouse():
 			return player
 
-	var player_index: int = _resolve_player_index(preferred_player_index)
-
-	if player_index == -1:
-		return null
-
-	var player := NucleusLocalPlayerInput.new(
-		player_index,
+	return _join_source(
 		NucleusInputTypes.Source.KEYBOARD_MOUSE,
 		InputEvent.DEVICE_ID_KEYBOARD,
+		preferred_player_index,
 	)
-	player.device_name = "Keyboard & Mouse"
-
-	_players[player_index] = player
-	player_joined.emit(player)
-
-	return player
 
 
-## Assigns one connected gamepad to an available local player slot.
 func join_gamepad(
 	device_id: int,
 	preferred_player_index: int = -1,
@@ -118,26 +109,32 @@ func join_gamepad(
 	if _gamepad_to_player.has(device_id):
 		return get_player(_gamepad_to_player[device_id])
 
-	var player_index: int = _resolve_player_index(preferred_player_index)
-
-	if player_index == -1:
-		return null
-
-	var player := NucleusLocalPlayerInput.new(
-		player_index,
+	var player: NucleusLocalPlayerInput = _join_source(
 		NucleusInputTypes.Source.GAMEPAD,
 		device_id,
+		preferred_player_index,
 	)
 
-	_players[player_index] = player
-	_gamepad_to_player[device_id] = player_index
-
-	player_joined.emit(player)
+	if player:
+		_gamepad_to_player[device_id] = player.player_index
 
 	return player
 
 
-## Reassigns a stable local-player seat without replacing its player object.
+func join_touch(
+	preferred_player_index: int = -1,
+) -> NucleusLocalPlayerInput:
+	for player: NucleusLocalPlayerInput in _players.values():
+		if player.is_touch():
+			return player
+
+	return _join_source(
+		NucleusInputTypes.Source.TOUCH,
+		-1,
+		preferred_player_index,
+	)
+
+
 func set_player_device(
 	player_index: int,
 	source: int,
@@ -152,6 +149,8 @@ func set_player_device(
 
 	if source == NucleusInputTypes.Source.KEYBOARD_MOUSE:
 		resolved_device_id = InputEvent.DEVICE_ID_KEYBOARD
+	elif source == NucleusInputTypes.Source.TOUCH:
+		resolved_device_id = -1
 	elif source == NucleusInputTypes.Source.GAMEPAD:
 		if resolved_device_id == -1:
 			resolved_device_id = NucleusInput.active_gamepad_id
@@ -166,6 +165,11 @@ func set_player_device(
 		and _gamepad_to_player[resolved_device_id] != player_index
 	):
 		return ERR_ALREADY_IN_USE
+
+	if source == NucleusInputTypes.Source.TOUCH:
+		for other: NucleusLocalPlayerInput in _players.values():
+			if other.player_index != player_index and other.is_touch():
+				return ERR_ALREADY_IN_USE
 
 	var previous_source: int = player.source
 	var previous_device_id: int = player.device_id
@@ -187,6 +191,32 @@ func set_player_device(
 	return OK
 
 
+func set_touch_action(
+	player_index: int,
+	action: StringName,
+	strength: float,
+) -> Error:
+	if action == &"" or not InputMap.has_action(action):
+		return ERR_DOES_NOT_EXIST
+
+	var normalized: float = clampf(strength, 0.0, 1.0)
+
+	if normalized > 0.0 and _uses_single_player_hot_swap():
+		_hot_swap_single_player(NucleusInputTypes.Source.TOUCH)
+
+	var player: NucleusLocalPlayerInput = get_player(player_index)
+	if player == null:
+		return ERR_DOES_NOT_EXIST
+
+	# A delayed touch release must not steal the seat back after another source
+	# became active.
+	if not player.is_touch():
+		return OK
+
+	player._set_touch_action(action, normalized)
+	return OK
+
+
 func leave_player(player_index: int) -> void:
 	var player: NucleusLocalPlayerInput = _players.get(player_index)
 
@@ -196,6 +226,9 @@ func leave_player(player_index: int) -> void:
 	if player.is_gamepad() and player.device_id != -1:
 		_gamepad_to_player.erase(player.device_id)
 		player.stop_vibration()
+
+	if player.is_touch():
+		player._clear_touch_actions()
 
 	_players.erase(player_index)
 	player_left.emit(player_index)
@@ -244,6 +277,25 @@ func get_player_for_gamepad(
 	return get_player(_gamepad_to_player[device_id])
 
 
+func _join_source(
+	source: int,
+	device_id: int,
+	preferred_player_index: int,
+) -> NucleusLocalPlayerInput:
+	var player_index: int = _resolve_player_index(preferred_player_index)
+	if player_index == -1:
+		return null
+
+	var player := NucleusLocalPlayerInput.new(
+		player_index,
+		source,
+		device_id,
+	)
+	_players[player_index] = player
+	player_joined.emit(player)
+	return player
+
+
 func _resolve_player_index(preferred_player_index: int) -> int:
 	if (
 		preferred_player_index >= 0
@@ -268,15 +320,21 @@ func _route_keyboard_mouse_event(event: InputEvent) -> void:
 
 
 func _route_gamepad_event(event: InputEvent) -> void:
-	var player: NucleusLocalPlayerInput = get_player_for_gamepad(
-		event.device
-	)
+	var player: NucleusLocalPlayerInput = get_player_for_gamepad(event.device)
 
 	if player == null or not player.connected:
 		return
 
 	player._dispatch_input(event)
 	player_input.emit(player, event)
+
+
+func _route_touch_event(event: InputEvent) -> void:
+	for player: NucleusLocalPlayerInput in _players.values():
+		if player.is_touch() and player.connected:
+			player._dispatch_input(event)
+			player_input.emit(player, event)
+			return
 
 
 func _uses_single_player_hot_swap() -> bool:
@@ -298,6 +356,10 @@ func _hot_swap_single_player(source: int) -> void:
 		device_id = NucleusInput.active_gamepad_id
 		if device_id == -1:
 			return
+	elif source == NucleusInputTypes.Source.KEYBOARD_MOUSE:
+		device_id = InputEvent.DEVICE_ID_KEYBOARD
+	elif source != NucleusInputTypes.Source.TOUCH:
+		return
 
 	set_player_device(
 		players[0].player_index,
@@ -313,6 +375,7 @@ func _on_input_source_changed(
 	if source in [
 		NucleusInputTypes.Source.KEYBOARD_MOUSE,
 		NucleusInputTypes.Source.GAMEPAD,
+		NucleusInputTypes.Source.TOUCH,
 	]:
 		_hot_swap_single_player(source)
 
@@ -329,9 +392,7 @@ func _on_gamepad_disconnected(
 	device_id: int,
 	_device_name: String,
 ) -> void:
-	var player: NucleusLocalPlayerInput = get_player_for_gamepad(
-		device_id
-	)
+	var player: NucleusLocalPlayerInput = get_player_for_gamepad(device_id)
 
 	if player == null:
 		return

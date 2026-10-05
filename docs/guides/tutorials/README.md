@@ -41,6 +41,8 @@ requiring you to read the architecture first:
 12. [`networking.md`](networking.md) — prove host/join transport lifecycle.
 13. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
     move from connection to authoritative gameplay replication.
+14. [`content_packs.md`](content_packs.md) — signed DLC and safe community data.
+15. [`mobile.md`](mobile.md) — touch, haptics, orientation, and lifecycle.
 
 ## Tutorials by area
 
@@ -48,17 +50,19 @@ requiring you to read the architecture first:
 | --- | --- | --- |
 | Core | [`core_services.md`](core_services.md) | tiny game shell using default services |
 | Settings/Input | [`bindings.md`](bindings.md) | options + prompts + rebinding |
-| Localization | [`localization.md`](localization.md) | English/Spanish menu + language selector |
+| Localization | [`localization.md`](localization.md) | English/Spanish menu + selector |
 | Audio | [`audio.md`](audio.md) | reusable UI cue + persistent volume |
-| Save | [`save_system.md`](save_system.md) | participant-based save/load/autosave |
+| Save | [`save_system.md`](save_system.md) | participant save/load/autosave |
 | Scene Flow | [`scene_flow.md`](scene_flow.md) | observable loading overlay |
 | 2D Movement | [`platformer_2d.md`](platformer_2d.md) | responsive platform controller |
-| 3D Movement | [`third_person_3d.md`](third_person_3d.md) | CharacterBody3D + orbit camera |
-| Gameplay Actions | [`gameplay_actions.md`](gameplay_actions.md) | action with input/cost/cooldown/effect |
-| Components | [`components_first_steps.md`](components_first_steps.md) | health/damage/state/interaction/pooling/etc. |
-| Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap and couch-player seats |
-| Modules | [`modules_first_steps.md`](modules_first_steps.md) | first use of each optional module |
+| 3D Movement | [`third_person_3d.md`](third_person_3d.md) | body + orbit camera |
+| Gameplay Actions | [`gameplay_actions.md`](gameplay_actions.md) | action/cost/cooldown/effect |
+| Components | [`components_first_steps.md`](components_first_steps.md) | common components |
+| Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap + couch seats |
+| Modules | [`modules_first_steps.md`](modules_first_steps.md) | optional module survey |
 | Networking | [`networking.md`](networking.md) | ENet Host / Join / Leave lab |
+| Content Packs | [`content_packs.md`](content_packs.md) | signed DLC + data-only mod |
+| Mobile | [`mobile.md`](mobile.md) | touch controller for existing gameplay |
 
 ## Learning paths by game type
 
@@ -70,8 +74,7 @@ core_services
 → localization/audio/save as needed
 → platformer_2d
 → gameplay_actions
-→ animation_integration_quickstart
-→ camera_game_feel_quickstart
+→ mobile (when targeting touch)
 ```
 
 ### 3D action/survival game
@@ -83,6 +86,8 @@ core_services
 → third_person_3d
 → gameplay_actions
 → inventory + loot + world state as needed
+→ content_packs for DLC/mod data
+→ mobile for phone/tablet targets
 ```
 
 ### RPG/ARPG systems layer

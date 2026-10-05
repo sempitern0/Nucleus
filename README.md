@@ -21,17 +21,13 @@
   </a>
 </p>
 
-Nucleus is a reusable Godot project foundation for starting games with a tested
-baseline for application infrastructure, input, settings, save, audio, scene
-flow, gameplay composition, UI/accessibility, optional production modules, and
-validation.
+Nucleus is a reusable Godot project foundation for starting games with tested
+application infrastructure, semantic input, settings, save, audio, scene flow,
+gameplay composition, UI/accessibility, optional production modules, and CI.
 
 It is a **project template**, not an addon framework and not a catalogue of every
-game mechanic.
-
-The icon reflects the same idea: a small stable nucleus in the center, with
-independent systems orbiting around it. The core should stay predictable while
-games compose only what they need.
+game mechanic. Godot remains the engine and source of truth; Nucleus adds policy
+only where a reusable ownership boundary has proved useful.
 
 ## Project status
 
@@ -45,24 +41,23 @@ games compose only what they need.
 | Main CI | [Nucleus CI workflow](https://github.com/sempitern0/Nucleus/actions/workflows/nucleus-ci.yml) |
 
 The default project intentionally has **no main game scene**. A consuming game
-owns its entry point, art direction, game rules, and product-specific defaults.
+owns its entry point, art direction, rules, balance, product defaults, and
+platform/store policy.
 
 ## Philosophy
-
-Nucleus follows a few rules that matter more than any individual component:
 
 - **Godot-native first.** Wrap an engine API only when Nucleus genuinely owns a
   reusable policy around it.
 - **Composition over inheritance.** Game-facing behavior is built from small
   nodes/resources around normal Godot scenes.
-- **Scene ownership first.** Autoloads are kept intentionally small.
-- **Semantic input.** Games ask for actions, not physical keys or controller
-  button indices.
+- **Scene ownership first.** Autoloads are kept deliberately small.
+- **Semantic input.** Gameplay asks for actions, not physical keys, controller
+  indices, or touch coordinates.
+- **Secure by default at trust boundaries.** Untrusted content is treated as
+  data, not executable Godot resources.
 - **Production evidence drives reuse.** Real friction in consuming games earns a
   place in the template; speculative abstractions do not.
-- **Optional systems stay optional.** Networking, inventory, loot, AI, world
-  persistence, replication, and platform services do not become hidden baseline
-  dependencies.
+- **Optional systems stay optional.** Games compose only the modules they need.
 - **Game policy stays in the game.** Nucleus should make common work reliable
   without deciding how every game must feel or play.
 
@@ -71,7 +66,7 @@ human and AI contributors.
 
 ## Baseline Autoloads
 
-The global surface is deliberately small:
+The global surface remains deliberately small:
 
 ```text
 NucleusApp
@@ -82,31 +77,79 @@ NucleusSave
 NucleusSceneFlow
 ```
 
-`EventBus`, networking, and other modules remain opt-in.
+Optional modules are not silently promoted to Autoloads.
 
 ## What is included
 
 | Area | Typical responsibilities | Start here |
 | --- | --- | --- |
 | Core runtime | lifecycle, logging, paths, windows, utilities | [`core_runtime.md`](docs/components/core_runtime.md) |
-| Settings + input | runtime settings, rebinding, gamepads, local input | [`settings_and_input.md`](docs/components/settings_and_input.md) |
+| Settings + input | settings, rebinding, gamepads, touch/local input | [`settings_and_input.md`](docs/components/settings_and_input.md) |
 | Runtime services | audio, save, scene flow, localization | [`audio_save_scene_localization.md`](docs/components/audio_save_scene_localization.md) |
 | Gameplay foundation | health/value pools, damage, interaction, timers, state | [`gameplay_foundation.md`](docs/components/gameplay_foundation.md) |
 | Actions + stats | actions, attributes, modifiers, status effects | [`gameplay_actions_attributes_status.md`](docs/components/gameplay_actions_attributes_status.md) |
-| Movement + camera | 2D/3D input, motors, camera rigs | [`gameplay_movement_camera.md`](docs/components/gameplay_movement_camera.md) |
+| Movement + camera | 2D/3D motion input, motors, camera rigs | [`gameplay_movement_camera.md`](docs/components/gameplay_movement_camera.md) |
 | Pooling + targeting | pools, spawners, sensing, targeting | [`gameplay_pooling_targeting.md`](docs/components/gameplay_pooling_targeting.md) |
 | World presentation | adaptive decals and reusable world feedback | [`world_decals.md`](docs/components/world_decals.md) |
-| UI + accessibility | focus, navigation, motion, toast/modal/tooltip, layout | [`ui_and_accessibility.md`](docs/components/ui_and_accessibility.md) |
+| UI + accessibility | focus, motion, toast/modal/tooltip, responsive layout | [`ui_and_accessibility.md`](docs/components/ui_and_accessibility.md) |
 | Animation | AnimationTree-facing integration | [`animation_integration.md`](docs/components/animation_integration.md) |
 | Camera/game feel | shake, impulses, feedback and motion policy | [`camera_game_feel.md`](docs/components/camera_game_feel.md) |
 
-Optional modules currently cover EventBus, networking, Inventory / Equipment,
-Probability / Loot, Persistent World State, AI / Navigation, online replication,
-and provider-neutral platform services.
+Optional modules cover:
 
-If you know the game problem but not the Nucleus subsystem, start with
-[`docs/guides/real_game_patterns.md`](docs/guides/real_game_patterns.md). It maps
-every component group and optional module to recognizable game-shaped use cases.
+```text
+EventBus
+Networking + online replication
+Inventory / Equipment
+Probability / Loot
+Persistent World State
+AI / Navigation
+Platform Services
+Content Packs / DLC / data-only community mods
+Mobile Foundation
+```
+
+Content Packs deliberately distinguishes **signed trusted PCKs** from
+**untrusted data mods**. Community content is never mounted through Godot's
+resource-pack loader by the Nucleus data-mod API. See
+[`content_packs.md`](docs/modules/content_packs.md).
+
+Mobile Foundation adds first-class touch seats, virtual controls, touch-look,
+handheld haptics, orientation and permission helpers while reusing the same
+semantic actions as desktop/gamepad gameplay. See
+[`mobile.md`](docs/modules/mobile.md).
+
+## Learn Nucleus by building
+
+The documentation is designed to work as a learning path, not only as API
+reference.
+
+Start at [`docs/guides/tutorials/README.md`](docs/guides/tutorials/README.md) or
+choose a focused quickstart:
+
+- [Settings and input](docs/guides/settings_input_quickstart.md)
+- [Local multiplayer/device ownership](docs/guides/local_multiplayer_quickstart.md)
+- [Audio](docs/guides/audio_quickstart.md)
+- [Save](docs/guides/save_quickstart.md)
+- [Scene flow](docs/guides/scene_flow_quickstart.md)
+- [Localization](docs/guides/localization_quickstart.md)
+- [Networking](docs/guides/networking_quickstart.md)
+- [Content Packs / DLC / mods](docs/guides/content_packs_quickstart.md)
+- [Mobile](docs/guides/mobile_quickstart.md)
+- [Real-game patterns](docs/guides/real_game_patterns.md)
+
+The intended learning hierarchy is:
+
+```text
+Quickstart
+    learn ownership and first setup
+        ↓
+Tutorial
+    build one concrete feature end-to-end
+        ↓
+Technical contract
+    inspect lifetime, public API, limits, and extension points
+```
 
 ## Input that stays out of the player's way
 
@@ -114,13 +157,15 @@ Nucleus uses Godot's `Input` and `InputMap`; it does not replace them.
 
 The baseline supports:
 
-- keyboard/mouse and gamepad defaults;
-- automatic active-device detection;
-- one-player keyboard/gamepad hot-swap without replacing the local-player seat;
+- keyboard/mouse, gamepad, and touch source detection;
+- automatic single-player keyboard/gamepad/touch hot-swap;
+- stable local-player seats for couch multiplayer;
 - device-aware prompts and controller-family labels;
 - runtime rebinding persisted through Settings;
 - scene-owned controller connection/disconnection toasts;
-- explicit local-player ownership for couch multiplayer.
+- virtual touch sticks/action buttons that feed the same gameplay actions;
+- touch-look that feeds the same `NucleusMotionInput` used by camera rigs;
+- shared vibration policy across gamepad rumble and handheld haptics.
 
 A key boundary is intentional:
 
@@ -132,10 +177,70 @@ move_* / interact / primary_action / secondary_action / pause / game actions
     → gameplay semantics
 ```
 
-A world scene should not interpret `ui_cancel` as "leave the game". The same
-physical B/Circle button may be a gameplay action while an open menu still uses
-it to go back. See
-[`settings_input_quickstart.md`](docs/guides/settings_input_quickstart.md).
+A world scene should not interpret `ui_cancel` as a universal "leave game"
+command. The same physical B/Circle input may be a gameplay action while an open
+menu still uses it to go back.
+
+## Secure extensible content
+
+Nucleus supports two intentionally different content paths:
+
+```text
+Official patch / DLC / trusted pack
+    detached signature
+    + manifest SHA-256 binding
+    + compatibility / dependency / entitlement policy
+    → verified before ProjectSettings.load_resource_pack()
+
+Community mod
+    JSON manifest
+    + strict path / size / extension validation
+    + data-only read API
+    → never mounted into res://
+```
+
+The default community-mod whitelist is deliberately text-only (`json`, `csv`,
+`txt`). Games may explicitly opt into additional inert/media formats after
+reviewing the parser surface. Scripts, scenes, Resources, GDExtensions, native
+libraries, WebAssembly, nested archives, and executable/script formats are hard
+blocked by the default data-mod policy.
+
+Private signing keys must never be committed or shipped. Nucleus includes a
+headless signing tool that accepts the private key from an external path; only
+the public verification key belongs in the game.
+
+See:
+
+- [`docs/modules/content_packs.md`](docs/modules/content_packs.md)
+- [`docs/guides/content_packs_quickstart.md`](docs/guides/content_packs_quickstart.md)
+- [`docs/guides/tutorials/content_packs.md`](docs/guides/tutorials/content_packs.md)
+
+## Mobile foundation
+
+Nucleus treats mobile as another input/platform environment, not a separate
+version of gameplay.
+
+Existing lifecycle, settings, accessibility, safe-area, and breakpoint systems
+are reused. The optional mobile layer adds only missing reusable policy:
+
+```text
+touch player seat
+virtual stick / action button / touch-look
+handheld haptics
+orientation policy
+permission helpers
+native Godot sensor access
+```
+
+Android/iOS product decisions such as control placement, graphics presets,
+permission rationale UX, billing, push notifications, ads, or analytics remain
+project/provider concerns.
+
+See:
+
+- [`docs/modules/mobile.md`](docs/modules/mobile.md)
+- [`docs/guides/mobile_quickstart.md`](docs/guides/mobile_quickstart.md)
+- [`docs/guides/tutorials/mobile.md`](docs/guides/tutorials/mobile.md)
 
 ## Start a new game
 
@@ -149,10 +254,10 @@ branch.
 4. Create the game's main scene and assign it in Project Settings.
 5. Keep the baseline Autoloads until you intentionally replace a documented
    dependency.
-6. Run validation before game-specific work begins.
+6. Add optional modules only when the game needs them.
+7. Run validation before game-specific work begins.
 
-Detailed setup, including PowerShell and Git workflows, is in
-[`docs/guides/installation.md`](docs/guides/installation.md).
+Detailed setup is in [`docs/guides/installation.md`](docs/guides/installation.md).
 
 ## Validation and CI
 
@@ -176,19 +281,18 @@ godot --headless --path . res://tests/smoke/smoke_main.tscn
 Editor regression tests are also available through
 `tests/editor/test_runner.tscn` with **F6**.
 
-GitHub Actions runs the same product contracts and additionally smoke-exports
-Linux, Windows, and Web. The badge at the top of this README always links to the
-current workflow state.
+GitHub Actions runs the product contracts and additionally smoke-exports Linux,
+Windows, and Web. Mobile runtime/export validation should be performed on the
+relevant Android/iOS toolchains until dedicated mobile export jobs are added.
 
-See
-[`docs/guides/validation_ci_quickstart.md`](docs/guides/validation_ci_quickstart.md).
+See [`docs/guides/validation_ci_quickstart.md`](docs/guides/validation_ci_quickstart.md).
 
 ## Documentation map
 
 Start with [`docs/README.md`](docs/README.md).
 
 ```text
-docs/guides/        task-oriented workflows and practical recipes
+docs/guides/        task-oriented quickstarts and tutorials
 docs/components/    baseline ownership and technical contracts
 docs/modules/       optional module contracts
 docs/architecture/  dependency direction and design rationale
@@ -199,7 +303,6 @@ docs/roadmap/       iterations, evidence and future direction
 Important product contracts:
 
 - [Installation](docs/guides/installation.md)
-- [Real-game patterns](docs/guides/real_game_patterns.md)
 - [Versioning](docs/policies/versioning.md)
 - [Godot compatibility](docs/policies/godot_compatibility.md)
 - [API stability](docs/policies/api_stability.md)
@@ -209,10 +312,9 @@ Important product contracts:
 
 ## Versioning
 
-Nucleus follows Semantic Versioning for the **template itself**.
-
-The source of truth is [`VERSION`](VERSION), deliberately independent from the
-consuming game's `application/config/version`.
+Nucleus follows Semantic Versioning for the **template itself**. The source of
+truth is [`VERSION`](VERSION), deliberately independent from the consuming
+game's `application/config/version`.
 
 Before 1.0, public APIs may evolve between Nucleus minor versions. Intentional
 breaking changes still require changelog and migration documentation.
@@ -222,13 +324,11 @@ See [`docs/policies/versioning.md`](docs/policies/versioning.md).
 ## Open source
 
 Nucleus is developed in the open under the [MIT License](LICENSE). Issues and
-pull requests are welcome when they preserve the template's scope and ownership
-rules.
+pull requests are welcome when they preserve the template's scope, trust
+boundaries, and ownership rules.
 
 Before contributing code, read [`AGENTS.md`](AGENTS.md) and the technical
-contract for the subsystem you are changing. The goal is not to grow the largest
-framework; it is to keep a small, dependable foundation that real games can
-build on.
+contract for the subsystem you are changing.
 
 ## Barebone lineage
 
@@ -236,7 +336,10 @@ Nucleus is the successor to the author's earlier `Barebone` Godot template.
 Reusable ideas and selected implementation work were salvaged or redesigned,
 but Nucleus does **not** provide a Barebone compatibility layer.
 
-New projects should depend only on Nucleus contracts.
+The old DLCManager idea is represented by the modern Content Packs module, but
+with explicit verification, trust separation, dependencies, compatibility, and
+data-only community-mod policy rather than automatically mounting discovered
+third-party PCKs.
 
 ## License
 

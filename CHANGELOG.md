@@ -83,6 +83,14 @@ summarized under **Unreleased** until the first release is cut.
 - Static ownership guards for verified resource-pack mounting, handheld haptics,
   mobile orientation/permissions, and the untrusted data-mod code-loading
   boundary.
+- Expanded root-viewport graphics settings for 3D render scale/scaling mode,
+  screen-space AA, TAA, 2D MSAA, 3D MSAA, and debanding through the existing
+  declarative settings catalog and display applier.
+- `NucleusEnvironmentSettingsApplier` plus optional Environment setting
+  definitions for SSAO, SSIL, glow, volumetric fog, SDFGI, and tonemapping while
+  preserving scene ownership.
+- Practical guides for extending settings, choosing project/rendering defaults,
+  configuring graphics, and troubleshooting common integration problems.
 
 ### Changed
 
@@ -105,6 +113,8 @@ summarized under **Unreleased** until the first release is cut.
   online replication and Platform Services public APIs.
 - Development version advances to `0.8.0-dev.1` for secure Content Packs and
   the first mobile/touch public APIs.
+- Development version advances to `0.9.0-dev.1` for expanded graphics settings
+  and the public scene-owned Environment settings applier.
 - Display settings now detect Godot editor game embedding before requesting an
   unsupported window-mode/window-flag transition and emit a useful diagnostic.
 - Input documentation now treats `ui_*` actions as active UI-navigation
@@ -116,6 +126,8 @@ summarized under **Unreleased** until the first release is cut.
   hot-swap can move a stable seat between keyboard/mouse, gamepad, and touch.
 - Platform capability helpers now expose Android/iOS, touchscreen, orientation,
   and handheld-haptics queries.
+- The default settings catalog schema advances to 2 so existing persisted values
+  are reconciled with the expanded reusable graphics surface.
 
 ### Security
 
@@ -139,3 +151,5 @@ summarized under **Unreleased** until the first release is cut.
   disable embedding or validate an exported/separate game window.
 - Godot resource packs have no public runtime unmount counterpart; disabling or
   reordering mounted official packs takes effect on the next process start.
+- Environment quality settings remain opt-in and scene-owned; the framework does
+  not impose universal Low/Medium/High/Ultra quality bundles.

@@ -6,6 +6,10 @@ For step-by-step options, prompt, and rebinding UI examples, follow:
 
 [`tutorials/bindings.md`](tutorials/bindings.md)
 
+For graphics settings and scene-owned Environment policy:
+
+[`tutorials/graphics_settings.md`](tutorials/graphics_settings.md)
+
 For Core usage in a small game shell:
 
 [`tutorials/core_services.md`](tutorials/core_services.md)
@@ -14,16 +18,86 @@ For Core usage in a small game shell:
 
 Use `NucleusSettings` as the stable settings service.
 
+The normal flow is:
+
+```text
+SettingDefinition Resource
+→ SettingsCatalog
+→ NucleusSettingsService
+→ setting_changed
+→ applier / game consumer
+→ native Godot state
+```
+
 For a new setting:
 
-1. define/register it using the existing Settings definition/catalog pattern;
-2. provide a default;
-3. add an applier when it changes engine/runtime state;
-4. bind UI through the existing settings binding components;
-5. let Settings persistence own the stored preference.
+1. classify its native owner;
+2. define/register it using the existing definition/catalog pattern;
+3. provide a safe default;
+4. add an applier only when it changes runtime engine/scene state;
+5. bind UI through the existing settings binding components;
+6. let Settings persistence own the stored preference;
+7. add a headless contract test when the definition/catalog behavior is reusable.
 
 Do not make UI write engine state directly when an existing applier already owns
 that behavior.
+
+### Choose the correct owner
+
+Use this decision table before adding another global service:
+
+| Native owner | Nucleus integration |
+| --- | --- |
+| application-wide runtime state | core setting + focused applier |
+| root viewport preference | `NucleusDisplaySettingsApplier` |
+| scene node/resource | scene-owned component/consumer |
+| game design/content | consuming-game setting/system |
+| startup-only project policy | `project.godot` |
+
+Do not mirror every `ProjectSettings` key into Nucleus. Some keys are startup
+policy rather than mutable player preferences.
+
+### Built-in runtime graphics
+
+The default catalog includes reusable root-viewport preferences for:
+
+```text
+graphics/max_fps
+graphics/render_scale
+graphics/scaling_3d_mode
+graphics/screen_space_aa
+graphics/taa_enabled
+graphics/msaa_2d
+graphics/msaa_3d
+graphics/debanding_enabled
+```
+
+SSAO, SSIL, glow, volumetric fog, SDFGI, and tonemapping remain properties of a
+scene `Environment`. Nucleus provides optional definitions and
+`NucleusEnvironmentSettingsApplier`, but the consuming game decides which of
+those settings to register and where to compose the applier.
+
+### Defaults and precedence
+
+Use this order when tailoring the framework:
+
+```text
+Nucleus definition default
+→ game-owned catalog/default override
+→ game-selected platform recommendation
+→ persisted user preference
+```
+
+Persisted explicit user choice wins. Platform recommendations are suitable for
+first-run defaults, not repeated overrides.
+
+Nucleus does not define Low/Medium/High/Ultra values because those labels depend
+on the game's content and target hardware. A game can implement them as bundles
+of ordinary setting values and derive `Custom` when values no longer match a
+known bundle.
+
+See [`project_configuration.md`](project_configuration.md) before choosing
+renderer, resolution, scaling, or mobile defaults.
 
 ## Input model
 
@@ -106,7 +180,7 @@ This is not a conflict by itself. The active consumer defines the context.
 Nucleus deliberately does not introduce a full mapping-context framework until a
 real consuming game proves that consumer-side context is insufficient.
 
-## Gamepad hot-swap
+## Gamepad/touch hot-swap
 
 For a normal one-player session:
 
@@ -117,10 +191,10 @@ motion_input.bind_local_player_input(local_player)
 
 With `max_players = 1` and `single_player_hot_swap = true`,
 `NucleusLocalInputSession` keeps that same `NucleusLocalPlayerInput` object while
-keyboard/mouse and gamepad activity swap the owned device.
+keyboard/mouse, gamepad, and touch activity swap the owned source/device.
 
 Gameplay systems retain a stable player reference and do not need to react to
-USB/Bluetooth connection details.
+USB/Bluetooth connection details or create a mobile-specific movement API.
 
 For couch multiplayer, set `max_players > 1`; explicit seat/device assignment
 remains authoritative.
@@ -180,12 +254,14 @@ ownership.
 - using `ui_cancel` as a global gameplay back/exit action;
 - hard-coding physical keys or gamepad button indices in gameplay;
 - caching prompt strings instead of deriving them from current bindings;
-- replacing a local-player object when only its device changed;
+- replacing a local-player object when only its device/source changed;
 - storing input/settings preferences inside save-game state;
 - routing all local players through the globally active gamepad;
-- writing runtime display/audio state directly from settings UI.
+- writing runtime display/audio/viewport state directly from settings UI;
+- making scene-owned Environment policy global without a game requirement.
 
 For broader examples, see
 [`real_game_patterns.md`](real_game_patterns.md), the hands-on
-[`tutorials/bindings.md`](tutorials/bindings.md), and the technical
-[`settings_and_input.md`](../components/settings_and_input.md) contract.
+[`tutorials/bindings.md`](tutorials/bindings.md), the graphics
+[`tutorials/graphics_settings.md`](tutorials/graphics_settings.md), and the
+technical [`settings_and_input.md`](../components/settings_and_input.md) contract.

@@ -30,26 +30,90 @@ Definitions describe settings. The catalog is the authoritative registry.
 Persistence stores user choices. Appliers translate values into engine state.
 Bindings connect UI or other consumers without duplicating settings logic.
 
-Do not make UI widgets write `ProjectSettings`, `DisplayServer`, or audio buses
-independently when a Nucleus setting/applier already owns that behavior.
+Do not make UI widgets write `ProjectSettings`, `DisplayServer`, root-viewport
+properties, or audio buses independently when a Nucleus setting/applier already
+owns that runtime preference.
 
 ## Runtime application
 
 Changing a setting through `NucleusSettings.set_value()` updates the runtime
 value, emits `setting_changed`, and lets the matching applier update Godot state.
 
-For built-in display settings, `NucleusDisplaySettingsApplier` owns:
+For built-in display and root-viewport settings,
+`NucleusDisplaySettingsApplier` owns:
 
 ```text
 display/window_mode
 display/borderless
 display/vsync_mode
 graphics/max_fps
+graphics/render_scale
+graphics/scaling_3d_mode
+graphics/screen_space_aa
+graphics/taa_enabled
+graphics/msaa_2d
 graphics/msaa_3d
+graphics/debanding_enabled
 ```
 
-Do not make runtime preferences effective by writing the corresponding
+These map to `DisplayServer`, `Engine.max_fps`, and the root `Viewport`. Do not
+make runtime preferences effective by writing the corresponding
 `ProjectSettings` key. Many project settings are read only during startup.
+
+The ownership boundary is intentionally the **root viewport preference**, not
+every `Viewport` in the scene tree. A game may configure scene-owned
+`SubViewport` nodes directly when they are rendering cameras, minimaps, portals,
+UI previews, or other local content.
+
+### Scene-owned Environment settings
+
+SSAO, SSIL, glow, volumetric fog, SDFGI and tonemapping are properties of an
+`Environment` resource, not application-global rendering state.
+
+Nucleus ships optional definitions under:
+
+```text
+core/settings/optional/environment/
+```
+
+and a scene component:
+
+```text
+NucleusEnvironmentSettingsApplier
+```
+
+Those definitions are intentionally absent from the default catalog. A consuming
+game opts in by adding only the definitions it wants to its game-owned catalog
+and attaching the applier to the relevant `WorldEnvironment` (or assigning its
+`target`).
+
+The component mutates the existing scene `Environment`; it does not create one
+and does not move ownership into an Autoload. Before opting in, copy or adjust
+the optional definition defaults so they match the visual baseline the game
+actually intends to expose.
+
+A different scene may therefore have a different `Environment` or no environment
+applier at all. That is expected.
+
+### Defaults and precedence
+
+Use this precedence model when a consuming game customizes Nucleus:
+
+```text
+framework definition default
+→ game-owned catalog/default override
+→ game-selected platform recommendation
+→ persisted user preference
+```
+
+Persisted user choice wins. Platform recommendations should seed an appropriate
+first-run default, not silently replace an explicit choice on every launch.
+
+Nucleus does not ship universal Low/Medium/High/Ultra bundles. Those labels
+depend on the game's content, renderer, performance budget, and target hardware.
+A game can build presets by assigning several ordinary setting values; `Custom`
+is presentation state derived from whether the active values still match a known
+game-owned bundle.
 
 ### Godot editor game embedding
 
@@ -80,6 +144,7 @@ The public surface includes:
 
 - semantic default action identifiers;
 - active input-source/device tracking;
+- keyboard/mouse, gamepad, and touch as first-class sources;
 - gamepad family metadata and vibration;
 - runtime rebinding serialization;
 - human-readable binding labels and prompt bindings;
@@ -92,7 +157,7 @@ Nucleus treats these as different layers:
 
 ```text
 physical event
-    A key, mouse button, gamepad B/Circle, stick axis
+    A key, mouse button, touch event, gamepad B/Circle, stick axis
 
 InputMap action
     ui_cancel, interact, dodge, pause, move_left
@@ -189,8 +254,8 @@ max_players == 1
 single_player_hot_swap == true
 ```
 
-meaningful keyboard/mouse or gamepad activity may move the stable player seat to
-that source.
+meaningful keyboard/mouse, gamepad, or touch activity may move the stable player
+seat to that source.
 
 The `NucleusLocalPlayerInput` object remains the same. Consumers that already
 hold it, such as `NucleusMotionInput`, do not need to rebind when the player
@@ -205,6 +270,16 @@ globally swap every player to the last active device.
 
 Do not solve couch multiplayer by forking InputMap per player unless a real game
 requirement cannot be represented by the existing session/reader model.
+
+## Mobile/touch rule
+
+Virtual controls feed the same semantic InputMap actions used by keyboard and
+gamepad. Do not create a parallel gameplay surface such as
+`mobile_move_vector`. `NucleusVirtualStick`, touch actions and touch look are
+input adapters, not a second control model.
+
+Safe areas, breakpoints, orientation, permissions, haptics, lifecycle events and
+capabilities remain composed helpers rather than a monolithic MobileManager.
 
 ## Device presentation
 
@@ -233,8 +308,8 @@ rebind request
 settings binding
 → NucleusSettings.set_value()
 → setting_changed
-→ settings applier
-→ Godot runtime API
+→ global applier or scene-owned Environment applier
+→ native Godot runtime API
 
 gamepad connection
 → NucleusInput signal
@@ -249,7 +324,9 @@ lower-level Godot call and explicitly separates UI navigation from gameplay
 actions.
 
 `scripts/ci/static_checks.py` protects a deliberately small set of high-value
-ownership boundaries. The guardrail does not try to ban normal native Godot use.
+ownership boundaries. It intentionally does not ban ordinary scene-owned
+`SubViewport` or `Environment` configuration merely because the root graphics
+preferences expose related Godot properties.
 
 ## Persistence boundary
 
@@ -259,6 +336,10 @@ Settings persistence is configuration data. Save-game state belongs to
 ## Extension rule
 
 New settings enter through definitions/catalog/appliers.
+
+Add an application-wide applier only when the native Godot owner is genuinely
+global. Prefer a scene-owned component when the native owner is a node/resource
+in the scene.
 
 New input presentation consumes semantic actions and existing label/prompt
 helpers rather than encoding device-specific strings in gameplay code.

@@ -252,6 +252,28 @@ hold movement stick
 Your layout decides how many simultaneous gestures make sense. The underlying
 button type is chosen to support real multitouch gameplay.
 
+## Step 13 — choose the mobile graphics budget
+
+Keep mobile graphics policy separate from the touch-input layer. Start with the
+project renderer and viewport guidance in `docs/guides/project_configuration.md`,
+then expose only preferences that are meaningful for the game's device matrix.
+
+Useful first levers are usually:
+
+```text
+graphics/render_scale
+graphics/scaling_3d_mode
+graphics/max_fps
+```
+
+Environment effects such as SSAO, glow or volumetric fog remain game-owned
+choices. If the game exposes them, compose `NucleusEnvironmentSettingsApplier`
+with the relevant `WorldEnvironment` rather than adding mobile-only graphics
+APIs.
+
+Profile sustained play, not only the first minute. Mobile performance policy must
+account for thermals, battery usage, fill rate and memory pressure.
+
 ## What remains game-specific
 
 Nucleus does not decide:

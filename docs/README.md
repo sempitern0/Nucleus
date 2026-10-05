@@ -13,6 +13,9 @@ understand its internals, while preserving explicit contracts for maintainers.
 | Match a game problem to a Nucleus component/module | `guides/real_game_patterns.md` |
 | Understand the baseline and Autoloads | `guides/foundation_quickstart.md` |
 | Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
+| Choose renderer/viewport/platform defaults | `guides/project_configuration.md` |
+| Build runtime graphics options | `guides/tutorials/graphics_settings.md` |
+| Diagnose common integration problems | `guides/troubleshooting.md` |
 | Use audio, save, scene flow, and localization | `guides/runtime_services_quickstart.md` |
 | Compose common gameplay building blocks | `guides/gameplay_foundation_quickstart.md` |
 | Use actions, attributes, and status effects | `guides/actions_attributes_status_quickstart.md` |
@@ -44,6 +47,7 @@ Start with:
 ```text
 guides/tutorials/core_services.md
 guides/tutorials/bindings.md
+guides/tutorials/graphics_settings.md
 guides/tutorials/localization.md
 guides/tutorials/audio.md
 guides/tutorials/save_system.md
@@ -61,6 +65,8 @@ Examples answer questions such as:
 
 - How do I use the default Core services from a real game scene?
 - How do I get the most from settings/input bindings?
+- How do I create a user-facing graphics setting without bypassing ownership?
+- Which graphics options belong to the root Viewport versus an Environment?
 - How do I create an InputMap action?
 - How do I build a responsive 2D or 3D controller?
 - How do I persist, localize, and route audio correctly?
@@ -81,6 +87,9 @@ Use the shortest layer that answers the current question:
 ```text
 guides/*_quickstart.md
     fast ownership/setup summary
+
+guides/project_configuration.md and troubleshooting.md
+    project-wide setup and diagnosis
 
 guides/tutorials/
     build concrete features step by step

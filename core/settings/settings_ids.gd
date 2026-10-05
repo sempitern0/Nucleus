@@ -7,7 +7,22 @@ const DISPLAY_BORDERLESS: StringName = &"display/borderless"
 const DISPLAY_VSYNC_MODE: StringName = &"display/vsync_mode"
 
 const GRAPHICS_MAX_FPS: StringName = &"graphics/max_fps"
+const GRAPHICS_RENDER_SCALE: StringName = &"graphics/render_scale"
+const GRAPHICS_SCALING_3D_MODE: StringName = &"graphics/scaling_3d_mode"
+const GRAPHICS_SCREEN_SPACE_AA: StringName = &"graphics/screen_space_aa"
+const GRAPHICS_TAA_ENABLED: StringName = &"graphics/taa_enabled"
+const GRAPHICS_MSAA_2D: StringName = &"graphics/msaa_2d"
 const GRAPHICS_MSAA_3D: StringName = &"graphics/msaa_3d"
+const GRAPHICS_DEBANDING_ENABLED: StringName = &"graphics/debanding_enabled"
+
+const ENVIRONMENT_SSAO_ENABLED: StringName = &"environment/ssao_enabled"
+const ENVIRONMENT_SSIL_ENABLED: StringName = &"environment/ssil_enabled"
+const ENVIRONMENT_GLOW_ENABLED: StringName = &"environment/glow_enabled"
+const ENVIRONMENT_VOLUMETRIC_FOG_ENABLED: StringName = (
+	&"environment/volumetric_fog_enabled"
+)
+const ENVIRONMENT_SDFGI_ENABLED: StringName = &"environment/sdfgi_enabled"
+const ENVIRONMENT_TONEMAP_MODE: StringName = &"environment/tonemap_mode"
 
 const INPUT_BINDINGS: StringName = &"input/bindings"
 const INPUT_VIBRATION_ENABLED: StringName = &"input/vibration_enabled"

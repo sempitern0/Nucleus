@@ -34,6 +34,15 @@ WebSocket
 The module does not implement gameplay replication, RPC design, authentication,
 lobbies, or matchmaking.
 
+Learn transport/bootstrap before replication:
+
+- [`networking_quickstart.md`](networking_quickstart.md)
+- [`tutorials/networking.md`](tutorials/networking.md)
+
+Then continue with:
+
+- [`online_replication_quickstart.md`](online_replication_quickstart.md)
+
 ## Inventory / Equipment
 
 `modules/inventory` is data/runtime infrastructure and does not require an
@@ -52,9 +61,7 @@ Chest
 
 See:
 
-```text
-docs/guides/inventory_equipment_quickstart.md
-```
+[`inventory_equipment_quickstart.md`](inventory_equipment_quickstart.md)
 
 ## Probability / Loot
 
@@ -75,9 +82,7 @@ Loot does not require Inventory.
 
 See:
 
-```text
-docs/guides/loot_quickstart.md
-```
+[`loot_quickstart.md`](loot_quickstart.md)
 
 ## Persistent World State
 
@@ -105,9 +110,7 @@ This service is not added to the default Nucleus project.
 
 See:
 
-```text
-docs/guides/persistent_world_quickstart.md
-```
+[`persistent_world_quickstart.md`](persistent_world_quickstart.md)
 
 ## AI / Navigation
 
@@ -140,9 +143,7 @@ There is no AI Autoload.
 
 See:
 
-```text
-docs/guides/ai_navigation_quickstart.md
-```
+[`ai_navigation_quickstart.md`](ai_navigation_quickstart.md)
 
 ## Online Gameplay Replication
 
@@ -169,9 +170,7 @@ The default contract is server-authoritative.
 
 See:
 
-```text
-docs/guides/online_replication_quickstart.md
-```
+[`online_replication_quickstart.md`](online_replication_quickstart.md)
 
 ## Platform Services
 
@@ -190,15 +189,24 @@ A game integrates those through a thin `NucleusPlatformProvider` adapter.
 
 See:
 
-```text
-docs/guides/platform_services_quickstart.md
-```
+[`platform_services_quickstart.md`](platform_services_quickstart.md)
 
 ## Keep optional modules optional
 
 The default Nucleus `project.godot` intentionally does not load these modules.
 
 A game that does not use one should pay no runtime architectural cost for it.
+
+Before adopting one, ask:
+
+1. What real game requirement needs it?
+2. Which scene/service owns its lifetime?
+3. Is an Autoload actually required?
+4. What native Godot API remains authoritative?
+5. What data must be saved?
+6. What is server-authoritative, if networked?
+7. What project-specific policy should stay outside the module?
+8. Can the module be removed without breaking unrelated systems?
 
 For concrete first-use code and scene ownership, continue with:
 

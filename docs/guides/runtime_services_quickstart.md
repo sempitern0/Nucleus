@@ -1,43 +1,69 @@
 # Runtime Services Quickstart
 
+The baseline ships four cross-scene runtime areas together because they are
+application infrastructure, but they solve different problems.
+
+Use this page as the map; follow the dedicated quickstart for actual setup.
+
 ## Audio
 
-Use `NucleusAudio` for shared audio/music/one-shot behavior and keep bus names
-aligned with `NucleusAudioBuses`.
+Use `NucleusAudio` for shared non-positional one-shots/music/bus policy.
 
-Create reusable `NucleusAudioCue` Resources for repeatable cue policy.
+Start with:
 
-Do not create a fresh AudioStreamPlayer for every transient SFX when the
-one-shot pool already solves that lifecycle.
+[`audio_quickstart.md`](audio_quickstart.md)
+
+Hands-on:
+
+[`tutorials/audio.md`](tutorials/audio.md)
 
 ## Save
 
-Use `NucleusSave` infrastructure for encoding/storage/security/migration policy.
+Use `NucleusSave` for storage/format policy and `NucleusSaveSession` for explicit
+scene-owned state participants.
 
-Your game should:
+Start with:
 
-1. capture stable plain data from its systems;
-2. place that data in its save payload/document contract;
-3. ask the save service to persist it;
-4. restore game state through game-owned restore methods.
+[`save_quickstart.md`](save_quickstart.md)
 
-Do not persist live Node references.
+Hands-on:
 
-Keep encryption/integrity secrets outside committed Resources.
+[`tutorials/save_system.md`](tutorials/save_system.md)
 
 ## Scene flow
 
-Use `NucleusSceneFlow` when a transition needs sequencing or shared transition
-policy. For a trivial isolated scene change, Godot's SceneTree remains valid.
+Use `NucleusSceneFlow` when scene replacement needs one observable transition
+contract, background-loading support, and shared progress/failure signals.
+
+Start with:
+
+[`scene_flow_quickstart.md`](scene_flow_quickstart.md)
+
+Hands-on:
+
+[`tutorials/scene_flow.md`](tutorials/scene_flow.md)
 
 ## Localization
 
-Store translation keys/source data and let `TranslationServer` +
-`NucleusLocalization` resolve the active locale.
+Godot `TranslationServer` remains authoritative. Nucleus adds locale resolution,
+a persisted locale setting, selector metadata, and an `OptionButton` binding.
 
-Do not serialize translated display strings as durable game data.
+Start with:
+
+[`localization_quickstart.md`](localization_quickstart.md)
+
+Hands-on:
+
+[`tutorials/localization.md`](tutorials/localization.md)
 
 ## Ownership reminder
 
-These services are already default Autoloads because their responsibilities are
-cross-scene. Game-facing gameplay components should remain scene-owned.
+These services are cross-scene by default; game-facing gameplay components remain
+scene-owned.
+
+Do not turn the service layer into a place for project-specific combat, world,
+progression, or UI rules.
+
+## Technical contract
+
+[`../components/audio_save_scene_localization.md`](../components/audio_save_scene_localization.md)

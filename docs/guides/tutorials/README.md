@@ -1,7 +1,8 @@
 # Hands-on Nucleus tutorials
 
-The quickstarts explain what each Nucleus area owns. These tutorials explain how
-to build small, working game features with the public API.
+The quickstarts explain ownership and the minimum public surface. These tutorials
+teach Nucleus by building small features that you can reproduce in the Godot
+editor.
 
 Use the documentation in three layers:
 
@@ -16,63 +17,75 @@ Technical contract
     inspect lifetime, signals, extension points, and limitations
 ```
 
-The tutorials intentionally use native Godot nodes wherever Nucleus does not own
-the behavior.
+The tutorials intentionally keep native Godot nodes/APIs visible wherever
+Nucleus does not own the behavior.
 
-Named games are used only as product/design analogies. They are not claims about
-another game's source code or internal architecture.
+## Recommended learning path
 
-## Recommended first hour
+If Nucleus is new to you, this sequence covers most of the baseline without
+requiring you to read the architecture first:
 
-Follow these in order:
+1. [`core_services.md`](core_services.md) — understand the default Autoloads.
+2. [`bindings.md`](bindings.md) — build settings/input UI through composition.
+3. [`localization.md`](localization.md) — ship two languages and persist choice.
+4. [`audio.md`](audio.md) — use cues, one-shots, buses and volume bindings.
+5. [`save_system.md`](save_system.md) — save scene-owned participant state.
+6. [`scene_flow.md`](scene_flow.md) — build a loading overlay around SceneFlow.
+7. Choose a movement path:
+   - [`platformer_2d.md`](platformer_2d.md)
+   - [`third_person_3d.md`](third_person_3d.md)
+8. [`gameplay_actions.md`](gameplay_actions.md) — executable gameplay actions.
+9. [`components_first_steps.md`](components_first_steps.md) — common components.
+10. [`local_multiplayer.md`](local_multiplayer.md) — explicit local input seats.
+11. [`modules_first_steps.md`](modules_first_steps.md) — optional module survey.
+12. [`networking.md`](networking.md) — prove host/join transport lifecycle.
+13. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
+    move from connection to authoritative gameplay replication.
 
-1. [`core_services.md`](core_services.md) — use the default Autoload services.
-2. [`bindings.md`](bindings.md) — build an options/rebinding UI without manual
-   synchronization code.
-3. [`gameplay_actions.md`](gameplay_actions.md) — distinguish InputMap actions
-   from executable gameplay actions.
-4. [`platformer_2d.md`](platformer_2d.md) — build a responsive side-view
-   controller with keyboard and gamepad.
+## Tutorials by area
 
-After that, use:
+| Area | Tutorial | You build |
+| --- | --- | --- |
+| Core | [`core_services.md`](core_services.md) | tiny game shell using default services |
+| Settings/Input | [`bindings.md`](bindings.md) | options + prompts + rebinding |
+| Localization | [`localization.md`](localization.md) | English/Spanish menu + language selector |
+| Audio | [`audio.md`](audio.md) | reusable UI cue + persistent volume |
+| Save | [`save_system.md`](save_system.md) | participant-based save/load/autosave |
+| Scene Flow | [`scene_flow.md`](scene_flow.md) | observable loading overlay |
+| 2D Movement | [`platformer_2d.md`](platformer_2d.md) | responsive platform controller |
+| 3D Movement | [`third_person_3d.md`](third_person_3d.md) | CharacterBody3D + orbit camera |
+| Gameplay Actions | [`gameplay_actions.md`](gameplay_actions.md) | action with input/cost/cooldown/effect |
+| Components | [`components_first_steps.md`](components_first_steps.md) | health/damage/state/interaction/pooling/etc. |
+| Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap and couch-player seats |
+| Modules | [`modules_first_steps.md`](modules_first_steps.md) | first use of each optional module |
+| Networking | [`networking.md`](networking.md) | ENet Host / Join / Leave lab |
 
-- [`components_first_steps.md`](components_first_steps.md) for health, damage,
-  interaction, state, pooling, targeting, and UI composition;
-- [`modules_first_steps.md`](modules_first_steps.md) for optional EventBus,
-  networking, inventory, loot, persistent world, AI, replication, and platform
-  services;
-- [`../real_game_patterns.md`](../real_game_patterns.md) when you know the game
-  problem but do not yet know which Nucleus subsystem fits it.
+## Learning paths by game type
 
-## Learning paths
-
-### I am building a 2D action/platform game
+### 2D platform/action game
 
 ```text
 core_services
 → bindings
+→ localization/audio/save as needed
 → platformer_2d
 → gameplay_actions
-→ components_first_steps
 → animation_integration_quickstart
 → camera_game_feel_quickstart
 ```
 
-### I am building a 3D action/survival game
+### 3D action/survival game
 
 ```text
 core_services
 → bindings
-→ gameplay_foundation_quickstart
+→ localization/audio/save/scene_flow
+→ third_person_3d
 → gameplay_actions
-→ real_game_patterns
-→ inventory / loot / persistent world as needed
+→ inventory + loot + world state as needed
 ```
 
-For movement, compose `NucleusMotionInput`,
-`NucleusCharacterMotor3D`, and the appropriate camera components.
-
-### I am building an RPG/ARPG systems layer
+### RPG/ARPG systems layer
 
 ```text
 gameplay_actions
@@ -80,49 +93,49 @@ gameplay_actions
 → inventory_equipment_quickstart
 → loot_quickstart
 → persistent_world_quickstart
+→ save_system
 ```
 
-### I am building multiplayer
-
-Start single-player gameplay first, then:
+### Couch multiplayer
 
 ```text
-optional_modules_quickstart
-→ modules_first_steps
-→ online_replication_quickstart
+bindings
+→ local_multiplayer
+→ movement tutorial for each local actor
+→ gameplay_actions
 ```
 
-Nucleus networking does not remove the need to decide authority.
+### Online/co-op game
+
+Build the local game first, then:
+
+```text
+networking
+→ online_replication_quickstart
+→ platform_services_quickstart when provider integration is needed
+```
+
+Connection transport does not decide gameplay authority.
 
 ## Tutorial format
 
-Every tutorial aims to answer the same questions:
+Every tutorial should answer:
 
 1. What are we building?
-2. Which nodes/resources do I add?
+2. Which Nodes/Resources do I add?
 3. Which Inspector properties matter?
-4. What code, if any, belongs in the game?
+4. What game-owned code is required?
 5. What should happen when it works?
 6. What should remain game-specific?
 7. What are the common mistakes?
-8. Where is the technical contract?
+8. Which technical contract is authoritative?
 
 ## Public API rule
 
-Tutorials should use public `Nucleus*` APIs and native Godot APIs.
+Tutorials use public `Nucleus*` APIs and native Godot APIs.
 
-Do not teach a private underscore-prefixed helper as a supported integration
-point.
+Do not teach underscore-prefixed implementation helpers as supported integration
+points.
 
-If an example needs direct access to a lower-level Godot API already owned by
-Nucleus, the tutorial should explain why instead of silently bypassing the
-Nucleus boundary.
-
-## Tutorial versus production code
-
-Tutorial values are starting points, not balance recommendations.
-
-For example, the platformer tutorial uses coyote time, jump buffering, and
-variable jump height to demonstrate the motor. A real game still owns movement
-feel, animation timing, level metrics, accessibility options, and game-specific
-mechanics.
+Named commercial games may appear only as product/design analogies, never as
+claims about their source code or architecture.

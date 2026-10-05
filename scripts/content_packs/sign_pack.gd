@@ -6,14 +6,6 @@ extends SceneTree
 ##   -- --pack /secure/dlc.pck --manifest /secure/dlc.json \
 ##   --key /secure/content.key --signature /secure/dlc.sig
 
-const REQUIRED_OPTIONS := PackedStringArray([
-	"pack",
-	"manifest",
-	"key",
-	"signature",
-])
-
-
 func _initialize() -> void:
 	call_deferred("_run")
 
@@ -21,7 +13,14 @@ func _initialize() -> void:
 func _run() -> void:
 	var options: Dictionary = _parse_options(OS.get_cmdline_user_args())
 
-	for option: String in REQUIRED_OPTIONS:
+	var required_options := PackedStringArray([
+		"pack",
+		"manifest",
+		"key",
+		"signature",
+	])
+
+	for option: String in required_options:
 		if str(options.get(option, "")).is_empty():
 			push_error("Missing required option --%s." % option)
 			quit(2)
@@ -31,7 +30,7 @@ func _run() -> void:
 	var manifest_path: String = str(options.manifest)
 	var key_path: String = str(options.key)
 	var signature_path: String = str(options.signature)
-	
+
 	if key_path.begins_with("res://"):
 		push_error("Private signing keys must stay outside res://.")
 		quit(2)

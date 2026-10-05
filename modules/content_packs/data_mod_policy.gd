@@ -17,30 +17,6 @@ var maximum_file_bytes: int = 4 * 1024 * 1024
 var maximum_total_bytes: int = 32 * 1024 * 1024
 @export var allow_store_only_zip: bool = false
 
-const BLOCKED_EXTENSIONS := PackedStringArray([
-	"gd",
-	"gdc",
-	"cs",
-	"py",
-	"js",
-	"lua",
-	"tscn",
-	"scn",
-	"tres",
-	"res",
-	"gdextension",
-	"dll",
-	"so",
-	"dylib",
-	"exe",
-	"wasm",
-	"pck",
-	"zip",
-	"apk",
-	"aab",
-	"jar",
-])
-
 
 func is_relative_path_allowed(relative_path: String) -> bool:
 	var normalized: String = relative_path.replace("\\", "/").strip_edges()
@@ -66,7 +42,33 @@ func is_relative_path_allowed(relative_path: String) -> bool:
 			return false
 
 	var extension: String = normalized.get_extension().to_lower()
-	if extension in BLOCKED_EXTENSIONS:
+	if _is_blocked_extension(extension):
 		return false
 
 	return extension in allowed_extensions
+
+
+static func _is_blocked_extension(extension: String) -> bool:
+	return extension in [
+		"gd",
+		"gdc",
+		"cs",
+		"py",
+		"js",
+		"lua",
+		"tscn",
+		"scn",
+		"tres",
+		"res",
+		"gdextension",
+		"dll",
+		"so",
+		"dylib",
+		"exe",
+		"wasm",
+		"pck",
+		"zip",
+		"apk",
+		"aab",
+		"jar",
+	]

@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Static repository checks
         run: python3 scripts/ci/static_checks.py
@@ -35,7 +35,7 @@ jobs:
             --skip-validation
 
       - name: Upload release package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nucleus-${{ steps.version.outputs.value }}
           path: |

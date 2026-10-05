@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Static repository checks
         run: python3 scripts/ci/static_checks.py
@@ -33,7 +33,7 @@ jobs:
         run: python3 scripts/ci/productization_audit.py
 
       - name: Restore Godot cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             .ci/godot
@@ -92,7 +92,7 @@ jobs:
 
       - name: Upload smoke outputs
         if: ${{ always() && steps.smoke_export.outcome != 'skipped' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nucleus-smoke-exports
           path: build/smoke/

@@ -4,7 +4,8 @@
     "core/*",
     "modules/*",
     "components/gameplay/*",
-    "components/ui/*"
+    "components/ui/*",
+    "components/world/*"
   ],
   "coverage": {
     "core/accessibility": [
@@ -182,6 +183,12 @@
     ],
     "components/ui/virtualization": [
       "docs/components/ui_and_accessibility.md"
+    ],
+    "components/world/environment": [
+      "docs/components/world_time_environment.md"
+    ],
+    "components/world/time": [
+      "docs/components/world_time_environment.md"
     ]
   }
 }

@@ -39,6 +39,7 @@ def main() -> int:
 	discovered |= discover_directories(root, "modules")
 	discovered |= discover_directories(root, "components/gameplay")
 	discovered |= discover_directories(root, "components/ui")
+	discovered |= discover_directories(root, "components/world")
 
 	errors: list[str] = []
 	mapped = set(coverage)

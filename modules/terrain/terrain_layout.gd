@@ -37,6 +37,7 @@ var island_count: int = 6
 var island_min_separation: float = 80.0
 @export_range(1, 512, 1)
 var island_placement_attempts: int = 64
+@warning_ignore("shadowed_global_identifier")
 @export var seed: int = 1337
 
 

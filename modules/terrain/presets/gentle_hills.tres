@@ -1,12 +1,11 @@
-[gd_resource type="Resource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="NucleusTerrainProfile" format=3 uid="uid://b5bv37kqo2ocv"]
 
-[ext_resource type="Script" path="res://modules/terrain/terrain_profile.gd" id="1_profile"]
+[ext_resource type="Script" uid="uid://wkn61u55vxtr" path="res://modules/terrain/terrain_profile.gd" id="1_profile"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_hills"]
 seed = 1201
 frequency = 0.007
 fractal_octaves = 4
-fractal_lacunarity = 2.0
 fractal_gain = 0.48
 
 [resource]
@@ -15,6 +14,5 @@ size = Vector2(240, 240)
 resolution = 56
 height_scale = 28.0
 noise = SubResource("FastNoiseLite_hills")
-lod_levels = 2
 lod_distance_step = 105.0
 collision_resolution = 28

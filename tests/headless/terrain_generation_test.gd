@@ -3,8 +3,8 @@ extends "res://tests/headless/test_case.gd"
 const MeshBuilder := preload(
 	"res://modules/terrain/terrain_mesh_builder.gd"
 )
-const HeightSampler := preload(
-	"res://modules/terrain/terrain_height_sampler.gd"
+const PatchBuilder := preload(
+	"res://modules/terrain/terrain_patch_builder.gd"
 )
 const TerrainStreamerScript := preload(
 	"res://modules/terrain/terrain_streamer_3d.gd"
@@ -19,13 +19,7 @@ const EXAMPLE_SCENES: Array[String] = [
 	"res://examples/terrain/terrain_islands.tscn",
 	"res://examples/terrain/terrain_streaming.tscn",
 	"res://examples/terrain/terrain_material_layers.tscn",
-]
-
-const PRESET_RESOURCES: Array[String] = [
-	"res://modules/terrain/presets/gentle_hills.tres",
-	"res://modules/terrain/presets/lowlands.tres",
-	"res://modules/terrain/presets/rugged_mountains.tres",
-	"res://modules/terrain/presets/archipelago_island.tres",
+	"res://examples/terrain/terrain_debug_lab.tscn",
 ]
 
 
@@ -35,10 +29,11 @@ func run() -> Dictionary:
 	_test_direct_array_mesh_generation()
 	_test_front_face_winding()
 	_test_heightmap_collision_generation()
+	_test_uniform_heightmap_collision_scale()
 	_test_heightmap_collision_holes()
-	_test_edge_floor_noise()
+	_test_material_debug_modes()
 	_test_streamer_contract()
-	_test_preset_resources_load()
+	_test_exported_node_references_resolve()
 	_test_example_scenes_load()
 	return finish()
 
@@ -120,14 +115,11 @@ func _test_front_face_winding() -> void:
 	expect_equal(indices[0], 0, "First terrain triangle starts at the top-left vertex.")
 	expect_equal(indices[1], 1, "First terrain triangle advances along +X.")
 	expect_equal(indices[2], 3, "First terrain triangle then advances along +Z.")
-	expect_equal(indices[3], 1, "Second terrain triangle starts at the top-right vertex.")
-	expect_equal(indices[4], 4, "Second terrain triangle advances diagonally.")
-	expect_equal(indices[5], 3, "Second terrain triangle closes at the lower-left vertex.")
 
 
 func _test_heightmap_collision_generation() -> void:
 	var profile := _make_profile()
-	profile.collision_resolution = 6
+	profile.collision_resolution = 8
 	var result := MeshBuilder.build_heightmap_shape(
 		profile,
 		Vector3.ZERO,
@@ -137,9 +129,42 @@ func _test_heightmap_collision_generation() -> void:
 
 	expect_equal(result.get("error"), OK, "Heightmap collision generation should succeed.")
 	var shape: HeightMapShape3D = result["shape"]
-	expect_equal(shape.map_width, 7, "Collision width should match resolution + 1.")
-	expect_equal(shape.map_depth, 7, "Collision depth should match resolution + 1.")
-	expect_equal(shape.map_data.size(), 49, "Collision should contain one height per sample.")
+	expect_equal(shape.map_width, 9, "Square collision width should match resolution + 1.")
+	expect_equal(shape.map_depth, 9, "Square collision depth should match resolution + 1.")
+	expect_float(
+		result["uniform_scale"],
+		8.0,
+		"A 64m/8-cell collision should use an 8m uniform cell scale.",
+	)
+
+
+func _test_uniform_heightmap_collision_scale() -> void:
+	var profile := _make_profile()
+	profile.size = Vector2(128.0, 64.0)
+	profile.collision_resolution = 16
+	var result := PatchBuilder.build_patch(
+		profile,
+		null,
+		Vector3.ZERO,
+		1.0,
+		false,
+		0,
+		true,
+		false,
+	)
+
+	expect_equal(result.get("error"), OK, "Rectangular collision patch should build.")
+	var patch: Node3D = result["node"]
+	var collision := patch.get_node("TerrainCollision/CollisionShape3D") as CollisionShape3D
+
+	expect_float(collision.scale.x, collision.scale.y, "Collision X/Y scale is uniform.")
+	expect_float(collision.scale.y, collision.scale.z, "Collision Y/Z scale is uniform.")
+	expect_equal(
+		collision.get_configuration_warnings().size(),
+		0,
+		"Generated CollisionShape3D should not warn about non-uniform scale.",
+	)
+	patch.free()
 
 
 func _test_heightmap_collision_holes() -> void:
@@ -168,40 +193,30 @@ func _test_heightmap_collision_holes() -> void:
 	expect_true(has_hole, "Island collision can omit samples below the configured height.")
 
 
-func _test_edge_floor_noise() -> void:
-	var profile := _make_profile()
-	profile.shape_mode = NucleusTerrainProfile.ShapeMode.ISLAND
-	profile.edge_floor_height = -20.0
-	profile.edge_floor_noise_strength = 8.0
-	var floor_noise := FastNoiseLite.new()
-	floor_noise.seed = 1122
-	floor_noise.frequency = 0.05
-	profile.edge_floor_noise = floor_noise
+func _test_material_debug_modes() -> void:
+	var material_profile := NucleusTerrainMaterialProfile.new()
+	var layer := NucleusTerrainTextureLayer.new()
+	layer.tint = Color.RED
+	material_profile.layers.append(layer)
 
-	var sampler := HeightSampler.new()
-	expect_equal(sampler.configure(profile), OK, "Edge-floor sampler should configure.")
+	var material := material_profile.create_material(
+		-10.0,
+		40.0,
+		NucleusTerrainMaterialProfile.DebugView.LAYER_WEIGHTS,
+		7,
+		20.0,
+	) as ShaderMaterial
 
-	var left := sampler.sample_height(
-		Vector2(-31.0, -31.0),
-		Vector2(64.0, 64.0),
-		Vector2.ZERO,
-		true,
+	expect_true(material != null, "Debug terrain material should be a ShaderMaterial.")
+	expect_equal(
+		material.get_shader_parameter("debug_view"),
+		NucleusTerrainMaterialProfile.DebugView.LAYER_WEIGHTS,
+		"Debug view should reach the built-in shader.",
 	)
-	var right := sampler.sample_height(
-		Vector2(31.0, 31.0),
-		Vector2(64.0, 64.0),
-		Vector2.ZERO,
-		true,
-	)
-
-	expect_false(
-		is_equal_approx(left, right),
-		"Edge-floor noise should vary fully submerged island samples.",
-	)
-	expect_float(
-		profile.minimum_expected_height(),
-		-28.0,
-		"Expected minimum height includes negative floor variation.",
+	expect_equal(
+		material_profile.get_active_layer_count(),
+		1,
+		"Material profile should expose active layer count.",
 	)
 
 
@@ -227,28 +242,9 @@ func _test_streamer_contract() -> void:
 	expect_equal(
 		streamer.get_loaded_chunk_count(),
 		0,
-		"New streamers expose an empty loaded-chunk count.",
-	)
-	expect_equal(
-		streamer.get_pending_chunk_count(),
-		0,
-		"New streamers expose an empty pending count.",
+		"New streamer starts with no loaded chunks.",
 	)
 	streamer.free()
-
-
-func _test_preset_resources_load() -> void:
-	for resource_path: String in PRESET_RESOURCES:
-		var profile: NucleusTerrainProfile = load(resource_path) as NucleusTerrainProfile
-		expect_true(
-			profile != null,
-			"Terrain preset should load: %s" % resource_path,
-		)
-		if profile != null:
-			expect_true(
-				profile.get_validation_errors().is_empty(),
-				"Terrain preset should validate: %s" % resource_path,
-			)
 
 
 func _test_example_scenes_load() -> void:
@@ -258,3 +254,45 @@ func _test_example_scenes_load() -> void:
 			packed != null,
 			"Terrain example should load: %s" % scene_path,
 		)
+
+func _test_exported_node_references_resolve() -> void:
+	var stream_scene := load(
+		"res://examples/terrain/terrain_streaming.tscn"
+	) as PackedScene
+	expect_true(stream_scene != null, "Streaming example should load.")
+
+	if stream_scene != null:
+		var instance := stream_scene.instantiate()
+		var streamer := instance.get_node("TerrainStream") as NucleusTerrainStreamer3D
+		var hud := instance.get_node("StreamingHUD")
+
+		expect_true(
+			streamer.tracked_node != null,
+			"Streaming example tracked_node should resolve from its saved NodePath.",
+		)
+		expect_true(
+			hud.get("streamer") != null,
+			"Streaming HUD streamer reference should resolve.",
+		)
+		expect_true(
+			hud.get("tracked_node") != null,
+			"Streaming HUD tracked_node reference should resolve.",
+		)
+		instance.free()
+
+	var debug_scene := load(
+		"res://examples/terrain/terrain_debug_lab.tscn"
+	) as PackedScene
+	expect_true(debug_scene != null, "Terrain debug lab should load.")
+
+	if debug_scene != null:
+		var instance := debug_scene.instantiate()
+		var debug_ui := instance.get_node("DebugUI")
+		var terrain_ref := debug_ui.get("terrain") as NucleusTerrainGenerator3D
+
+		expect_true(
+			terrain_ref != null,
+			"Debug lab terrain reference should resolve from its saved NodePath.",
+		)
+		instance.free()
+

@@ -1,17 +1,16 @@
-[gd_resource type="Resource" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="NucleusTerrainMaterialProfile" format=3 uid="uid://cogfhynj2h8ag"]
 
-[ext_resource type="Script" path="res://modules/terrain/terrain_material_profile.gd" id="1_material"]
-[ext_resource type="Script" path="res://modules/terrain/terrain_texture_layer.gd" id="2_layer"]
-[ext_resource type="Texture2D" path="res://examples/terrain/textures/sand.svg" id="3_sand"]
-[ext_resource type="Texture2D" path="res://examples/terrain/textures/grass.svg" id="4_grass"]
-[ext_resource type="Texture2D" path="res://examples/terrain/textures/rock.svg" id="5_rock"]
-[ext_resource type="Texture2D" path="res://examples/terrain/textures/snow.svg" id="6_snow"]
+[ext_resource type="Script" uid="uid://bnaa1dp2d60q5" path="res://modules/terrain/terrain_material_profile.gd" id="1_material"]
+[ext_resource type="Script" uid="uid://bf5ecnojq5hrm" path="res://modules/terrain/terrain_texture_layer.gd" id="2_layer"]
+[ext_resource type="Texture2D" uid="uid://dnwuloq358kcn" path="res://examples/terrain/textures/sand.svg" id="3_sand"]
+[ext_resource type="Texture2D" uid="uid://614xm3dbi7rw" path="res://examples/terrain/textures/grass.svg" id="4_grass"]
+[ext_resource type="Texture2D" uid="uid://byi050o0vwnuj" path="res://examples/terrain/textures/rock.svg" id="5_rock"]
+[ext_resource type="Texture2D" uid="uid://dd8rade2iqfma" path="res://examples/terrain/textures/snow.svg" id="6_snow"]
 
 [sub_resource type="Resource" id="Layer_sand"]
 script = ExtResource("2_layer")
 albedo = ExtResource("3_sand")
 height_range = Vector2(0, 0.3)
-slope_range = Vector2(0, 1)
 blend_softness = 0.07
 roughness = 0.92
 
@@ -20,7 +19,6 @@ script = ExtResource("2_layer")
 albedo = ExtResource("4_grass")
 height_range = Vector2(0.2, 0.63)
 slope_range = Vector2(0, 0.62)
-blend_softness = 0.08
 roughness = 0.95
 
 [sub_resource type="Resource" id="Layer_rock"]
@@ -35,12 +33,9 @@ roughness = 0.88
 script = ExtResource("2_layer")
 albedo = ExtResource("6_snow")
 height_range = Vector2(0.76, 1)
-slope_range = Vector2(0, 1)
-blend_softness = 0.08
 roughness = 0.82
 
 [resource]
 script = ExtResource("1_material")
-projection_mode = 0
 base_color = Color(0.18, 0.23, 0.16, 1)
 layers = Array[ExtResource("2_layer")]([SubResource("Layer_sand"), SubResource("Layer_grass"), SubResource("Layer_rock"), SubResource("Layer_snow")])

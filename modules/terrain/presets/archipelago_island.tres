@@ -1,25 +1,22 @@
-[gd_resource type="Resource" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="NucleusTerrainProfile" format=3 uid="uid://c1wcr3qu12khd"]
 
-[ext_resource type="Script" path="res://modules/terrain/terrain_profile.gd" id="1_profile"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_land"]
-seed = 6023
-frequency = 0.006
-fractal_octaves = 5
-fractal_lacunarity = 2.0
-fractal_gain = 0.5
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_shore"]
-seed = 6024
-frequency = 0.018
-fractal_octaves = 3
-fractal_gain = 0.46
+[ext_resource type="Script" uid="uid://wkn61u55vxtr" path="res://modules/terrain/terrain_profile.gd" id="1_profile"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_floor"]
 seed = 6025
 frequency = 0.009
 fractal_octaves = 3
 fractal_gain = 0.52
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_land"]
+seed = 6023
+frequency = 0.006
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_shore"]
+seed = 6024
+frequency = 0.018
+fractal_octaves = 3
+fractal_gain = 0.46
 
 [resource]
 script = ExtResource("1_profile")
@@ -37,7 +34,6 @@ shoreline_noise = SubResource("FastNoiseLite_shore")
 shoreline_noise_strength = 0.13
 edge_floor_noise = SubResource("FastNoiseLite_floor")
 edge_floor_noise_strength = 7.0
-lod_levels = 2
 lod_distance_step = 135.0
 collision_resolution = 32
 collision_holes_below_height = true

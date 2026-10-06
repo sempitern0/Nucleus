@@ -6,32 +6,26 @@ Nucleus already covers most reusable runtime foundations. The next large gains
 for new projects are more likely to come from reducing debugging, validation,
 and reproduction time than from adding more generic gameplay systems.
 
-## Priority 1 — Development command palette / debug shell
+## Delivered — Development command palette / debug shell
 
-Potential owner:
+Iteration 29 implements:
 
 ```text
 modules/development_tools/
+    explicit command registry
+    typed arguments / quoted parser
+    searchable in-game palette
+    bounded execution history
+    SceneFlow adapter
+    Performance adapter
 ```
 
-High-value boundary:
+Games register domain-specific commands beside the systems that own spawn,
+grant-item, teleport, quest, encounter, weather, or other development fixtures.
+The registry deliberately has no arbitrary reflection/eval path.
 
-```text
-command registry
-small in-game palette
-argument parsing / history
-project-owned command registration
-```
-
-Reusable commands can compose existing Nucleus owners for scene reloads,
-settings, save inspection, performance report capture, input diagnostics, or
-world-state inspection. Games register domain-specific commands such as spawn,
-grant item, teleport, quest state, or encounter controls.
-
-Do not turn this into a global cheat manager or duplicate gameplay APIs.
-
-Expected leverage: **very high**. It removes repeated one-off debug UI and
-shortens reproduce -> inspect -> retry loops across almost every project.
+This is now the preferred entry point for later developer-facing tooling rather
+than adding another temporary debug UI per subsystem.
 
 ## Priority 2 — Scene / resource validation rules
 

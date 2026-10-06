@@ -49,6 +49,9 @@
     "modules/content_packs": [
       "docs/modules/content_packs.md"
     ],
+    "modules/development_tools": [
+      "docs/modules/development_tools.md"
+    ],
     "modules/event_bus": [
       "docs/modules/event_bus.md"
     ],

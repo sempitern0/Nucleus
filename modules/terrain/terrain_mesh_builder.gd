@@ -196,7 +196,10 @@ static func _build_indices(cells: int, step: int) -> PackedInt32Array:
 			var b := z * row + next_x
 			var c := next_z * row + x
 			var d := next_z * row + next_x
-			indices.append_array(PackedInt32Array([a, c, b, b, c, d]))
+
+			# Godot treats clockwise triangle winding as front-facing.
+			# Viewed from above, these triangles face upward with cull_back.
+			indices.append_array(PackedInt32Array([a, b, c, b, d, c]))
 			x = next_x
 
 		z = next_z

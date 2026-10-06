@@ -8,7 +8,7 @@ const DEFAULT_SHADER := preload(
 )
 
 @export_enum("Top projection", "Triplanar")
-var projection_mode: int = 1
+var projection_mode: int = 0
 @export var base_color: Color = Color(0.24, 0.38, 0.18, 1.0)
 @export var layers: Array[NucleusTerrainTextureLayer] = []
 @export var custom_material: Material

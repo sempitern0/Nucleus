@@ -14,6 +14,7 @@ const EXAMPLE_SCENES: Array[String] = [
 	"res://examples/terrain/terrain_linear.tscn",
 	"res://examples/terrain/terrain_islands.tscn",
 	"res://examples/terrain/terrain_streaming.tscn",
+	"res://examples/terrain/terrain_material_layers.tscn",
 ]
 
 
@@ -21,6 +22,7 @@ func run() -> Dictionary:
 	_test_profile_validation()
 	_test_layouts_are_deterministic()
 	_test_direct_array_mesh_generation()
+	_test_front_face_winding()
 	_test_heightmap_collision_generation()
 	_test_heightmap_collision_holes()
 	_test_streamer_contract()
@@ -82,6 +84,32 @@ func _test_direct_array_mesh_generation() -> void:
 		384,
 		"An 8x8 cell grid should create two triangles per cell.",
 	)
+
+
+func _test_front_face_winding() -> void:
+	var profile := _make_profile()
+	profile.resolution = 2
+	profile.lod_levels = 0
+	var result := MeshBuilder.build_mesh(
+		profile,
+		Vector3.ZERO,
+		1.0,
+		0,
+		false,
+		false,
+	)
+
+	expect_equal(result.get("error"), OK, "Winding test mesh should build.")
+	var mesh: ArrayMesh = result["mesh"]
+	var arrays: Array = mesh.surface_get_arrays(0)
+	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+
+	expect_equal(indices[0], 0, "First terrain triangle starts at the top-left vertex.")
+	expect_equal(indices[1], 1, "First terrain triangle advances along +X.")
+	expect_equal(indices[2], 3, "First terrain triangle then advances along +Z.")
+	expect_equal(indices[3], 1, "Second terrain triangle starts at the top-right vertex.")
+	expect_equal(indices[4], 4, "Second terrain triangle advances diagonally.")
+	expect_equal(indices[5], 3, "Second terrain triangle closes at the lower-left vertex.")
 
 
 func _test_heightmap_collision_generation() -> void:

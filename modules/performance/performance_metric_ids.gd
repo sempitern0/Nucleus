@@ -7,6 +7,17 @@ const PROCESS_MS: StringName = &"time/process_ms"
 const PHYSICS_MS: StringName = &"time/physics_ms"
 const NAVIGATION_MS: StringName = &"time/navigation_ms"
 
+## Effective FPS measured from monotonic process-frame timestamps.
+const WINDOW_FPS: StringName = &"time/window_fps"
+## Mean wall-clock frame interval during the sampling window.
+const FRAME_INTERVAL_AVG_MS: StringName = &"time/frame_interval_avg_ms"
+## 95th percentile wall-clock frame interval during the sampling window.
+const FRAME_INTERVAL_P95_MS: StringName = &"time/frame_interval_p95_ms"
+## Slowest wall-clock frame interval during the sampling window.
+const FRAME_INTERVAL_MAX_MS: StringName = &"time/frame_interval_max_ms"
+## Number of per-frame deltas used to build the pacing sample.
+const FRAME_INTERVAL_SAMPLES: StringName = &"time/frame_interval_samples"
+
 const STATIC_MEMORY_BYTES: StringName = &"memory/static_bytes"
 const MESSAGE_BUFFER_MAX_BYTES: StringName = &"memory/message_buffer_max_bytes"
 

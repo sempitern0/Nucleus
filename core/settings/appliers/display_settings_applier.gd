@@ -142,13 +142,15 @@ func _apply_render_scale(value: float) -> void:
 	get_tree().root.scaling_3d_scale = clampf(value, 0.25, 2.0)
 
 
-@warning_ignore("int_as_enum_without_cast")
+
 func _apply_scaling_3d_mode(value: int) -> void:
+	@warning_ignore("int_as_enum_without_cast")
 	get_tree().root.scaling_3d_mode = value
 
 
-@warning_ignore("int_as_enum_without_cast")
+
 func _apply_screen_space_aa(value: int) -> void:
+	@warning_ignore("int_as_enum_without_cast")
 	get_tree().root.screen_space_aa = value
 
 
@@ -156,13 +158,14 @@ func _apply_taa(value: bool) -> void:
 	get_tree().root.use_taa = value
 
 
-@warning_ignore("int_as_enum_without_cast")
+
 func _apply_msaa_2d(value: int) -> void:
+	@warning_ignore("int_as_enum_without_cast")
 	get_tree().root.msaa_2d = value
 
 
-@warning_ignore("int_as_enum_without_cast")
 func _apply_msaa_3d(value: int) -> void:
+	@warning_ignore("int_as_enum_without_cast")
 	get_tree().root.msaa_3d = value
 
 

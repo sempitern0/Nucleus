@@ -1,6 +1,10 @@
 class_name NucleusPerformanceAdvisor
 extends RefCounted
 ## Converts sampled native metrics into bounded, evidence-backed suggestions.
+##
+## Frame-target health deliberately does not use Performance.TIME_PROCESS as an
+## authoritative CPU budget. Godot may include synchronization/frame limiting in
+## that monitor, so Nucleus evaluates effective FPS and pacing over recent windows.
 
 
 static func evaluate(
@@ -8,13 +12,16 @@ static func evaluate(
 	previous: NucleusPerformanceSnapshot,
 	profile: NucleusPerformanceProfile,
 	warmup_complete: bool,
+	history: Array[NucleusPerformanceSnapshot] = [],
 ) -> Array[NucleusPerformanceDiagnostic]:
 	var diagnostics: Array[NucleusPerformanceDiagnostic] = []
 
 	if snapshot == null or profile == null:
 		return diagnostics
 
-	_evaluate_frame(snapshot, profile, diagnostics)
+	if warmup_complete:
+		_evaluate_frame(snapshot, profile, history, diagnostics)
+
 	_evaluate_cpu_subsystems(snapshot, profile, diagnostics)
 	_evaluate_rendering(snapshot, profile, diagnostics)
 	_evaluate_scene_memory(snapshot, profile, diagnostics)
@@ -35,72 +42,143 @@ static func evaluate(
 static func _evaluate_frame(
 	snapshot: NucleusPerformanceSnapshot,
 	profile: NucleusPerformanceProfile,
+	history: Array[NucleusPerformanceSnapshot],
 	out: Array[NucleusPerformanceDiagnostic],
 ) -> void:
-	var frame_ms := snapshot.get_metric(NucleusPerformanceMetricIds.PROCESS_MS)
-	var frame_budget_ms := profile.frame_budget_ms()
-	var ratio := frame_ms / frame_budget_ms
+	var sample_limit := maxi(profile.frame_evaluation_samples, 1)
+	var fps_values := _recent_positive_values(
+		history,
+		NucleusPerformanceMetricIds.WINDOW_FPS,
+		sample_limit,
+	)
+	var pacing_values := _recent_positive_values(
+		history,
+		NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,
+		sample_limit,
+	)
 
-	if ratio >= profile.frame_critical_ratio:
+	if fps_values.size() >= sample_limit:
+		_evaluate_fps_window(snapshot, profile, fps_values, out)
+
+	if pacing_values.size() >= sample_limit:
+		_evaluate_pacing_window(profile, pacing_values, out)
+
+
+static func _evaluate_fps_window(
+	snapshot: NucleusPerformanceSnapshot,
+	profile: NucleusPerformanceProfile,
+	values: Array[float],
+	out: Array[NucleusPerformanceDiagnostic],
+) -> void:
+	var target := float(profile.target_fps)
+	var warning_threshold := target * profile.fps_warning_ratio
+	var critical_threshold := target * profile.fps_critical_ratio
+	var average := _average(values)
+	var minimum := _minimum(values)
+	var warning_count := _count_below(values, warning_threshold)
+	var critical_count := _count_below(values, critical_threshold)
+	var warning_required := maxi(1, int(ceil(values.size() * 0.50)))
+	var critical_required := maxi(1, int(ceil(values.size() * 0.75)))
+	var process_ms := snapshot.get_metric(NucleusPerformanceMetricIds.PROCESS_MS)
+
+	if average < critical_threshold and critical_count >= critical_required:
 		out.append(
 			NucleusPerformanceDiagnostic.build(
 				NucleusPerformanceDiagnostic.Severity.CRITICAL,
 				&"frame_budget_missed",
-				"Frame budget missed",
-				"The sampled frame time is above the configured target.",
+				"Frame target missed",
+				"Effective FPS is persistently below the configured target.",
 				PackedStringArray([
-					"Frame: %.2f ms" % frame_ms,
-					"Target: %.2f ms (%d FPS)"
-						% [frame_budget_ms, profile.target_fps],
+					"Window average: %.1f FPS" % average,
+					"Window low: %.1f FPS" % minimum,
+					"Target: %d FPS" % profile.target_fps,
+					"Godot TIME_PROCESS: %.2f ms (informational)" % process_ms,
 				]),
 				PackedStringArray([
-					"Open Godot Debugger > Profiler and capture the same workload.",
-					"Separate script/physics cost from rendering before optimizing.",
-					"Re-test after every change; do not optimize from intuition alone.",
+					"Capture the same workload in Godot Debugger > Profiler.",
+					"Check rendering, scripts, physics, and frame caps separately.",
+					"Re-test on representative target hardware after each change.",
 				]),
 			)
 		)
-	elif ratio >= profile.frame_warning_ratio:
+		return
+
+	if average < warning_threshold and warning_count >= warning_required:
 		out.append(
 			NucleusPerformanceDiagnostic.build(
 				NucleusPerformanceDiagnostic.Severity.WARNING,
 				&"frame_budget_headroom",
-				"Frame budget has little headroom",
-				"The current workload is close to the configured frame budget.",
+				"Frame target is losing headroom",
+				"Effective FPS has remained below the target tolerance.",
 				PackedStringArray([
-					"Frame: %.2f ms" % frame_ms,
-					"Budget usage: %.0f%%" % (ratio * 100.0),
+					"Window average: %.1f FPS" % average,
+					"Window low: %.1f FPS" % minimum,
+					"Target: %d FPS" % profile.target_fps,
 				]),
 				PackedStringArray([
-					"Capture a representative Profiler trace before adding features.",
-					"Keep headroom for spikes, background work, and slower hardware.",
+					"Capture a representative Profiler trace before optimizing.",
+					"Check VSync, FPS caps, window focus, and test conditions.",
+					"Keep headroom for spikes and slower target hardware.",
 				]),
 			)
 		)
 
-	var fps := snapshot.get_metric(NucleusPerformanceMetricIds.FPS)
-	if fps <= 0.0 or fps >= float(profile.target_fps) * 0.9:
-		return
-	if ratio >= profile.frame_warning_ratio:
+
+static func _evaluate_pacing_window(
+	profile: NucleusPerformanceProfile,
+	values: Array[float],
+	out: Array[NucleusPerformanceDiagnostic],
+) -> void:
+	var budget_ms := profile.frame_budget_ms()
+	var warning_threshold := budget_ms * profile.pacing_warning_ratio
+	var critical_threshold := budget_ms * profile.pacing_critical_ratio
+	var average_p95 := _average(values)
+	var worst_p95 := _maximum(values)
+	var warning_count := _count_above(values, warning_threshold)
+	var critical_count := _count_above(values, critical_threshold)
+	var warning_required := maxi(1, int(ceil(values.size() * 0.50)))
+	var critical_required := maxi(1, int(ceil(values.size() * 0.75)))
+
+	if average_p95 >= critical_threshold and critical_count >= critical_required:
+		out.append(
+			NucleusPerformanceDiagnostic.build(
+				NucleusPerformanceDiagnostic.Severity.CRITICAL,
+				&"frame_pacing_critical",
+				"Frame pacing is persistently unstable",
+				"Slow-frame cadence is repeatedly far above the target interval.",
+				PackedStringArray([
+					"Average p95: %.2f ms" % average_p95,
+					"Worst p95 window: %.2f ms" % worst_p95,
+					"Target cadence: %.2f ms" % budget_ms,
+				]),
+				PackedStringArray([
+					"Capture a Profiler trace around the visible hitching.",
+					"Correlate spikes with Nucleus trace markers and pipeline events.",
+					"Check streaming, shader first-use, and background work.",
+				]),
+			)
+		)
 		return
 
-	out.append(
-		NucleusPerformanceDiagnostic.build(
-			NucleusPerformanceDiagnostic.Severity.WARNING,
-			&"fps_below_target_non_cpu",
-			"FPS is below target without an obvious CPU frame overrun",
-			"The sampled CPU/frame monitor still has headroom.",
-			PackedStringArray([
-				"FPS: %.0f / %d target" % [fps, profile.target_fps],
-				"Frame: %.2f ms" % frame_ms,
-			]),
-			PackedStringArray([
-				"Check VSync, FPS caps, window focus, and test conditions first.",
-				"Inspect draw calls, primitives, VRAM, and the Video RAM panel.",
-				"Use GPU/vendor profilers when the bottleneck remains GPU-bound.",
-			]),
+	if average_p95 >= warning_threshold and warning_count >= warning_required:
+		out.append(
+			NucleusPerformanceDiagnostic.build(
+				NucleusPerformanceDiagnostic.Severity.WARNING,
+				&"frame_pacing_unstable",
+				"Frame pacing is unstable",
+				"Slow-frame cadence is repeatedly above the configured tolerance.",
+				PackedStringArray([
+					"Average p95: %.2f ms" % average_p95,
+					"Worst p95 window: %.2f ms" % worst_p95,
+					"Target cadence: %.2f ms" % budget_ms,
+				]),
+				PackedStringArray([
+					"Look for recurring spikes rather than optimizing the average.",
+					"Correlate the window with traces and pipeline compilations.",
+					"Verify the same behavior outside editor embedding.",
+				]),
+			)
 		)
-	)
 
 
 static func _evaluate_cpu_subsystems(
@@ -457,6 +535,72 @@ static func _append_maximum_diagnostic(
 			suggestions,
 		)
 	)
+
+
+static func _recent_positive_values(
+	history: Array[NucleusPerformanceSnapshot],
+	metric_id: StringName,
+	limit: int,
+) -> Array[float]:
+	var values: Array[float] = []
+	var first := maxi(0, history.size() - maxi(limit, 1))
+
+	for index: int in range(first, history.size()):
+		var candidate := history[index]
+		if candidate == null or not candidate.has_metric(metric_id):
+			continue
+
+		var value := candidate.get_metric(metric_id)
+		if value > 0.0:
+			values.append(value)
+
+	return values
+
+
+static func _average(values: Array[float]) -> float:
+	if values.is_empty():
+		return 0.0
+
+	var total := 0.0
+	for value: float in values:
+		total += value
+	return total / float(values.size())
+
+
+static func _minimum(values: Array[float]) -> float:
+	if values.is_empty():
+		return 0.0
+
+	var result := values[0]
+	for value: float in values:
+		result = minf(result, value)
+	return result
+
+
+static func _maximum(values: Array[float]) -> float:
+	if values.is_empty():
+		return 0.0
+
+	var result := values[0]
+	for value: float in values:
+		result = maxf(result, value)
+	return result
+
+
+static func _count_below(values: Array[float], threshold: float) -> int:
+	var count := 0
+	for value: float in values:
+		if value < threshold:
+			count += 1
+	return count
+
+
+static func _count_above(values: Array[float], threshold: float) -> int:
+	var count := 0
+	for value: float in values:
+		if value >= threshold:
+			count += 1
+	return count
 
 
 static func _bytes_to_mb(value: float) -> float:

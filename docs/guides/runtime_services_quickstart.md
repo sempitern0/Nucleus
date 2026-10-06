@@ -32,8 +32,9 @@ Hands-on:
 
 ## Scene flow
 
-Use `NucleusSceneFlow` when scene replacement needs one observable transition
-contract, background-loading support, and shared progress/failure signals.
+Use `NucleusSceneFlow` for observable scene replacement, background loading,
+preflight instantiation, optional visual transitions, explicit failures, and
+best-effort recovery.
 
 Start with:
 

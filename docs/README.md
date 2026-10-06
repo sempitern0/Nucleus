@@ -14,7 +14,8 @@ contract when you need lifetime, extension points, or limitations.
 | Match a game problem to a subsystem | `guides/real_game_patterns.md` |
 | Configure project/rendering defaults | `guides/project_configuration.md` |
 | Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
-| Use audio, save, scene flow, localization | `guides/runtime_services_quickstart.md` |
+| Use audio, save, and localization | `guides/runtime_services_quickstart.md` |
+| Build scene transitions and recovery | `guides/scene_flow_quickstart.md` |
 | Build common gameplay composition | `guides/gameplay_foundation_quickstart.md` |
 | Use actions, attributes, status effects | `guides/actions_attributes_status_quickstart.md` |
 | Build movement/camera | `components/gameplay_movement_camera.md` |

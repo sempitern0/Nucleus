@@ -74,6 +74,9 @@
     "modules/platform_services": [
       "docs/modules/platform_services.md"
     ],
+    "modules/terrain": [
+      "docs/modules/terrain_generation.md"
+    ],
     "modules/world_state": [
       "docs/modules/persistent_world_state.md"
     ],

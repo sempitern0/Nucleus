@@ -21,6 +21,7 @@ contract when you need lifetime, extension points, or limitations.
 | Build movement/camera | `components/gameplay_movement_camera.md` |
 | Replace prototype geometry with an animated 3D rig | `guides/tutorials/character_animation_3d.md` |
 | Wire AnimationTree/Nucleus adapters | `guides/animation_integration_quickstart.md` |
+| Generate procedural 3D terrain / islands | `guides/terrain_generation_quickstart.md` |
 | Add pooling and targeting | `guides/pooling_targeting_quickstart.md` |
 | Add camera feedback/game feel | `guides/camera_game_feel_quickstart.md` |
 | Add inventory/equipment | `guides/inventory_equipment_quickstart.md` |
@@ -87,6 +88,7 @@ Optional modules:
 - `modules/networking.md`
 - `modules/online_replication.md`
 - `modules/performance.md`
+- `modules/terrain_generation.md`
 - `modules/inventory_equipment.md`
 - `modules/probability_loot.md`
 - `modules/persistent_world_state.md`

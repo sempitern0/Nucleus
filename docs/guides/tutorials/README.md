@@ -31,15 +31,17 @@ Technical contract
    - [`third_person_3d.md`](third_person_3d.md)
 10. For a 3D character, continue with
     [`character_animation_3d.md`](character_animation_3d.md).
-11. [`gameplay_actions.md`](gameplay_actions.md) — actions/costs/effects.
-12. [`components_first_steps.md`](components_first_steps.md) — common components.
-13. [`local_multiplayer.md`](local_multiplayer.md) — local input seats.
-14. [`modules_first_steps.md`](modules_first_steps.md) — optional modules.
-15. [`networking.md`](networking.md) — localhost to authoritative deployment path.
-16. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
+11. For generated 3D worlds, continue with
+    [`procedural_terrain_3d.md`](procedural_terrain_3d.md).
+12. [`gameplay_actions.md`](gameplay_actions.md) — actions/costs/effects.
+13. [`components_first_steps.md`](components_first_steps.md) — common components.
+14. [`local_multiplayer.md`](local_multiplayer.md) — local input seats.
+15. [`modules_first_steps.md`](modules_first_steps.md) — optional modules.
+16. [`networking.md`](networking.md) — localhost to authoritative deployment path.
+17. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
     authoritative gameplay replication.
-17. [`content_packs.md`](content_packs.md) — signed DLC and safe data mods.
-18. [`mobile.md`](mobile.md) — touch, haptics, orientation, lifecycle.
+18. [`content_packs.md`](content_packs.md) — signed DLC and safe data mods.
+19. [`mobile.md`](mobile.md) — touch, haptics, orientation, lifecycle.
 
 ## Tutorials by area
 
@@ -56,6 +58,7 @@ Technical contract
 | 2D Movement | [`platformer_2d.md`](platformer_2d.md) | platform controller |
 | 3D Movement | [`third_person_3d.md`](third_person_3d.md) | body + orbit camera |
 | 3D Animation | [`character_animation_3d.md`](character_animation_3d.md) | imported rig + retargeting + IK + ragdoll |
+| Procedural Terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) | preview + islands + streamed heightfields |
 | Gameplay Actions | [`gameplay_actions.md`](gameplay_actions.md) | action/cost/cooldown/effect |
 | Components | [`components_first_steps.md`](components_first_steps.md) | common composition |
 | Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap + couch seats |
@@ -74,6 +77,7 @@ project_configuration
 → bindings
 → third_person_3d
 → character_animation_3d
+→ procedural_terrain_3d when the world is generated
 → gameplay_actions
 → inventory / loot / world state as needed
 → networking when online play is actually required

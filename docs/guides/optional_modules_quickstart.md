@@ -33,6 +33,42 @@ docs/guides/tutorials/performance_profiling.md
 docs/modules/performance.md
 ```
 
+## Procedural Terrain Generation
+
+Use `modules/terrain` when the project wants fast heightfield terrain generation
+from noise, heightmaps, or grayscale images without adopting manual terrain
+painting as the core workflow.
+
+Typical authored ownership:
+
+```text
+World
+└── Terrain : NucleusTerrainGenerator3D
+```
+
+Reusable Resources separate:
+
+```text
+height / geometry / collision profile
+world layout (single, grid, linear, islands)
+procedural terrain material layers
+```
+
+For continuous traversal, `NucleusTerrainStreamer3D` keeps a linear chunk window
+around a tracked Node3D.
+
+The module uses native `ArrayMesh`, `HeightMapShape3D`, `FastNoiseLite`, and
+ShaderMaterial. It is not a replacement for dedicated sculpt/paint tools such as
+Terrain3D or TerraBrush.
+
+See:
+
+```text
+docs/guides/terrain_generation_quickstart.md
+docs/guides/tutorials/procedural_terrain_3d.md
+docs/modules/terrain_generation.md
+```
+
 ## EventBus
 
 Use the EventBus only when you intentionally need mediator semantics.

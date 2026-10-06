@@ -1,0 +1,87 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://modules/terrain/terrain_generator_3d.gd" id="1_generator"]
+[ext_resource type="Script" path="res://modules/terrain/terrain_profile.gd" id="2_profile"]
+[ext_resource type="Script" path="res://modules/terrain/terrain_layout.gd" id="3_layout"]
+[ext_resource type="Script" path="res://modules/terrain/terrain_material_profile.gd" id="4_material"]
+[ext_resource type="Script" path="res://examples/terrain/terrain_example_runner.gd" id="5_runner"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_main"]
+seed = 2026
+frequency = 0.006
+fractal_octaves = 5
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_shore"]
+seed = 90210
+frequency = 0.018
+fractal_octaves = 3
+
+[sub_resource type="Resource" id="Resource_profile"]
+resource_local_to_scene = true
+script = ExtResource("2_profile")
+noise = SubResource("FastNoiseLite_main")
+size = Vector2(260, 260)
+resolution = 56
+base_height = -4.0
+height_scale = 66.0
+edge_floor_height = -22.0
+shoreline_noise = SubResource("FastNoiseLite_shore")
+shoreline_noise_strength = 0.13
+collision_resolution = 28
+collision_holes_below_height = true
+collision_hole_height = -1.0
+lod_levels = 2
+lod_distance_step = 150.0
+
+[sub_resource type="Resource" id="Resource_layout"]
+resource_local_to_scene = true
+script = ExtResource("3_layout")
+mode = 3
+island_count = 6
+island_spread = Vector2(1300, 1300)
+island_scale_range = Vector2(0.65, 1.15)
+island_min_separation = 90.0
+seed = 42
+
+[sub_resource type="Resource" id="Resource_material"]
+resource_local_to_scene = true
+script = ExtResource("4_material")
+base_color = Color(0.25, 0.43, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ocean"]
+albedo_color = Color(0.035, 0.16, 0.28, 1)
+metallic = 0.15
+roughness = 0.22
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ocean"]
+material = SubResource("StandardMaterial3D_ocean")
+size = Vector2(1800, 1800)
+
+[node name="TerrainIslandsExample" type="Node3D"]
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("1_generator")
+profile = SubResource("Resource_profile")
+layout = SubResource("Resource_layout")
+material_profile = SubResource("Resource_material")
+preview_resolution = 20
+patches_per_frame = 1
+
+[node name="ExampleRunner" type="Node" parent="."]
+script = ExtResource("5_runner")
+action = 1
+run_in_editor = false
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-55, -35, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 620, 820)
+rotation_degrees = Vector3(-37, 0, 0)
+current = true
+
+[node name="Ocean" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0, 0)
+mesh = SubResource("PlaneMesh_ocean")

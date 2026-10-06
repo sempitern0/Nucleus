@@ -89,6 +89,7 @@ Optional modules are not promoted to Autoloads merely for convenience.
 | Actions, attributes, modifiers, status effects | [Actions / attributes / status](docs/guides/actions_attributes_status_quickstart.md) |
 | 2D/3D movement and camera | [Movement / camera contract](docs/components/gameplay_movement_camera.md) |
 | Third-person controller | [3D controller tutorial](docs/guides/tutorials/third_person_3d.md) |
+| Procedural terrain / islands | [Terrain generation](docs/guides/terrain_generation_quickstart.md) |
 | Pooling, spawning, targeting | [Pooling / targeting](docs/guides/pooling_targeting_quickstart.md) |
 | Camera feedback and game feel | [Camera / game feel](docs/guides/camera_game_feel_quickstart.md) |
 | World decals | [Smart decals](docs/guides/smart_decals_quickstart.md) |
@@ -123,11 +124,41 @@ The tutorial covers imported humanoids and reusable animation sets from common
 pipelines such as Mixamo, KayKit, and Mesh2Motion, including Godot retargeting,
 AnimationTree locomotion, SkeletonModifier3D/IK, attachments, and ragdoll.
 
+## Procedural terrain
+
+The optional terrain module is aimed at fast heightfield generation rather than
+manual sculpting/painting.
+
+It composes native Godot terrain-friendly primitives:
+
+```text
+FastNoiseLite / heightmaps / grayscale images
+ArrayMesh with index LODs
+HeightMapShape3D collision
+ShaderMaterial
+scene-owned generator and streamer nodes
+```
+
+It supports complete patches, chunk grids, linear strips/streaming, and
+seed-deterministic island layouts. Editor preview uses the same sampler at a
+reduced resolution before final mesh/collision generation.
+
+Start with:
+
+- [Terrain generation quickstart](docs/guides/terrain_generation_quickstart.md)
+- [Procedural terrain tutorial](docs/guides/tutorials/procedural_terrain_3d.md)
+- [Terrain module contract](docs/modules/terrain_generation.md)
+
+Use a dedicated terrain editor such as Terrain3D or TerraBrush instead when
+manual painting/sculpting, terrain holes, or very large clipmap worlds are the
+primary requirement.
+
 ## Optional production modules
 
 | Capability | Documentation |
 | --- | --- |
 | Performance budgets, diagnostics, traces | [Performance](docs/guides/performance_quickstart.md) |
+| Procedural terrain generation | [Terrain](docs/guides/terrain_generation_quickstart.md) |
 | Development command palette and validation | [Development tools](docs/modules/development_tools.md) |
 | Networking bootstrap | [Networking](docs/guides/networking_quickstart.md) |
 | Authoritative online replication | [Online replication](docs/guides/online_replication_quickstart.md) |

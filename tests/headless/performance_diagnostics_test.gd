@@ -63,7 +63,7 @@ func _test_snapshot_delta() -> void:
 func _test_synced_process_time_stays_silent() -> void:
 	var profile := NucleusPerformanceProfile.new()
 	var history := _frame_history(60.0, 17.0, 4)
-	var snapshot := history.back()
+	var snapshot: Variant = history.back()
 	snapshot.set_metric(NucleusPerformanceMetricIds.PROCESS_MS, 18.0)
 
 	var diagnostics := NucleusPerformanceAdvisor.evaluate(
@@ -87,7 +87,7 @@ func _test_synced_process_time_stays_silent() -> void:
 func _test_sustained_frame_target_diagnostic() -> void:
 	var profile := NucleusPerformanceProfile.new()
 	var history := _frame_history(45.0, 22.0, 4)
-	var snapshot := history.back()
+	var snapshot: Variant = history.back()
 	snapshot.set_metric(NucleusPerformanceMetricIds.PROCESS_MS, 18.0)
 
 	var diagnostics := NucleusPerformanceAdvisor.evaluate(
@@ -107,7 +107,7 @@ func _test_sustained_frame_target_diagnostic() -> void:
 func _test_pacing_diagnostic() -> void:
 	var profile := NucleusPerformanceProfile.new()
 	var history := _frame_history(60.0, 30.0, 4)
-	var snapshot := history.back()
+	var snapshot: Variant = history.back()
 
 	var diagnostics := NucleusPerformanceAdvisor.evaluate(
 		snapshot,

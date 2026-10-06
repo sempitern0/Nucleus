@@ -15,6 +15,7 @@ static func build_patch(
 	resolution_override: int = 0,
 	with_collision: bool = true,
 	include_lods: bool = true,
+	material_overlay: Material = null,
 ) -> Dictionary:
 	var mesh_result := MeshBuilder.build_mesh(
 		profile,
@@ -34,6 +35,7 @@ static func build_patch(
 	mesh_instance.name = "TerrainMesh"
 	mesh_instance.mesh = mesh_result["mesh"]
 	mesh_instance.material_override = material
+	mesh_instance.material_overlay = material_overlay
 	mesh_instance.cast_shadow = (
 		GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		if profile.cast_shadows
@@ -86,14 +88,9 @@ static func _add_collision(
 		if shape_result.get("error", FAILED) != OK:
 			return shape_result.get("error", FAILED)
 
-		var cells: int = shape_result["cells"]
-		var size: Vector2 = shape_result["size"]
+		var uniform_scale: float = shape_result["uniform_scale"]
 		collision.shape = shape_result["shape"]
-		collision.scale = Vector3(
-			size.x / float(cells),
-			1.0,
-			size.y / float(cells),
-		)
+		collision.scale = Vector3.ONE * uniform_scale
 	else:
 		collision.shape = mesh_instance.mesh.create_trimesh_shape()
 		if collision.shape == null:

@@ -35,9 +35,10 @@ Technical contract
     - [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md)
     - [`procedural_terrain_3d.md`](procedural_terrain_3d.md)
     - [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md)
+    - [`terrain_debugging.md`](terrain_debugging.md)
 12. [`gameplay_actions.md`](gameplay_actions.md) — actions/costs/effects.
 13. [`components_first_steps.md`](components_first_steps.md) — common components.
-14. [`local_multiplayer.md`](local_multiplayer.md) — local input seats.
+14. [`local_multiplayer.md`](local_multiplayer.md) — hot-swap + couch seats.
 15. [`modules_first_steps.md`](modules_first_steps.md) — optional modules.
 16. [`networking.md`](networking.md) — localhost to authoritative deployment path.
 17. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
@@ -63,6 +64,7 @@ Technical contract
 | Terrain Preview | [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md) | presets + cheap editor previews |
 | Procedural Terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) | bounded island chain |
 | Terrain Streaming | [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md) | runtime moving chunk window |
+| Terrain Debugging | [`terrain_debugging.md`](terrain_debugging.md) | bands + weights + wireframe + live stats |
 | Gameplay Actions | [`gameplay_actions.md`](gameplay_actions.md) | action/cost/cooldown/effect |
 | Components | [`components_first_steps.md`](components_first_steps.md) | common composition |
 | Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap + couch seats |
@@ -82,6 +84,7 @@ project_configuration
 → third_person_3d
 → character_animation_3d
 → terrain_preview_and_presets when the world is generated
+→ terrain_debugging while tuning shape/material/performance
 → gameplay_actions
 → inventory / loot / world state as needed
 → networking when online play is actually required

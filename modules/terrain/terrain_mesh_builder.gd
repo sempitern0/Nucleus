@@ -62,37 +62,54 @@ static func build_heightmap_shape(
 	patch_scale: float,
 	force_island: bool,
 ) -> Dictionary:
-	var cells := maxi(2, profile.collision_resolution)
+	var target_cells := maxi(2, profile.collision_resolution)
 	var size := profile.size * patch_scale
+	var largest_axis := maxf(size.x, size.y)
+	var uniform_scale := largest_axis / float(target_cells)
+	var cells_x := maxi(2, int(round(size.x / uniform_scale)))
+	var cells_z := maxi(2, int(round(size.y / uniform_scale)))
+	var collision_size := Vector2(
+		float(cells_x) * uniform_scale,
+		float(cells_z) * uniform_scale,
+	)
 	var sampler := HeightSampler.new()
 	var sampler_error: Error = sampler.configure(profile)
 
 	if sampler_error != OK:
 		return {"error": sampler_error}
 
-	var heights := _build_height_grid(
+	var heights := _build_height_grid_rect(
 		sampler,
-		size,
-		cells,
+		collision_size,
+		cells_x,
+		cells_z,
 		Vector2(patch_position.x, patch_position.z),
 		force_island,
 	)
 
-	if profile.collision_holes_below_height:
-		for index: int in range(heights.size()):
-			if heights[index] < profile.collision_hole_height:
-				heights[index] = NAN
+	for index: int in range(heights.size()):
+		var world_height := heights[index]
+
+		if (
+			profile.collision_holes_below_height
+			and world_height < profile.collision_hole_height
+		):
+			heights[index] = NAN
+		else:
+			heights[index] = world_height / uniform_scale
 
 	var shape := HeightMapShape3D.new()
-	shape.map_width = cells + 1
-	shape.map_depth = cells + 1
+	shape.map_width = cells_x + 1
+	shape.map_depth = cells_z + 1
 	shape.map_data = heights
 
 	return {
 		"error": OK,
 		"shape": shape,
-		"cells": cells,
-		"size": size,
+		"cells_x": cells_x,
+		"cells_z": cells_z,
+		"size": collision_size,
+		"uniform_scale": uniform_scale,
 	}
 
 
@@ -103,16 +120,34 @@ static func _build_height_grid(
 	sampling_origin: Vector2,
 	force_island: bool,
 ) -> PackedFloat32Array:
-	var heights := PackedFloat32Array()
-	heights.resize((cells + 1) * (cells + 1))
+	return _build_height_grid_rect(
+		sampler,
+		size,
+		cells,
+		cells,
+		sampling_origin,
+		force_island,
+	)
 
-	for z: int in range(cells + 1):
-		for x: int in range(cells + 1):
+
+static func _build_height_grid_rect(
+	sampler: RefCounted,
+	size: Vector2,
+	cells_x: int,
+	cells_z: int,
+	sampling_origin: Vector2,
+	force_island: bool,
+) -> PackedFloat32Array:
+	var heights := PackedFloat32Array()
+	heights.resize((cells_x + 1) * (cells_z + 1))
+
+	for z: int in range(cells_z + 1):
+		for x: int in range(cells_x + 1):
 			var local_position := Vector2(
-				lerpf(-size.x * 0.5, size.x * 0.5, float(x) / float(cells)),
-				lerpf(-size.y * 0.5, size.y * 0.5, float(z) / float(cells)),
+				lerpf(-size.x * 0.5, size.x * 0.5, float(x) / float(cells_x)),
+				lerpf(-size.y * 0.5, size.y * 0.5, float(z) / float(cells_z)),
 			)
-			heights[z * (cells + 1) + x] = sampler.sample_height(
+			heights[z * (cells_x + 1) + x] = sampler.sample_height(
 				local_position,
 				size,
 				sampling_origin,
@@ -196,9 +231,6 @@ static func _build_indices(cells: int, step: int) -> PackedInt32Array:
 			var b := z * row + next_x
 			var c := next_z * row + x
 			var d := next_z * row + next_x
-
-			# Godot treats clockwise triangle winding as front-facing.
-			# Viewed from above, these triangles face upward with cull_back.
 			indices.append_array(PackedInt32Array([a, b, c, b, d, c]))
 			x = next_x
 

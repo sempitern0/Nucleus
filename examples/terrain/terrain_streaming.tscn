@@ -30,11 +30,10 @@ corner_radius_bottom_left = 8
 script = ExtResource("1_streamer")
 profile = ExtResource("2_profile")
 material_profile = ExtResource("3_material")
+tracked_node = NodePath("../TrackedTarget")
 chunks_behind = 1
 chunks_ahead = 3
 update_interval = 0.15
-max_new_chunks_per_update = 1
-tracked_node = NodePath("../TrackedTarget")
 
 [node name="TrackedTarget" type="Node3D" parent="." unique_id=884824560]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 42, 0)

@@ -4,7 +4,10 @@ render_mode depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 uniform vec4 base_color : source_color = vec4(0.24, 0.38, 0.18, 1.0);
 uniform float height_min = -20.0;
 uniform float height_max = 50.0;
-uniform bool use_triplanar = true;
+uniform bool use_triplanar = false;
+uniform int debug_view = 0;
+uniform float debug_height_bands = 6.0;
+uniform float debug_grid_scale = 10.0;
 
 uniform bool layer0_enabled = false;
 uniform bool layer0_use_texture = false;
@@ -100,6 +103,23 @@ vec3 layer_color(
 	return color * tint.rgb;
 }
 
+vec3 height_band_color(float normalized_height) {
+	float bands = max(debug_height_bands, 2.0);
+	float band = floor(clamp(normalized_height, 0.0, 0.9999) * bands);
+	float value = band / max(bands - 1.0, 1.0);
+	vec3 phase = vec3(0.00, 0.33, 0.67);
+	return 0.55 + 0.45 * cos(6.283185 * (phase + value));
+}
+
+vec3 world_grid_color(vec3 position) {
+	float scale = max(debug_grid_scale, 0.1);
+	vec2 cell = floor(position.xz / scale);
+	float checker = mod(cell.x + cell.y, 2.0);
+	vec3 dark = vec3(0.08, 0.10, 0.12);
+	vec3 light = vec3(0.70, 0.74, 0.80);
+	return mix(dark, light, checker);
+}
+
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	world_normal = normalize(mat3(MODEL_MATRIX) * NORMAL);
@@ -146,7 +166,32 @@ void fragment() {
 		w1 /= total;
 		w2 /= total;
 		w3 /= total;
+	}
 
+	if (debug_view == 1) {
+		color = height_band_color(normalized_height);
+	} else if (debug_view == 2) {
+		color = mix(
+			vec3(0.08, 0.72, 0.22),
+			vec3(0.96, 0.12, 0.05),
+			slope
+		);
+	} else if (debug_view == 3) {
+		color = world_normal * 0.5 + 0.5;
+	} else if (debug_view == 4) {
+		if (total > 0.0001) {
+			color = (
+				vec3(0.92, 0.72, 0.20) * w0
+				+ vec3(0.18, 0.76, 0.22) * w1
+				+ vec3(0.48, 0.50, 0.54) * w2
+				+ vec3(0.88, 0.94, 1.00) * w3
+			);
+		} else {
+			color = vec3(1.0, 0.0, 1.0);
+		}
+	} else if (debug_view == 5) {
+		color = world_grid_color(world_position);
+	} else if (total > 0.0001) {
 		color = vec3(0.0);
 		roughness = 0.0;
 		metallic = 0.0;
@@ -200,6 +245,7 @@ void fragment() {
 			metallic += layer3_metallic * w3;
 		}
 	}
+
 	ALBEDO = color;
 	ROUGHNESS = roughness;
 	METALLIC = metallic;

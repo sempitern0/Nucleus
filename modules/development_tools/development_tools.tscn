@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://domgm0p0gunjj" path="res://modules/development_tools/adapters/default_commands.gd" id="3_defaults"]
 [ext_resource type="Script" uid="uid://d26oo66lw57vx" path="res://modules/development_tools/adapters/scene_flow_commands.gd" id="4_scene"]
 [ext_resource type="PackedScene" path="res://modules/development_tools/ui/development_command_palette.tscn" id="5_palette"]
+[ext_resource type="Script" uid="uid://emjbvxcv6bpt" path="res://modules/development_tools/adapters/validation_commands.gd" id="6_validation"]
 
 [node name="DevelopmentTools" type="Node" unique_id=1626943068]
 process_mode = 3
@@ -23,6 +24,10 @@ script = ExtResource("3_defaults")
 [node name="SceneFlowCommands" type="Node" parent="." unique_id=1991421348]
 process_mode = 3
 script = ExtResource("4_scene")
+
+[node name="ValidationCommands" type="Node" parent="." unique_id=758888475]
+process_mode = 3
+script = ExtResource("6_validation")
 
 [node name="Overlay" type="CanvasLayer" parent="." unique_id=2047082544]
 layer = 100

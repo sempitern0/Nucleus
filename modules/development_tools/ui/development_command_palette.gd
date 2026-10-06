@@ -58,7 +58,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func open_palette() -> void:
 	if visible:
-		_query.grab_focus()
+		_restore_query_focus()
 		return
 	if manage_cursor:
 		_cursor_mode_before_open = NucleusCursor.get_mode()
@@ -67,7 +67,7 @@ func open_palette() -> void:
 	_query.clear()
 	_refresh_results()
 	_refresh_history()
-	_query.grab_focus()
+	_restore_query_focus()
 	palette_opened.emit()
 
 
@@ -190,7 +190,7 @@ func _complete_or_execute_command(command: NucleusDevelopmentCommand) -> void:
 func _complete_command(command: NucleusDevelopmentCommand) -> void:
 	_query.text = "%s " % str(command.id)
 	_query.caret_column = _query.text.length()
-	_query.grab_focus()
+	_restore_query_focus()
 	_update_command_detail()
 
 
@@ -204,8 +204,21 @@ func _execute_line(line: String) -> void:
 			"source": self,
 		},
 	)
+	if not is_inside_tree() or not is_instance_valid(_query):
+		return
 	_query.clear()
 	_refresh_results()
+	call_deferred("_restore_query_focus")
+
+
+func _restore_query_focus() -> void:
+	if (
+		not is_inside_tree()
+		or not visible
+		or not is_instance_valid(_query)
+		or not _query.is_inside_tree()
+	):
+		return
 	_query.grab_focus()
 
 

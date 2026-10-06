@@ -14,6 +14,33 @@ signal diagnostics_updated(
 signal trace_marked(trace: Dictionary)
 
 const _SECONDS_TO_MS: float = 1000.0
+const _REPORT_METRICS: Array[StringName] = [
+	NucleusPerformanceMetricIds.WINDOW_FPS,
+	NucleusPerformanceMetricIds.FRAME_INTERVAL_AVG_MS,
+	NucleusPerformanceMetricIds.FRAME_INTERVAL_P50_MS,
+	NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,
+	NucleusPerformanceMetricIds.FRAME_INTERVAL_MAX_MS,
+	NucleusPerformanceMetricIds.PROCESS_MS,
+	NucleusPerformanceMetricIds.PHYSICS_MS,
+	NucleusPerformanceMetricIds.NAVIGATION_MS,
+	NucleusPerformanceMetricIds.STATIC_MEMORY_BYTES,
+	NucleusPerformanceMetricIds.OBJECT_COUNT,
+	NucleusPerformanceMetricIds.RESOURCE_COUNT,
+	NucleusPerformanceMetricIds.NODE_COUNT,
+	NucleusPerformanceMetricIds.ORPHAN_NODE_COUNT,
+	NucleusPerformanceMetricIds.RENDER_OBJECTS,
+	NucleusPerformanceMetricIds.RENDER_PRIMITIVES,
+	NucleusPerformanceMetricIds.RENDER_DRAW_CALLS,
+	NucleusPerformanceMetricIds.VIDEO_MEMORY_BYTES,
+	NucleusPerformanceMetricIds.TEXTURE_MEMORY_BYTES,
+	NucleusPerformanceMetricIds.BUFFER_MEMORY_BYTES,
+	NucleusPerformanceMetricIds.PHYSICS_2D_ACTIVE,
+	NucleusPerformanceMetricIds.PHYSICS_2D_PAIRS,
+	NucleusPerformanceMetricIds.PHYSICS_3D_ACTIVE,
+	NucleusPerformanceMetricIds.PHYSICS_3D_PAIRS,
+	NucleusPerformanceMetricIds.NAVIGATION_2D_AGENTS,
+	NucleusPerformanceMetricIds.NAVIGATION_3D_AGENTS,
+]
 const _NATIVE_MONITORS: Array[Dictionary] = [
 	{
 		"id": NucleusPerformanceMetricIds.FPS,
@@ -434,6 +461,42 @@ func get_metric_statistics(
 	}
 
 
+func get_metric_series(
+	id: StringName,
+	sample_count: int = 0,
+	positive_only: bool = false,
+) -> PackedFloat64Array:
+	var values := PackedFloat64Array()
+	var first := 0
+	if sample_count > 0:
+		first = maxi(0, _history.size() - sample_count)
+
+	for index: int in range(first, _history.size()):
+		var snapshot := _history[index]
+		if snapshot == null or not snapshot.has_metric(id):
+			continue
+
+		var value := snapshot.get_metric(id)
+		if positive_only and value <= 0.0:
+			continue
+		values.append(value)
+
+	return values
+
+
+func compare_report(
+	baseline_report: Dictionary,
+	warning_ratio: float = 0.10,
+	critical_ratio: float = 0.25,
+) -> Dictionary:
+	return NucleusPerformanceReportComparator.compare(
+		build_report(),
+		baseline_report,
+		warning_ratio,
+		critical_ratio,
+	)
+
+
 func clear_history() -> void:
 	_history.clear()
 	_traces.clear()
@@ -457,7 +520,7 @@ func build_report() -> Dictionary:
 		diagnostics.append(diagnostic.to_dictionary())
 
 	return {
-		"schema_version": 2,
+		"schema_version": 3,
 		"engine": Engine.get_version_info(),
 		"os": OS.get_name(),
 		"debug_build": OS.is_debug_build(),
@@ -472,6 +535,7 @@ func build_report() -> Dictionary:
 		},
 		"profile": profile.to_dictionary() if profile != null else {},
 		"summary": _build_report_summary(),
+		"metric_summary": _build_metric_summary(),
 		"samples": samples,
 		"traces": get_traces(),
 		"diagnostic_events": get_diagnostic_history(),
@@ -496,6 +560,9 @@ func _build_report_summary() -> Dictionary:
 		"window_fps": get_metric_statistics(
 			NucleusPerformanceMetricIds.WINDOW_FPS
 		),
+		"frame_interval_p50_ms": get_metric_statistics(
+			NucleusPerformanceMetricIds.FRAME_INTERVAL_P50_MS
+		),
 		"frame_interval_p95_ms": get_metric_statistics(
 			NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS
 		),
@@ -506,6 +573,15 @@ func _build_report_summary() -> Dictionary:
 			NucleusPerformanceMetricIds.PROCESS_MS
 		),
 	}
+
+
+func _build_metric_summary() -> Dictionary:
+	var summary: Dictionary = {}
+	for metric_id: StringName in _REPORT_METRICS:
+		var statistics := get_metric_statistics(metric_id)
+		if int(statistics.get("samples", 0)) > 0:
+			summary[str(metric_id)] = statistics
+	return summary
 
 
 func _record_diagnostics(snapshot: NucleusPerformanceSnapshot) -> void:
@@ -561,6 +637,10 @@ func _sample_frame_window(snapshot: NucleusPerformanceSnapshot) -> void:
 	snapshot.set_metric(
 		NucleusPerformanceMetricIds.FRAME_INTERVAL_AVG_MS,
 		average_ms,
+	)
+	snapshot.set_metric(
+		NucleusPerformanceMetricIds.FRAME_INTERVAL_P50_MS,
+		_percentile(sorted_intervals, 0.50),
 	)
 	snapshot.set_metric(
 		NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,

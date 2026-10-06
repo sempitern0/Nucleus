@@ -12,14 +12,16 @@ The module is scene-owned by default.
 
 ## Purpose
 
-The native Godot debugger exposes detailed measurements, but teams still need a
-small layer that answers higher-level questions consistently:
+The native Godot debugger exposes detailed measurements, but a project still
+needs a low-cost control surface that can answer repeatable questions while the
+game is running:
 
 ```text
-Are we inside the frame target?
-Which subsystem is consuming the budget?
-Did this workload regress?
-What changed near the spike?
+Are we sustaining the frame target?
+Is frame pacing stable?
+Which subsystem is consuming the configured budget?
+Did this workload regress after a change?
+What changed near a spike?
 Which native profiler should we open next?
 ```
 
@@ -27,17 +29,20 @@ Nucleus adds:
 
 ```text
 sampling
-history
+short history
+frame-pacing windows
 target profiles
 budget checks
 human-readable diagnostics
 trace markers
 JSON reports
+report comparison / regression hints
 custom game probes
 Debugger custom-monitor integration
+compact development dashboard
 ```
 
-The measurements themselves still come from Godot.
+The engine remains authoritative for engine-owned measurements.
 
 ## Public types
 
@@ -48,6 +53,7 @@ NucleusPerformanceSnapshot
 NucleusPerformanceDiagnostic
 NucleusPerformanceAdvisor
 NucleusPerformanceSampler
+NucleusPerformanceReportComparator
 NucleusPerformancePanel
 ```
 
@@ -77,20 +83,27 @@ DevelopmentSession
 ```
 
 Do not promote the module to a baseline Autoload. A consuming game decides
-whether profiling should survive scene replacement.
+whether performance history should survive scene replacement.
 
 The default panel contains its own sampler for the lowest-friction setup.
 
-## Godot-native sources
+## Native and derived measurements
 
-`NucleusPerformanceSampler` reads `Performance.get_monitor()`.
+`NucleusPerformanceSampler` reads Godot `Performance` monitors for engine-owned
+counters and derives wall-clock frame-pacing windows from monotonic process-frame
+timestamps.
 
 Current sampled groups include:
 
 ```text
 time
-    FPS
-    process/frame time
+    native FPS
+    native TIME_PROCESS (informational)
+    effective window FPS
+    frame interval average
+    frame interval p50
+    frame interval p95
+    frame interval maximum
     physics time
     navigation time
 
@@ -106,7 +119,7 @@ rendering
     rendered objects
     primitives
     draw calls
-    video/texture/buffer memory
+    video / texture / buffer memory
 
 physics 2D / 3D
     active rigid bodies
@@ -132,42 +145,58 @@ Some Godot monitors are debug-only and report zero in release builds. Some are
 updated less frequently than every frame. Nucleus does not hide those engine
 limitations.
 
-## Native Debugger integration
+## Frame health
 
-When enabled, the sampler registers these custom monitors through
-`Performance.add_custom_monitor()`:
+Raw `Performance.TIME_PROCESS` is not treated as an authoritative CPU budget.
+Synchronization, frame limiting, and execution environment can make it unsafe to
+interpret that value as pure application work.
+
+Frame health instead uses recent windows of:
 
 ```text
-Nucleus/FrameBudget
-Nucleus/Warnings
-Nucleus/Criticals
+effective FPS
+frame interval p95
 ```
 
-They appear beside built-in monitors in the Godot Debugger.
+The sampler measures frame intervals from `Time.get_ticks_usec()` so time scale
+and smoothed simulation delta do not masquerade as frame-pacing changes.
 
-Games can register numeric custom probes:
+The dashboard also exposes p50 and maximum frame intervals. A representative
+healthy 60 FPS workload should show p50 and p95 close to the 16.67 ms cadence,
+while occasional spikes appear mainly in the maximum series.
+
+## History and trend access
+
+The sampler keeps bounded snapshots in memory. Consumers can inspect statistics:
 
 ```gdscript
-sampler.register_probe(
-    &"world/active_fish",
-    func() -> int:
-        return active_fish.size(),
+var stats := sampler.get_metric_statistics(
+    NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,
+    60,
+)
+```
+
+Or retrieve an ordered series for visualization or project-specific tooling:
+
+```gdscript
+var recent_p95 := sampler.get_metric_series(
+    NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,
+    60,
     true,
 )
 ```
 
-Publishing a probe to the Debugger uses the `NucleusGame` monitor category.
-Snapshot/report IDs retain the original game-owned ID.
+`sample_count = 0` means the complete retained history.
 
-Custom probes are optional and should stay cheap. A probe is sampled repeatedly;
-do not perform expensive searches merely to measure an expensive system.
+The development dashboard uses this same API for its pacing sparkline. It does
+not maintain a parallel UI-only history.
 
 ## Performance profiles
 
 `NucleusPerformanceProfile` is game-owned policy.
 
-The only universal default is a 60 FPS development frame target. Optional
-subsystem budgets are disabled until the game enables them.
+The only universal default is a 60 FPS development target. Optional subsystem
+budgets remain disabled until a consuming game enables them.
 
 Supported optional budgets include:
 
@@ -186,37 +215,24 @@ orphan nodes
 2D/3D navigation agents
 ```
 
-Zero means "not budgeted" for these maxima. `max_orphan_nodes = -1` disables the orphan-node check. Set it to `0` when
-any debug orphan should be reviewed.
+Zero means "not budgeted" for these maxima. `max_orphan_nodes = -1` disables the
+orphan-node check. Set it to `0` when any debug orphan should be reviewed.
 
-A project should create target-specific resources such as:
-
-```text
-performance_mid_desktop.tres
-performance_high_desktop.tres
-performance_handheld.tres
-```
-
-only when those targets exist in the product requirements.
-
-Nucleus deliberately does not define universal Low/Medium/High hardware budgets.
-A renderer-heavy strategy game, stylized platformer, and simulation cannot share
-meaningful draw-call, body-count, or memory limits.
+Hardware tiers belong to product requirements. Nucleus deliberately does not
+invent universal Low/Medium/High budgets.
 
 ## Diagnostics
 
-`NucleusPerformanceAdvisor` evaluates only measurements that have enough evidence
-for a bounded recommendation.
+`NucleusPerformanceAdvisor` evaluates measurements only when there is enough
+evidence for a bounded recommendation.
 
 Examples include:
 
 ```text
-frame budget missed
-frame budget low on headroom
-FPS below target while CPU/frame monitor still has headroom
-physics-time budget exceeded
-navigation-time budget exceeded
-draw/object/primitive budget exceeded
+sustained FPS target loss
+unstable p95 frame pacing
+physics/navigation time budget exceeded
+render draw/object/primitive budget exceeded
 video/static memory budget exceeded
 unexpected orphan nodes
 physics body/pair budget exceeded
@@ -235,25 +251,12 @@ evidence
 suggested next steps
 ```
 
-Recommendations identify the next investigation path. They are not automatic
-optimization actions.
-
-Nucleus will not silently:
-
-```text
-lower rendering quality
-disable collisions
-change physics tick rate
-disable navigation
-delete nodes
-change gameplay replication
-```
-
-Those are product/gameplay decisions.
+Recommendations route the developer toward evidence and native profilers. They
+do not automatically change renderer, physics, quality, or gameplay policy.
 
 ## Trace markers
 
-The sampler can mark game events:
+Game code can mark authored events:
 
 ```gdscript
 sampler.mark_trace(
@@ -265,23 +268,15 @@ sampler.mark_trace(
 )
 ```
 
-A trace stores:
-
-```text
-label
-timestamp
-nearest sample sequence
-JSON-safe game metadata
-```
-
-Use traces to correlate a frame/memory/physics change with an authored event.
+Use traces to correlate scene streaming, spawning, VFX, inventory, network
+population, or other authored events with performance changes.
 
 Trace markers are not function-level CPU traces. Use Godot's Profiler for that.
 
 ## Reports
 
-The current history, traces, diagnostic events, active target profile,
-engine/platform information, and latest diagnostics can be saved:
+The current history, traces, diagnostic events, target profile, engine/platform
+information, and metric summaries can be saved:
 
 ```gdscript
 var error := sampler.save_report(
@@ -289,19 +284,80 @@ var error := sampler.save_report(
 )
 ```
 
-Reports are intended for development comparison, bug reports, CI/lab tooling, or
-sharing a reproducible workload snapshot.
+Report schema 3 contains both the compact compatibility summary and a generic
+`metric_summary` keyed by stable `NucleusPerformanceMetricIds` strings.
 
-They are not a production telemetry backend.
+Reports are intended for development comparison, bug reports, CI/lab tooling,
+or sharing a reproducible workload snapshot. They are not a production analytics
+backend.
+
+## Regression comparison
+
+A report can be captured before a risky change and compared afterwards:
+
+```gdscript
+var baseline := NucleusPerformanceReportComparator.load_report(
+    "user://baseline.json"
+)
+
+var comparison := sampler.compare_report(
+    baseline,
+    0.10,
+    0.25,
+)
+```
+
+The two ratios are relative warning and critical thresholds. The default helper
+values are 10% and 25%, but a project should choose tolerances that match its
+benchmark stability.
+
+The result contains:
+
+```text
+comparable_context
+context_warnings
+changes
+regressions
+improvements
+```
+
+Comparison rules currently cover frame timing, physics/navigation time,
+rendering workload, video/static memory, and node count.
+
+Context is intentionally visible. Different operating systems, renderer methods,
+editor-embedding state, target FPS, or Godot major/minor versions can invalidate
+a direct benchmark comparison. Nucleus still returns the metric deltas, but marks
+the capture context as non-equivalent instead of pretending the numbers are
+strictly comparable.
+
+This is regression assistance, not a universal benchmark gate. CI may consume
+the comparison result, but each game decides which workloads and thresholds are
+release-critical.
+
+## Native Debugger integration
+
+When enabled, the sampler publishes summary monitors through
+`Performance.add_custom_monitor()`:
+
+```text
+Nucleus/FrameBudget
+Nucleus/FrameP95
+Nucleus/Warnings
+Nucleus/Criticals
+```
+
+Games can also register cheap numeric custom probes. Published game probes use
+the `NucleusGame` monitor category while snapshot/report IDs retain the original
+game-owned identifier.
 
 ## Relationship with Godot profilers
 
-Use Nucleus to answer "where should I look?"
+Use Nucleus to answer "where should I look?" and "did this workload change?"
 
 Then use the native specialist:
 
 ```text
-CPU/script/frame timing
+CPU/script/frame investigation
     Godot Debugger > Profiler
 
 high-level multiplayer traffic
@@ -315,12 +371,8 @@ long-lived monitor trends
     Nucleus history/report
 
 GPU-specific bottlenecks
-    platform/vendor GPU profiler when needed
+    platform/vendor GPU profiler
 ```
-
-The Godot Profiler has measurable overhead and is intentionally not always on.
-Nucleus sampling is much lighter, but it also does not provide per-function
-timings.
 
 ## Debug/release behavior
 
@@ -328,23 +380,22 @@ timings.
 
 `NucleusPerformancePanel.hide_in_release` defaults to `true`.
 
-This prevents accidental development HUD/profiling cost in release exports. A
-game may explicitly sample in release-like builds, but it must remember that
-some native Godot monitors are unavailable outside debug builds.
-
 A representative exported debug build is often a better profiling target than
-the editor when editor embedding or editor overhead changes the workload.
+an editor-embedded run. If captures are compared, keep execution context as
+similar as possible.
 
 ## Cost model
 
-Sampling defaults to every `0.5` seconds, not every frame.
+Sampling defaults to every `0.5` seconds, not every frame. Per-frame work is
+limited to recording one monotonic frame interval while sampling is active.
 
-The history defaults to 120 samples.
+The history defaults to 120 snapshots and the trace buffer to 128 events.
 
-The trace buffer defaults to 128 events.
+The dashboard trend defaults to 30 seconds and reuses sampler history. It does
+not create another high-frequency collector.
 
-These limits are configurable. Do not lower the interval aggressively without
-measurement: observability itself can become part of the workload.
+Do not lower the sampling interval aggressively without measurement:
+observability itself can become part of the workload.
 
 ## Non-goals
 
@@ -355,14 +406,11 @@ a replacement for Godot's Profiler
 a GPU profiler
 a packet sniffer
 an automatic optimizer
-a benchmark database
+a universal benchmark database
 a hardware tier detector
 a remote analytics SDK
-a promise that a budget fits every game
+a promise that one budget fits every game
 ```
-
-Networking-specific traffic instrumentation can build on the same sampling/probe
-contract in a later iteration without making this module depend on networking.
 
 ## Related documentation
 

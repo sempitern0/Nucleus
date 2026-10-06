@@ -11,6 +11,8 @@ const NAVIGATION_MS: StringName = &"time/navigation_ms"
 const WINDOW_FPS: StringName = &"time/window_fps"
 ## Mean wall-clock frame interval during the sampling window.
 const FRAME_INTERVAL_AVG_MS: StringName = &"time/frame_interval_avg_ms"
+## Median wall-clock frame interval during the sampling window.
+const FRAME_INTERVAL_P50_MS: StringName = &"time/frame_interval_p50_ms"
 ## 95th percentile wall-clock frame interval during the sampling window.
 const FRAME_INTERVAL_P95_MS: StringName = &"time/frame_interval_p95_ms"
 ## Slowest wall-clock frame interval during the sampling window.

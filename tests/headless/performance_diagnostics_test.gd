@@ -10,6 +10,8 @@ func run() -> Dictionary:
 	_test_render_budget_diagnostic()
 	_test_pipeline_compilation_diagnostic()
 	_test_disabled_budget_stays_silent()
+	_test_report_comparison_detects_regression()
+	_test_report_comparison_context_mismatch()
 	return finish()
 
 
@@ -192,6 +194,100 @@ func _test_disabled_budget_stays_silent() -> void:
 		_has_code(diagnostics, &"physics_3d_pairs"),
 		"Disabled project-specific budgets do not create false warnings.",
 	)
+
+
+func _test_report_comparison_detects_regression() -> void:
+	var baseline := _comparison_report(60.0, 17.0, false)
+	var current := _comparison_report(52.0, 22.0, false)
+	var comparison := NucleusPerformanceReportComparator.compare(
+		current,
+		baseline,
+		0.10,
+		0.25,
+	)
+
+	expect_true(
+		bool(comparison["comparable_context"]),
+		"Matching captures are eligible for direct regression comparison.",
+	)
+	expect_true(
+		_comparison_has_metric(
+			comparison["regressions"],
+			NucleusPerformanceMetricIds.WINDOW_FPS,
+		),
+		"Report comparison detects a sustained effective-FPS regression.",
+	)
+	expect_true(
+		_comparison_has_metric(
+			comparison["regressions"],
+			NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,
+		),
+		"Report comparison detects a frame-pacing regression.",
+	)
+
+
+func _test_report_comparison_context_mismatch() -> void:
+	var baseline := _comparison_report(60.0, 17.0, true)
+	var current := _comparison_report(60.0, 17.0, false)
+	var comparison := NucleusPerformanceReportComparator.compare(
+		current,
+		baseline,
+	)
+
+	expect_false(
+		bool(comparison["comparable_context"]),
+		"Embedded and standalone captures are not presented as equivalent.",
+	)
+	expect_true(
+		not comparison["context_warnings"].is_empty(),
+		"Context mismatches include an actionable comparison warning.",
+	)
+
+
+func _comparison_report(
+	fps: float,
+	p95_ms: float,
+	embedded: bool,
+) -> Dictionary:
+	return {
+		"schema_version": 3,
+		"engine": {"major": 4, "minor": 7},
+		"os": "TestOS",
+		"embedded_in_editor": embedded,
+		"renderer_method": "gl_compatibility",
+		"profile": {"target_fps": 60},
+		"metric_summary": {
+			str(NucleusPerformanceMetricIds.WINDOW_FPS):
+				_statistics(fps),
+			str(NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS):
+				_statistics(p95_ms),
+		},
+	}
+
+
+func _statistics(value: float) -> Dictionary:
+	return {
+		"samples": 4,
+		"latest": value,
+		"minimum": value,
+		"maximum": value,
+		"average": value,
+		"p50": value,
+		"p95": value,
+	}
+
+
+func _comparison_has_metric(
+	changes: Array,
+	metric_id: StringName,
+) -> bool:
+	for change: Variant in changes:
+		if not change is Dictionary:
+			continue
+		var change_dict := change as Dictionary
+		if change_dict.get("metric_id", "") == str(metric_id):
+			return true
+	return false
 
 
 func _frame_history(

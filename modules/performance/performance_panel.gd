@@ -8,6 +8,7 @@ extends PanelContainer
 @export var sampler_path: NodePath = NodePath("Sampler")
 @export var hide_in_release: bool = true
 @export_range(1, 12, 1) var max_visible_diagnostics: int = 5
+@export_range(5, 120, 5) var trend_seconds: int = 30
 
 const _DIAGNOSTIC_ITEM_SCENE: PackedScene = preload(
 	"res://modules/performance/ui/performance_diagnostic_item.tscn"
@@ -21,6 +22,9 @@ const PerformanceMetricRow = preload(
 )
 const PerformanceDiagnosticItem = preload(
 	"res://modules/performance/ui/performance_diagnostic_item.gd"
+)
+const PerformanceTrendGraph = preload(
+	"res://modules/performance/ui/performance_trend_graph.gd"
 )
 
 const _STATE_NONE: int = PerformanceMetricCard.STATE_NONE
@@ -47,6 +51,11 @@ const _COLOR_CRITICAL: Color = Color(0.95, 0.33, 0.36)
 @onready var _frame_card: PerformanceMetricCard = %FrameCard
 @onready var _physics_card: PerformanceMetricCard = %PhysicsCard
 @onready var _navigation_card: PerformanceMetricCard = %NavigationCard
+
+@onready var _trend_graph: PerformanceTrendGraph = %TrendGraph
+@onready var _trend_stats: Label = %TrendStats
+@onready var _trend_window: Label = %TrendWindow
+@onready var _trend_thresholds: Label = %TrendThresholds
 
 @onready var _render_draw_calls: PerformanceMetricRow = %RenderDrawCalls
 @onready var _render_objects: PerformanceMetricRow = %RenderObjects
@@ -127,8 +136,8 @@ func _update_target() -> void:
 
 func _update_hint() -> void:
 	_hint_label.text = (
-		"Frame health uses effective FPS and pacing windows; TIME_PROCESS is "
-		+ "informational. Deep dive with Godot Debugger > Profiler / Video RAM."
+		"Frame health uses effective FPS and pacing history; TIME_PROCESS is "
+		+ "informational. Reports can be compared against a captured baseline."
 	)
 
 
@@ -152,6 +161,7 @@ func _on_snapshot_sampled(snapshot: NucleusPerformanceSnapshot) -> void:
 
 	var profile := _sampler.profile
 	_update_summary_cards(snapshot, profile)
+	_update_trend(snapshot, profile)
 	_update_rendering(snapshot, profile)
 	_update_scene_memory(snapshot, profile)
 	_update_physics(snapshot, profile)
@@ -171,9 +181,6 @@ func _update_summary_cards(
 	var process_ms := snapshot.get_metric(NucleusPerformanceMetricIds.PROCESS_MS)
 	var p95_ms := snapshot.get_metric(
 		NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS
-	)
-	var max_interval_ms := snapshot.get_metric(
-		NucleusPerformanceMetricIds.FRAME_INTERVAL_MAX_MS
 	)
 	var physics_ms := snapshot.get_metric(NucleusPerformanceMetricIds.PHYSICS_MS)
 	var navigation_ms := snapshot.get_metric(
@@ -232,11 +239,11 @@ func _update_summary_cards(
 		_frame_card.set_metric(
 			"PACING P95",
 			"%.2f ms" % p95_ms,
-			"max %.2f ms · warn > %.2f ms" % [
-				max_interval_ms,
+			"target %.2f ms · warn > %.2f ms" % [
+				profile.frame_budget_ms(),
 				warning_ms,
 			],
-			p95_ms / maxf(warning_ms, 0.001),
+			-1.0,
 			pacing_state,
 		)
 	else:
@@ -258,6 +265,82 @@ func _update_summary_cards(
 		navigation_ms,
 		profile.max_navigation_ms,
 	)
+
+
+func _update_trend(
+	snapshot: NucleusPerformanceSnapshot,
+	profile: NucleusPerformanceProfile,
+) -> void:
+	if _sampler == null:
+		_trend_graph.clear_series()
+		return
+
+	var interval := maxf(_sampler.sample_interval_seconds, 0.1)
+	var sample_count := maxi(2, int(ceil(float(trend_seconds) / interval)))
+	var p50 := _sampler.get_metric_series(
+		NucleusPerformanceMetricIds.FRAME_INTERVAL_P50_MS,
+		sample_count,
+		true,
+	)
+	var p95 := _sampler.get_metric_series(
+		NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,
+		sample_count,
+		true,
+	)
+	var maximum := _sampler.get_metric_series(
+		NucleusPerformanceMetricIds.FRAME_INTERVAL_MAX_MS,
+		sample_count,
+		true,
+	)
+
+	var target_ms := 0.0
+	var warning_ms := 0.0
+	var critical_ms := 0.0
+	if profile != null:
+		target_ms = profile.frame_budget_ms()
+		warning_ms = target_ms * profile.pacing_warning_ratio
+		critical_ms = target_ms * profile.pacing_critical_ratio
+
+	_trend_graph.set_series(
+		p50,
+		p95,
+		maximum,
+		target_ms,
+		warning_ms,
+		critical_ms,
+	)
+
+	var current_p50 := snapshot.get_metric(
+		NucleusPerformanceMetricIds.FRAME_INTERVAL_P50_MS
+	)
+	var current_p95 := snapshot.get_metric(
+		NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS
+	)
+	var current_max := snapshot.get_metric(
+		NucleusPerformanceMetricIds.FRAME_INTERVAL_MAX_MS
+	)
+	if current_p95 > 0.0:
+		_trend_stats.text = "P50 %.2f · P95 %.2f · MAX %.2f ms" % [
+			current_p50,
+			current_p95,
+			current_max,
+		]
+	else:
+		_trend_stats.text = "Collecting pacing history..."
+
+	var visible_seconds := minf(
+		float(trend_seconds),
+		float(maxi(p95.size(), 1)) * interval,
+	)
+	_trend_window.text = "%.0f s" % visible_seconds
+
+	if profile == null:
+		_trend_thresholds.text = "No pacing target configured"
+	else:
+		_trend_thresholds.text = (
+			"target %.2f ms · warning %.2f ms · critical %.2f ms"
+			% [target_ms, warning_ms, critical_ms]
+		)
 
 
 func _update_budget_card(

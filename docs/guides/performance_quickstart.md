@@ -1,40 +1,7 @@
 # Performance / Diagnostics Quickstart
 
-Use this module when the project needs continuous, low-overhead visibility into
-performance without keeping Godot's full Profiler running.
-
-For the detailed investigation workflow, continue with:
-
-[`tutorials/performance_profiling.md`](tutorials/performance_profiling.md)
-
-## What Nucleus owns
-
-The optional module owns:
-
-```text
-sampling native Performance monitors
-short history
-game-owned performance target profiles
-budget evaluation
-human-readable diagnostics
-trace markers
-JSON reports
-small custom game probes
-summary monitors in Godot Debugger
-```
-
-It does not own:
-
-```text
-Godot's CPU/script profiler
-network profiler
-Video RAM inspector
-GPU profiling
-renderer selection
-physics implementation
-automatic quality reduction
-hardware-tier policy
-```
+Use this optional module when a project needs continuous, low-overhead visibility
+into performance without keeping Godot's full Profiler running.
 
 ## Fastest setup
 
@@ -54,23 +21,42 @@ World
     └── Sampler
 ```
 
-Run the game.
+The panel samples every 0.5 seconds by default.
 
-The panel starts sampling every 0.5 seconds and displays:
+## Read the dashboard
+
+The top row answers four questions quickly:
 
 ```text
-FPS / frame time
-physics time
-navigation time
-draw calls / rendered objects / primitives
-node/orphan counts
-VRAM
-3D active bodies / collision pairs
-3D navigation agents
-current diagnostics
+FPS
+    are we sustaining the configured target?
+
+PACING P95
+    are almost all frames arriving consistently?
+
+PHYSICS
+    how much native physics time is being reported?
+
+NAVIGATION
+    how much native navigation time is being reported?
 ```
 
-It also publishes Nucleus summary monitors in the native Debugger monitor view.
+The pacing history adds:
+
+```text
+P50
+    normal frame cadence
+
+P95
+    slower tail of ordinary frames
+
+MAX
+    worst interval in each sampling window
+```
+
+At 60 FPS the nominal cadence is 16.67 ms. Nucleus does not mark a frame as
+critical merely because Godot `TIME_PROCESS` is near or above that value.
+Effective FPS and recent pacing windows decide frame health.
 
 ## Define the target before optimizing
 
@@ -79,7 +65,7 @@ The embedded sampler uses a default 60 FPS development target.
 For a real project, create a `NucleusPerformanceProfile` Resource and assign it
 to the Sampler.
 
-Example policy for a game whose minimum supported target is a mid-range desktop:
+Example:
 
 ```text
 target_name = "Mid desktop / 1080p / 60"
@@ -91,13 +77,85 @@ max_physics_ms = measured project budget
 ...
 ```
 
-Do not fill every field immediately.
+Do not fill every budget immediately. Start with the actual product frame target
+and add subsystem limits only after representative scenes provide evidence.
 
-Start with the frame target. Add subsystem budgets after representative scenes
-give you evidence for meaningful limits.
+## Capture a baseline
 
-If low-end PCs are not a supported product target, do not optimize toward an
-invented low-end budget. Define the actual minimum and recommended targets.
+Run a repeatable workload long enough to fill a useful history window, then save:
+
+```gdscript
+var error := performance_sampler.save_report(
+    "user://baseline.json"
+)
+```
+
+A useful baseline should record its scenario outside the JSON as part of your
+test workflow, for example:
+
+```text
+main menu idle
+harbor 60 boats
+combat arena wave 5
+streaming route A -> B
+4-player LAN session
+```
+
+Do not compare unrelated workloads and call the result a regression.
+
+## Compare after a change
+
+Load the baseline and compare the current capture:
+
+```gdscript
+var baseline := NucleusPerformanceReportComparator.load_report(
+    "user://baseline.json"
+)
+
+var comparison := performance_sampler.compare_report(
+    baseline,
+    0.10,
+    0.25,
+)
+```
+
+The example flags roughly 10% relative regressions as warnings and 25% as
+critical comparison changes.
+
+Always inspect:
+
+```gdscript
+comparison["comparable_context"]
+comparison["context_warnings"]
+```
+
+A benchmark run from editor embedding should not be treated as equivalent to a
+standalone exported debug build. Renderer, OS, target FPS, and Godot major/minor
+changes also affect comparability.
+
+## Inspect history programmatically
+
+Statistics:
+
+```gdscript
+var stats := performance_sampler.get_metric_statistics(
+    NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,
+    60,
+)
+```
+
+Ordered series:
+
+```gdscript
+var values := performance_sampler.get_metric_series(
+    NucleusPerformanceMetricIds.FRAME_INTERVAL_P95_MS,
+    60,
+    true,
+)
+```
+
+Use these APIs for project-specific debug views instead of creating another
+parallel sampler.
 
 ## Mark important events
 
@@ -108,19 +166,8 @@ performance_sampler.mark_trace(
 )
 ```
 
-Useful trace points include:
-
-```text
-scene loaded
-streaming chunk entered
-large enemy wave spawned
-inventory opened
-procedural generation completed
-multiplayer session populated
-large VFX event started
-```
-
-Trace metadata should be JSON-safe.
+Useful trace points include scene loads, streaming boundaries, spawn waves,
+procedural generation, large VFX events, and multiplayer population changes.
 
 ## Add a game-specific metric
 
@@ -132,74 +179,38 @@ performance_sampler.register_probe(
 )
 ```
 
-To also show it in Godot Debugger > Monitors:
+To also publish it in Godot Debugger > Monitors, pass `true` as the third
+argument. Keep probes cheap.
 
-```gdscript
-performance_sampler.register_probe(
-    &"world/active_fish",
-    func() -> int:
-        return active_fish.size(),
-    true,
-)
-```
-
-Keep probes cheap.
-
-## Save a report
-
-```gdscript
-var error := performance_sampler.save_report(
-    "user://performance_report.json"
-)
-
-if error != OK:
-    push_error(error_string(error))
-```
-
-The report includes:
+## Follow diagnostics into native tooling
 
 ```text
-engine/platform metadata
-active profile
-sample history
-trace markers
-diagnostic events
-latest diagnostics
-```
-
-## Follow diagnostics into native Godot tooling
-
-Treat a recommendation as a routing hint:
-
-```text
-Frame/CPU warning
-→ Debugger > Profiler
+Frame / CPU warning
+    -> Debugger > Profiler
 
 VRAM warning
-→ Debugger > Video RAM
+    -> Debugger > Video RAM
 
 Multiplayer traffic problem
-→ Debugger > Network Profiler
+    -> Debugger > Network Profiler
 
 GPU-bound suspicion
-→ renderer metrics, then a platform/vendor GPU profiler
+    -> renderer metrics, then platform/vendor GPU profiler
 ```
 
-Nucleus does not reproduce those profilers.
+Nucleus routes the investigation; it does not reproduce those profilers.
 
 ## Release safety
 
-The sampler defaults to `debug_build_only = true`.
+The sampler defaults to `debug_build_only = true` and the panel defaults to
+`hide_in_release = true`.
 
-The panel defaults to `hide_in_release = true`.
-
-If you deliberately profile a release-like export, disable that guard knowingly
-and remember that some Godot `Performance` monitors return zero outside debug
-builds.
+If a release-like export is profiled intentionally, remember that some Godot
+`Performance` monitors are unavailable outside debug builds.
 
 ## Next
 
-Build a repeatable profiling exercise in:
+For deeper methodology, continue with:
 
 [`tutorials/performance_profiling.md`](tutorials/performance_profiling.md)
 

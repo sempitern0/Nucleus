@@ -1,46 +1,33 @@
 # Networking Quickstart
 
-This guide covers connection/bootstrap with `NucleusNetworkHandler`.
+This guide is the shortest path from "I need multiplayer" to a correct first
+architecture decision.
 
-It intentionally stops before gameplay replication.
-
-For a complete host/join exercise, see:
+For the complete practical exercise from localhost through a public dedicated
+server, use:
 
 [`tutorials/networking.md`](tutorials/networking.md)
 
-For authoritative gameplay replication, continue later with:
+## 1. Pick the topology before writing RPCs
 
-[`online_replication_quickstart.md`](online_replication_quickstart.md)
-
-## What the networking module owns
-
-`NucleusNetworkHandler` owns convenience around Godot peer lifecycle:
+For most small online games, choose one of these first:
 
 ```text
-ENet server/client
-WebSocket server/client
-MultiplayerAPI peer installation
-connection state
-peer connect/disconnect signals
-shutdown back to OfflineMultiplayerPeer
+Listen server
+    one player hosts and also plays
+    cheapest prototype
+    host must be reachable and stay online
+
+Dedicated authoritative server
+    separate server process owns simulation
+    predictable public endpoint and authority
+    recurring infrastructure cost
 ```
 
-It does not own:
+Do not call the listen-server model fully symmetric P2P. Godot still has one
+server peer with peer ID `1`.
 
-```text
-matchmaking
-lobbies
-authentication
-account identity
-RPC semantics
-gameplay authority
-anti-cheat
-backend services
-```
-
-## 1. Add the handler
-
-The module is optional and is not an Autoload by default.
+## 2. Add the handler
 
 Instance:
 
@@ -48,7 +35,7 @@ Instance:
 res://modules/networking/network_handler.tscn
 ```
 
-A normal session-owned setup is:
+A normal scene-owned setup is:
 
 ```text
 GameSession
@@ -56,49 +43,37 @@ GameSession
 └── World
 ```
 
-Promote it to an Autoload only if your game intentionally needs the connection
-to survive complete session/scene replacement.
+## 3. Prove localhost first
 
-## 2. Host an ENet session
+Host:
 
 ```gdscript
 var error: Error = network.start_enet_server(
-    42069,
-    8,
+	42069,
+	8,
 )
-
-if error != OK:
-    push_error("Host failed: %s" % error_string(error))
 ```
 
-After success:
-
-```gdscript
-network.is_server()
-network.get_unique_id()
-network.get_connected_peers()
-```
-
-become the convenient public queries.
-
-## 3. Join an ENet session
+Client:
 
 ```gdscript
 var error: Error = network.start_enet_client(
-    "127.0.0.1",
-    42069,
+	"127.0.0.1",
+	42069,
 )
-
-if error != OK:
-    push_error("Client start failed: %s" % error_string(error))
 ```
 
-A successful constructor means the connection attempt started. Use
-`connected_to_server` to know when the client is actually connected.
+A successful client constructor only means the attempt started. Wait for:
+
+```text
+connected_to_server
+```
+
+before entering connected gameplay.
 
 ## 4. Observe lifecycle signals
 
-Useful signals include:
+Useful signals:
 
 ```text
 state_changed
@@ -110,105 +85,105 @@ server_disconnected
 start_failed
 ```
 
-UI should derive status from those signals rather than polling every frame.
+UI should derive connection state from those transitions rather than inventing a
+second state machine.
 
-## 5. Understand states
+## 5. Move to LAN
 
-The shared state enum is:
+Replace `127.0.0.1` with the host's private LAN IPv4 address.
 
-```text
-OFFLINE
-STARTING
-CONNECTING
-SERVER
-CLIENT
-```
+`NucleusNetworkUtils.get_preferred_local_ipv4()` can help present a likely local
+address.
 
-Use `is_server()`, `is_client()`, and `is_online()` when you do not need to care
-about the exact transitional state.
+At this stage, common failures are local firewall rules and guest Wi-Fi/client
+isolation.
 
-## 6. Leave cleanly
+## 6. Move to the public Internet
 
-```gdscript
-network.shutdown()
-```
-
-This closes the active peer and restores Godot's `OfflineMultiplayerPeer`.
-
-If the handler is scene-owned, `shutdown_on_exit = true` also makes teardown a
-safe default.
-
-## 7. WebSocket path
-
-Native/server builds can host a WebSocket server:
-
-```gdscript
-network.start_websocket_server(42069)
-```
-
-Clients can connect with:
-
-```gdscript
-network.start_websocket_client("ws://127.0.0.1:42069")
-```
-
-Browser exports cannot listen for incoming connections. ENet startup is also
-unavailable on Web through the current convenience handler.
-
-Use a WebSocket client or a provider-specific transport for browser-facing
-projects.
-
-## 8. Test transport before replication
-
-Before adding synchronized players, prove this first:
+For direct ENet hosting from a home connection:
 
 ```text
-host starts
-client connects
-host sees peer_connected
-client reaches CLIENT state
-client disconnects
-host sees peer_disconnected
-both can return to OFFLINE
+forward UDP 42069 on the router
+allow UDP 42069 in the host firewall
+connect clients to the host's public address
 ```
 
-This isolates transport problems from gameplay replication problems.
+If the host is behind CGNAT, normal home-router forwarding may be impossible.
+Use a provider relay/P2P transport or a public dedicated server instead.
 
-## 9. Authority comes next
+## 7. Add authority before gameplay replication
 
-A connection does not decide who may change health, inventory, transforms, or
-world state.
-
-For gameplay-critical state, a recommended starting model is:
+A safe starting model is:
 
 ```text
 client input
-→ client intent
-→ server validates
-→ server mutates authoritative gameplay state
-→ state/snapshot is replicated
-→ clients present it
+-> client intent
+-> server validates
+-> server mutates authoritative state
+-> native replication / Nucleus snapshots
+-> clients present result
 ```
 
-Use native Godot `MultiplayerSpawner`, `MultiplayerSynchronizer`, RPC, and
-`SceneReplicationConfig` where they fit. Nucleus adds helpers around repeated
-intent/snapshot patterns; it does not replace Godot networking.
+Continue with:
+
+[`online_replication_quickstart.md`](online_replication_quickstart.md)
+
+## 8. Add a dedicated server only after the game loop works locally
+
+Use an explicit server startup condition:
+
+```gdscript
+var server_mode := (
+	OS.has_feature("dedicated_server")
+	or "--server" in OS.get_cmdline_user_args()
+)
+```
+
+Do not automatically treat every `--headless` process as a live game server;
+CI and test runners also use headless mode.
+
+Example bootstrap:
+
+```text
+examples/networking/authoritative_server_bootstrap.gd
+```
+
+## 9. Export for a server
+
+Create a Linux export preset for the server and use Godot's dedicated-server
+export mode so visual resources can be stripped and the `dedicated_server`
+feature tag is available.
+
+Then deploy the output to a Linux VM and expose the configured UDP port.
+
+## 10. Estimate cost before choosing infrastructure
+
+A small prototype server is usually a low-cost Linux VM, not Kubernetes.
+
+As a rough current reference, entry-level cloud VMs commonly start around
+single-digit USD per month and 2-4 GB machines around low tens of USD per month.
+Bandwidth, database, relay and operational costs may matter more later.
+
+Use the dated table and bandwidth formula in:
+
+[`multiplayer_deployment_quickstart.md`](multiplayer_deployment_quickstart.md)
 
 ## Common mistakes
 
 Avoid:
 
-- making the handler an Autoload without a lifetime reason;
-- treating a successful `start_enet_client()` call as a completed connection;
-- starting gameplay replication before host/join/disconnect is stable;
-- trusting client-reported gameplay-critical state;
-- assuming transport solves authentication or matchmaking;
-- writing platform-specific P2P assumptions into generic gameplay code.
+- treating `start_enet_client() == OK` as a completed connection;
+- debugging synchronization before host/join/disconnect is reliable;
+- trusting client-reported damage, inventory, loot, or final transforms;
+- assuming UDP port forwarding works through CGNAT;
+- using `--headless` alone as the production-server identity;
+- adding Kubernetes, Redis, a database and matchmaking before one match works;
+- shipping Development Tools or secrets as a remote admin surface.
 
 ## Related documentation
 
 - [`tutorials/networking.md`](tutorials/networking.md)
-- [`optional_modules_quickstart.md`](optional_modules_quickstart.md)
 - [`online_replication_quickstart.md`](online_replication_quickstart.md)
+- [`multiplayer_deployment_quickstart.md`](multiplayer_deployment_quickstart.md)
 - [`../modules/networking.md`](../modules/networking.md)
 - [`../modules/online_replication.md`](../modules/online_replication.md)

@@ -42,11 +42,13 @@ requiring you to read the architecture first:
 11. [`components_first_steps.md`](components_first_steps.md) — common components.
 12. [`local_multiplayer.md`](local_multiplayer.md) — explicit local input seats.
 13. [`modules_first_steps.md`](modules_first_steps.md) — optional module survey.
-14. [`networking.md`](networking.md) — prove host/join transport lifecycle.
+14. [`networking.md`](networking.md) — localhost through dedicated server.
 15. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
-    move from connection to authoritative gameplay replication.
-16. [`content_packs.md`](content_packs.md) — signed DLC and safe community data.
-17. [`mobile.md`](mobile.md) — touch, haptics, orientation, and lifecycle.
+    authoritative gameplay replication details.
+16. [`../multiplayer_deployment_quickstart.md`](../multiplayer_deployment_quickstart.md)
+    — deployment, capacity and cost.
+17. [`content_packs.md`](content_packs.md) — signed DLC and safe community data.
+18. [`mobile.md`](mobile.md) — touch, haptics, orientation, and lifecycle.
 
 Before choosing project-wide renderer or viewport defaults, read
 [`../project_configuration.md`](../project_configuration.md). When behavior is
@@ -60,7 +62,7 @@ an ownership boundary.
 | Core | [`core_services.md`](core_services.md) | tiny game shell using default services |
 | Settings/Input | [`bindings.md`](bindings.md) | options + prompts + rebinding |
 | Graphics | [`graphics_settings.md`](graphics_settings.md) | runtime graphics + Environment policy |
-| Performance | [`performance_profiling.md`](performance_profiling.md) | target budgets + diagnostics + traces |
+| Performance | [`performance_profiling.md`](performance_profiling.md) | budgets + diagnostics + traces |
 | Localization | [`localization.md`](localization.md) | English/Spanish menu + selector |
 | Audio | [`audio.md`](audio.md) | reusable UI cue + persistent volume |
 | Save | [`save_system.md`](save_system.md) | participant save/load/autosave |
@@ -71,7 +73,7 @@ an ownership boundary.
 | Components | [`components_first_steps.md`](components_first_steps.md) | common components |
 | Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap + couch seats |
 | Modules | [`modules_first_steps.md`](modules_first_steps.md) | optional module survey |
-| Networking | [`networking.md`](networking.md) | ENet Host / Join / Leave lab |
+| Networking | [`networking.md`](networking.md) | local host to authoritative server |
 | Content Packs | [`content_packs.md`](content_packs.md) | signed DLC + data-only mod |
 | Mobile | [`mobile.md`](mobile.md) | touch controller for existing gameplay |
 
@@ -88,7 +90,7 @@ project_configuration
 → localization/audio/save as needed
 → platformer_2d
 → gameplay_actions
-→ mobile (when targeting touch)
+→ mobile when targeting touch
 ```
 
 ### 3D action/survival game
@@ -133,8 +135,9 @@ Build the local game first, then:
 
 ```text
 performance_profiling
-→ networking
+→ networking tutorial
 → online_replication_quickstart
+→ multiplayer_deployment_quickstart
 → platform_services_quickstart when provider integration is needed
 ```
 

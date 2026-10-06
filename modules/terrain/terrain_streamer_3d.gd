@@ -2,6 +2,9 @@ class_name NucleusTerrainStreamer3D
 extends Node3D
 ## Lightweight linear runtime chunk streaming for long traversal games.
 
+signal chunk_loaded(index: int, chunk: Node3D)
+signal chunk_unloaded(index: int)
+
 const PatchBuilder := preload(
 	"res://modules/terrain/terrain_patch_builder.gd"
 )
@@ -52,10 +55,38 @@ func _process(delta: float) -> void:
 
 func clear_chunks() -> void:
 	_pending.clear()
-	for chunk: Node3D in _chunks.values():
+
+	for index: int in _chunks.keys():
+		var chunk: Node3D = _chunks[index]
+		_chunks.erase(index)
 		if is_instance_valid(chunk):
 			chunk.queue_free()
-	_chunks.clear()
+		chunk_unloaded.emit(index)
+
+
+func get_loaded_chunk_count() -> int:
+	return _chunks.size()
+
+
+func get_pending_chunk_count() -> int:
+	return _pending.size()
+
+
+func get_loaded_chunk_indices() -> Array[int]:
+	var indices: Array[int] = []
+
+	for index: int in _chunks.keys():
+		indices.append(index)
+
+	indices.sort()
+	return indices
+
+
+func get_center_chunk_index() -> int:
+	if profile == null or tracked_node == null:
+		return 0
+
+	return _get_chunk_index(tracked_node.global_position)
 
 
 func _update_stream(force: bool) -> void:
@@ -78,6 +109,7 @@ func _update_stream(force: bool) -> void:
 		_chunks.erase(index)
 		if is_instance_valid(chunk):
 			chunk.queue_free()
+		chunk_unloaded.emit(index)
 
 	for index: int in range(minimum, maximum + 1):
 		if not _chunks.has(index) and not _pending.has(index):
@@ -120,6 +152,7 @@ func _build_chunk(index: int) -> void:
 	chunk.set_meta(&"terrain_chunk_index", index)
 	add_child(chunk)
 	_chunks[index] = chunk
+	chunk_loaded.emit(index, chunk)
 
 
 func _get_chunk_index(world_position: Vector3) -> int:

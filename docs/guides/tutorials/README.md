@@ -31,8 +31,10 @@ Technical contract
    - [`third_person_3d.md`](third_person_3d.md)
 10. For a 3D character, continue with
     [`character_animation_3d.md`](character_animation_3d.md).
-11. For generated 3D worlds, continue with
-    [`procedural_terrain_3d.md`](procedural_terrain_3d.md).
+11. For generated 3D worlds:
+    - [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md)
+    - [`procedural_terrain_3d.md`](procedural_terrain_3d.md)
+    - [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md)
 12. [`gameplay_actions.md`](gameplay_actions.md) — actions/costs/effects.
 13. [`components_first_steps.md`](components_first_steps.md) — common components.
 14. [`local_multiplayer.md`](local_multiplayer.md) — local input seats.
@@ -52,13 +54,15 @@ Technical contract
 | Graphics | [`graphics_settings.md`](graphics_settings.md) | runtime graphics policy |
 | Performance | [`performance_profiling.md`](performance_profiling.md) | budgets + diagnostics |
 | Localization | [`localization.md`](localization.md) | two-language menu |
-| Audio | [`audio.md`](audio.md) | reusable cues + volume |
+| Audio | [`audio.md`](audio.md) | cues, buses, and persistent volume |
 | Save | [`save_system.md`](save_system.md) | participant save/load |
 | Scene Flow | [`scene_flow.md`](scene_flow.md) | loading overlay |
 | 2D Movement | [`platformer_2d.md`](platformer_2d.md) | platform controller |
 | 3D Movement | [`third_person_3d.md`](third_person_3d.md) | body + orbit camera |
 | 3D Animation | [`character_animation_3d.md`](character_animation_3d.md) | imported rig + retargeting + IK + ragdoll |
-| Procedural Terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) | preview + islands + streamed heightfields |
+| Terrain Preview | [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md) | presets + cheap editor previews |
+| Procedural Terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) | bounded island chain |
+| Terrain Streaming | [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md) | runtime moving chunk window |
 | Gameplay Actions | [`gameplay_actions.md`](gameplay_actions.md) | action/cost/cooldown/effect |
 | Components | [`components_first_steps.md`](components_first_steps.md) | common composition |
 | Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap + couch seats |
@@ -77,7 +81,7 @@ project_configuration
 → bindings
 → third_person_3d
 → character_animation_3d
-→ procedural_terrain_3d when the world is generated
+→ terrain_preview_and_presets when the world is generated
 → gameplay_actions
 → inventory / loot / world state as needed
 → networking when online play is actually required

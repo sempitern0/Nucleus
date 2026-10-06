@@ -6,6 +6,7 @@ static var _image_range_cache: Dictionary = {}
 var _profile: NucleusTerrainProfile
 var _noise: FastNoiseLite
 var _shoreline_noise: FastNoiseLite
+var _edge_floor_noise: FastNoiseLite
 var _image: Image
 var _falloff_image: Image
 var _image_min: float = 0.0
@@ -32,6 +33,9 @@ func configure(profile: NucleusTerrainProfile) -> Error:
 
 	if _profile.shoreline_noise != null:
 		_shoreline_noise = _profile.shoreline_noise.duplicate() as FastNoiseLite
+
+	if _profile.edge_floor_noise != null:
+		_edge_floor_noise = _profile.edge_floor_noise.duplicate() as FastNoiseLite
 
 	if _profile.falloff_texture != null:
 		_falloff_image = _prepare_image(_profile.falloff_texture)
@@ -65,8 +69,9 @@ func sample_height(
 		world_sample,
 		force_island,
 	)
+	var floor_height := _sample_edge_floor_height(world_sample)
 
-	return lerpf(_profile.edge_floor_height, height, mask)
+	return lerpf(floor_height, height, mask)
 
 
 func _sample_source(
@@ -135,6 +140,19 @@ func _sample_shape_mask(
 		mask *= _sample_image_bilinear(_falloff_image, normalized)
 
 	return clampf(mask, 0.0, 1.0)
+
+
+func _sample_edge_floor_height(world_sample: Vector2) -> float:
+	var height := _profile.edge_floor_height
+
+	if _edge_floor_noise == null or _profile.edge_floor_noise_strength <= 0.0:
+		return height
+
+	height += (
+		_edge_floor_noise.get_noise_2d(world_sample.x, world_sample.y)
+		* _profile.edge_floor_noise_strength
+	)
+	return height
 
 
 func _prepare_image(texture: Texture2D) -> Image:

@@ -1,37 +1,35 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://modules/terrain/terrain_streamer_3d.gd" id="1_streamer"]
-[ext_resource type="Script" path="res://modules/terrain/terrain_profile.gd" id="2_profile"]
-[ext_resource type="Script" path="res://modules/terrain/terrain_material_profile.gd" id="3_material"]
+[ext_resource type="Resource" path="res://modules/terrain/presets/gentle_hills.tres" id="2_profile"]
+[ext_resource type="Resource" path="res://examples/terrain/materials/terrain_height_layers.tres" id="3_material"]
 [ext_resource type="Script" path="res://examples/terrain/terrain_streaming_target.gd" id="4_target"]
+[ext_resource type="Script" path="res://examples/terrain/terrain_streaming_hud.gd" id="5_hud"]
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_main"]
-seed = 8080
-frequency = 0.006
-fractal_octaves = 5
+[sub_resource type="StandardMaterial3D" id="MarkerMaterial"]
+albedo_color = Color(1, 0.42, 0.08, 1)
+emission_enabled = true
+emission = Color(0.7, 0.16, 0.02, 1)
+roughness = 0.55
 
-[sub_resource type="Resource" id="Resource_profile"]
-resource_local_to_scene = true
-script = ExtResource("2_profile")
-size = Vector2(150, 150)
-resolution = 44
-height_scale = 38.0
-noise = SubResource("FastNoiseLite_main")
-collision_resolution = 24
-lod_levels = 1
-lod_distance_step = 100.0
+[sub_resource type="CapsuleMesh" id="MarkerMesh"]
+material = SubResource("MarkerMaterial")
+radius = 2.0
+height = 7.0
 
-[sub_resource type="Resource" id="Resource_material"]
-resource_local_to_scene = true
-script = ExtResource("3_material")
-base_color = Color(0.24, 0.42, 0.19, 1)
+[sub_resource type="StyleBoxFlat" id="PanelStyle"]
+bg_color = Color(0.025, 0.035, 0.05, 0.84)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="TerrainStreamingExample" type="Node3D"]
 
 [node name="TerrainStream" type="Node3D" parent="."]
 script = ExtResource("1_streamer")
-profile = SubResource("Resource_profile")
-material_profile = SubResource("Resource_material")
+profile = ExtResource("2_profile")
+material_profile = ExtResource("3_material")
 tracked_node = NodePath("../TrackedTarget")
 chunks_behind = 1
 chunks_ahead = 3
@@ -39,16 +37,47 @@ update_interval = 0.15
 max_new_chunks_per_update = 1
 
 [node name="TrackedTarget" type="Node3D" parent="."]
+position = Vector3(0, 42, 0)
 script = ExtResource("4_target")
-speed = 32.0
-travel_distance = 750.0
+speed = 34.0
+travel_distance = 900.0
+
+[node name="Marker" type="MeshInstance3D" parent="TrackedTarget"]
+mesh = SubResource("MarkerMesh")
 
 [node name="Camera3D" type="Camera3D" parent="TrackedTarget"]
-position = Vector3(0, 95, 125)
-rotation_degrees = Vector3(-32, 0, 0)
+position = Vector3(0, 92, -135)
+rotation_degrees = Vector3(-28, 180, 0)
 current = true
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-55, -35, 0)
-light_energy = 1.2
-shadow_enabled = true
+light_energy = 1.15
+shadow_enabled = false
+
+[node name="StreamingHUD" type="CanvasLayer" parent="."]
+script = ExtResource("5_hud")
+streamer = NodePath("../TerrainStream")
+tracked_node = NodePath("../TrackedTarget")
+
+[node name="MarginContainer" type="MarginContainer" parent="StreamingHUD"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 390.0
+offset_bottom = 166.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="PanelContainer" type="PanelContainer" parent="StreamingHUD/MarginContainer"]
+theme_override_styles/panel = SubResource("PanelStyle")
+
+[node name="MarginContainer" type="MarginContainer" parent="StreamingHUD/MarginContainer/PanelContainer"]
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="Label" type="Label" parent="StreamingHUD/MarginContainer/PanelContainer/MarginContainer"]
+text = "Terrain streaming demo"

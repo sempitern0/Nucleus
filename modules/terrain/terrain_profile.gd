@@ -55,6 +55,9 @@ var island_power: float = 1.5
 @export var shoreline_noise: FastNoiseLite
 @export_range(0.0, 0.45, 0.01)
 var shoreline_noise_strength: float = 0.12
+@export var edge_floor_noise: FastNoiseLite
+@export_range(0.0, 10000.0, 0.1, "or_greater")
+var edge_floor_noise_strength: float = 0.0
 @export var falloff_texture: Texture2D
 
 @export_group("Rendering")
@@ -101,8 +104,14 @@ func get_validation_errors() -> PackedStringArray:
 
 
 func minimum_expected_height() -> float:
-	return minf(base_height, edge_floor_height)
+	return minf(
+		base_height,
+		edge_floor_height - edge_floor_noise_strength,
+	)
 
 
 func maximum_expected_height() -> float:
-	return base_height + height_scale
+	return maxf(
+		base_height + height_scale,
+		edge_floor_height + edge_floor_noise_strength,
+	)

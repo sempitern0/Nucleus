@@ -1,0 +1,21 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://modules/terrain/terrain_profile.gd" id="1_profile"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_mountains"]
+seed = 7741
+frequency = 0.0045
+fractal_octaves = 6
+fractal_lacunarity = 2.15
+fractal_gain = 0.56
+
+[resource]
+script = ExtResource("1_profile")
+size = Vector2(320, 320)
+resolution = 80
+base_height = -5.0
+height_scale = 96.0
+noise = SubResource("FastNoiseLite_mountains")
+lod_levels = 2
+lod_distance_step = 140.0
+collision_resolution = 40

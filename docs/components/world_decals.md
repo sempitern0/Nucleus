@@ -70,6 +70,35 @@ A zero normal is rejected with `ERR_INVALID_PARAMETER`.
 `surface_offset` moves the projector a small distance outward along the normal.
 Keep this small; projection depth is controlled by native `Decal.size.y`.
 
+## Surface semantics integration
+
+SmartDecal deliberately does not choose its own texture from collision material.
+When project presentation depends on semantic surface type, resolve that first:
+
+```gdscript
+var surface := NucleusSurfaceResolver3D.resolve_raycast(impact_ray)
+var decal_scene := choose_impact_decal(surface)
+var decal := decal_scene.instantiate() as NucleusSmartDecal3D
+
+get_tree().current_scene.add_child(decal)
+decal.place_on_surface(
+	impact_ray.get_collision_point(),
+	impact_ray.get_collision_normal(),
+)
+```
+
+This keeps two reusable responsibilities independent:
+
+```text
+World Surfaces
+    classify what was hit
+
+SmartDecal
+    align/display one already-selected mark
+```
+
+See [`world_surfaces.md`](world_surfaces.md) for the semantic surface contract.
+
 ## Tangent / roll control
 
 For decals whose planar orientation matters, pass a world-space tangent hint:
@@ -190,7 +219,7 @@ Not included:
 
 ```text
 physics raycasts
-surface/material classification
+surface classification rules
 damage rules
 impact audio
 particle spawning
@@ -199,5 +228,5 @@ global decal limits
 global decal manager
 ```
 
-Those systems should choose when/what to spawn and pass the resulting hit point
-and normal into SmartDecal.
+`NucleusSurfaceResolver3D` can provide optional semantic classification. The
+project still decides which decal/content corresponds to that semantic profile.

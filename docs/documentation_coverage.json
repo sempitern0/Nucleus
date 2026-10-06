@@ -187,6 +187,9 @@
     "components/world/environment": [
       "docs/components/world_time_environment.md"
     ],
+    "components/world/surfaces": [
+      "docs/components/world_surfaces.md"
+    ],
     "components/world/time": [
       "docs/components/world_time_environment.md"
     ]

@@ -20,6 +20,7 @@ contract when you need lifetime, extension points, or limitations.
 | Use actions, attributes, status effects | `guides/actions_attributes_status_quickstart.md` |
 | Build movement/camera | `components/gameplay_movement_camera.md` |
 | Add world time/daylight presentation | `components/world_time_environment.md` |
+| Classify 3D world surfaces from collisions | `components/world_surfaces.md` |
 | Replace prototype geometry with an animated 3D rig | `guides/tutorials/character_animation_3d.md` |
 | Wire AnimationTree/Nucleus adapters | `guides/animation_integration_quickstart.md` |
 | Generate procedural 3D terrain / islands | `guides/terrain_generation_quickstart.md` |
@@ -78,6 +79,7 @@ Baseline component groups:
 - `components/gameplay_movement_camera.md`
 - `components/gameplay_pooling_targeting.md`
 - `components/world_time_environment.md`
+- `components/world_surfaces.md`
 - `components/world_decals.md`
 - `components/ui_and_accessibility.md`
 - `components/animation_integration.md`

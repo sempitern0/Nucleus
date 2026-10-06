@@ -23,6 +23,8 @@ the area.
 | Actions / Attributes / Status | reusable abilities, stats, modifiers, buffs/debuffs | Diablo/Hades-style temporary buffs, equipment modifiers, poison, stun, haste, or damage bonuses | [`gameplay_actions_attributes_status.md`](../components/gameplay_actions_attributes_status.md) |
 | Movement + Camera | 2D/3D character movement, camera-relative motion, camera rigs | third-person adventure movement, top-down action movement, or an orbital survival-game camera | [`gameplay_movement_camera.md`](../components/gameplay_movement_camera.md) |
 | Pooling + Targeting | repeated projectiles/enemies, sensing, target selection | Vampire Survivors-scale repeated spawns or Zelda-like target selection | [`gameplay_pooling_targeting.md`](../components/gameplay_pooling_targeting.md) |
+| World time + Environment | simulation time, day periods, native daylight presentation | survival/farming/adventure worlds where gameplay and presentation share one scene-owned clock | [`world_time_environment.md`](../components/world_time_environment.md) |
+| World surfaces | footsteps, impacts or gameplay need semantic material identity | shooters/survival games where wood, metal, sand or water produce different local responses | [`world_surfaces.md`](../components/world_surfaces.md) |
 | World decals | bullet marks, scorch marks, footprints, contextual surface marks | impact decals in a shooter or temporary combat marks on environment geometry | [`world_decals.md`](../components/world_decals.md) |
 | UI + Accessibility | controller focus, modal flow, toasts, layout, reduced motion | console-friendly menus with clear focus, connection notices, and accessibility-aware UI motion | [`ui_and_accessibility.md`](../components/ui_and_accessibility.md) |
 | Animation integration | gameplay state needs to drive AnimationTree cleanly | a character whose locomotion, attacks, hit states, and abilities feed an animation graph | [`animation_integration.md`](../components/animation_integration.md) |
@@ -119,6 +121,31 @@ building blocks, not the final survival design.
 This is the same boundary a project such as Nautica should use: generic movement
 and input in Nucleus; ocean movement, raft rules, and survival balance in the
 game.
+
+## Recipe: one collision drives several surface responses
+
+Keep classification separate from presentation/gameplay response:
+
+```text
+RayCast3D / KinematicCollision3D
+        ↓
+SurfaceResolver3D
+        ↓
+SurfaceProfile = metal
+        ↓
+project-owned consumers
+   ├── footstep audio
+   ├── impact particles
+   ├── SmartDecal selection
+   └── game-specific interaction rules
+```
+
+The surface profile contains semantic identity, not every possible response
+asset. This lets audio, decals and gameplay evolve independently while sharing
+the same collision classification.
+
+Use shape-owned providers when one physics body contains different materials,
+and collider/ancestor providers for coherent fallbacks.
 
 ## Recipe: ARPG-style combatant
 

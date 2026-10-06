@@ -27,4 +27,5 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/scene_flow_test.gd"),
 	preload("res://tests/headless/terrain_generation_test.gd"),
 	preload("res://tests/headless/world_clock_test.gd"),
+	preload("res://tests/headless/surface_semantics_test.gd"),
 ]

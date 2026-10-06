@@ -19,8 +19,8 @@ contract when you need lifetime, extension points, or limitations.
 | Build common gameplay composition | `guides/gameplay_foundation_quickstart.md` |
 | Use actions, attributes, status effects | `guides/actions_attributes_status_quickstart.md` |
 | Build movement/camera | `components/gameplay_movement_camera.md` |
-| Add world time/daylight presentation | `components/world_time_environment.md` |
-| Classify 3D world surfaces from collisions | `components/world_surfaces.md` |
+| Add world time/daylight/localized FX | `components/world_time_environment.md` |
+| Classify collision surfaces | `components/world_surfaces.md` |
 | Replace prototype geometry with an animated 3D rig | `guides/tutorials/character_animation_3d.md` |
 | Wire AnimationTree/Nucleus adapters | `guides/animation_integration_quickstart.md` |
 | Generate procedural 3D terrain / islands | `guides/terrain_generation_quickstart.md` |

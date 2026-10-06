@@ -37,8 +37,11 @@ Detailed contracts live under `docs/`. This file is the fast decision map.
 4. Identify whether the behavior belongs to Core, an optional module, a reusable
    component, or the consuming game.
 5. Make the smallest coherent change that fixes the observed problem.
-6. Add or update tests for behavior, documentation for public contracts, and the
-   changelog when the change is notable.
+6. Add or update tests for behavior and current-use documentation for public
+   contracts when the change is notable.
+
+Historical iteration notes and roadmap journals do not belong in the source
+template. Use Git history, issues, pull requests, and release notes for history.
 
 ## Ownership map
 
@@ -152,6 +155,18 @@ Nucleus UI is composition around native `Control` nodes.
   making Core depend on UI.
 - Respect `NucleusMotionPolicy` for reusable motion and feedback.
 - Keep localization keys/data separate from permanently translated output.
+
+## Animation rules
+
+Keep Godot's animation and skeleton stack authoritative. Nucleus may adapt
+existing gameplay state to `AnimationTree` or coordinate repeated lifecycle
+glue, but it should not mirror `Skeleton3D`, retargeting, IK, constraints,
+attachments, or physical-bone authoring in a parallel abstraction.
+
+For 3D characters, keep the gameplay `CharacterBody3D` stable and treat imported
+rigs/animations as presentation. Use native `SkeletonModifier3D`/IK and
+`PhysicalBoneSimulator3D`; game rules still own movement, death, combat, and
+network authority.
 
 ## Optional modules
 

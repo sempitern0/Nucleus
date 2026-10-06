@@ -20,8 +20,8 @@ SEMVER_RE = re.compile(
 REQUIRED_FILES = (
 	"README.md",
 	"LICENSE",
-	"CHANGELOG.md",
 	"VERSION",
+	"docs/README.md",
 	"docs/policies/versioning.md",
 	"docs/policies/godot_compatibility.md",
 	"docs/policies/deprecation.md",
@@ -33,12 +33,13 @@ REQUIRED_FILES = (
 )
 
 README_TOKENS = (
+	"docs/README.md",
 	"docs/guides/installation.md",
+	"docs/guides/tutorials/README.md",
 	"docs/policies/versioning.md",
 	"docs/policies/godot_compatibility.md",
 	"docs/policies/deprecation.md",
 	"docs/policies/api_stability.md",
-	"CHANGELOG.md",
 	"LICENSE",
 )
 
@@ -131,11 +132,6 @@ def audit(root: Path) -> list[str]:
 		not in license_text
 	):
 		errors.append("LICENSE: MIT grant text is incomplete")
-
-	changelog = text_by_path.get("CHANGELOG.md", "")
-
-	if changelog and "## [Unreleased]" not in changelog:
-		errors.append("CHANGELOG.md: missing [Unreleased] section")
 
 	readme = text_by_path.get("README.md", "")
 

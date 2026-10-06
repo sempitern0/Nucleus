@@ -4,27 +4,25 @@
 
 Nucleus is usable but currently **pre-1.0**.
 
-The existing public surface is intentionally documented and tested, but the
-first production game may reveal abstractions that should change before a stable
-1.0 contract is declared.
-
-Pin the Nucleus version or commit used to start a game.
+The public surface is documented and tested, but production use may still reveal
+contracts that should change before a stable 1.0 declaration. Pin the Nucleus
+version or source commit used by a game.
 
 ## Public API
 
-Unless a technical document says otherwise, the following are public contracts:
+Unless a technical document says otherwise, these are public contracts:
 
 ```text
 Nucleus-prefixed class_name types
-mandatory default Autoload names and their documented public methods/signals
+mandatory default Autoload names and documented methods/signals
 documented public methods and signals on reusable components/resources
-documented exported properties whose values are serialized in scenes/resources
+documented exported properties whose values serialize into scenes/resources
 documented settings/save schema boundaries
 documented reusable scene/resource entry points
 ```
 
-Public does not mean immutable before 1.0. It means a change requires explicit
-versioning, changelog, and migration consideration.
+Public does not mean immutable before 1.0. It means a change requires an
+intentional version decision plus updated contract/migration documentation.
 
 ## Internal API
 
@@ -37,8 +35,7 @@ implementation-only script paths
 tests and test helpers
 CI and release scripts
 validation fixtures
-temporary roadmap internals
-undocumented implementation resources
+undocumented implementation Resources
 ```
 
 Internal code may change without deprecation when public behavior is preserved.
@@ -49,8 +46,8 @@ Nucleus is a project template, so paths sometimes matter through `project.godot`
 or serialized Godot resources.
 
 Paths explicitly referenced by project configuration or public documentation are
-treated as integration contracts. Other implementation paths should not be used
-as an API when a `class_name`, resource, scene, or documented service exists.
+integration contracts. Other implementation paths should not be used as an API
+when a `class_name`, Resource, scene, or documented service exists.
 
 ## Autoload stability
 
@@ -65,10 +62,8 @@ NucleusSave
 NucleusSceneFlow
 ```
 
-Changing/removing one is a public-contract change.
-
-Optional modules do not become baseline dependencies merely because they expose
-public Nucleus classes.
+Changing/removing one is a public-contract change. Optional modules do not
+become baseline dependencies merely because they expose public Nucleus classes.
 
 ## Signals over hidden global coupling
 
@@ -83,16 +78,12 @@ project.
 
 A consuming game may modify any source. Once it does, automatic upgrades from a
 newer Nucleus release are not guaranteed. Upgrades should be selective merges
-guided by the changelog and migration notes.
+guided by current technical docs, migration notes when present, release notes,
+and Git history.
 
 ## 1.0 threshold
 
-Nucleus should not declare 1.0 solely because the feature list is large.
-
-A stable 1.0 is appropriate after:
-
-- at least one real game has exercised the baseline;
-- recurring API friction has been resolved;
-- public/core boundaries have proven durable;
-- Godot compatibility policy is stable;
-- release and migration processes have been exercised.
+Nucleus should not declare 1.0 solely because its feature list is large. A stable
+1.0 is appropriate after real games have exercised the baseline, recurring API
+friction has been resolved, public/core boundaries have proven durable, and
+release/migration processes have been exercised.

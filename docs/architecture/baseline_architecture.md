@@ -31,7 +31,8 @@ NucleusSave
 NucleusSceneFlow
 ```
 
-EventBus and NetworkHandler remain optional.
+EventBus, networking, development tools, and other optional modules remain
+explicit opt-ins.
 
 ## Composition
 
@@ -63,13 +64,13 @@ TranslationServer
 CharacterBody2D/3D
 Area2D/3D
 Camera2D/3D
-AnimationTree
+AnimationPlayer / AnimationTree / Skeleton3D
 Tween
 MultiplayerAPI
-FileAccess/ConfigFile/resources
+FileAccess/ConfigFile/Resources
 ```
 
-When Godot already has a good abstraction, use it.
+When Godot already has a strong abstraction, use it directly.
 
 ## Communication
 
@@ -80,7 +81,7 @@ Prefer, in order:
 3. source-owned registration for many producers;
 4. optional EventBus only for genuine decoupling.
 
-No Service Locator.
+There is no Service Locator.
 
 ## Persistence
 
@@ -88,8 +89,9 @@ Runtime objects own behavior. Save/settings layers persist plain stable data.
 Live Nodes, Callables, timers, and transient overlap/feedback state should not be
 treated as durable data.
 
-## Baseline completion
+## Baseline scope
 
-Iteration 17 completed the last planned large gameplay-composition layer.
-Iteration 18 hardens trust, validation, documentation, and portability rather
-than adding another major mechanic.
+The baseline is intentionally broad enough to start real projects while still
+leaving game-specific mechanics, content, art pipelines, backend policy, and
+product decisions to the consuming game. New reusable behavior should be driven
+by repeated production friction rather than feature-count goals.

@@ -3,9 +3,7 @@
 ## Pooling
 
 Place one `NucleusObjectPool` for one reusable scene/type in the owning gameplay
-scene.
-
-Use the matching spawner when placement matters.
+scene. Use the matching spawner when placement matters.
 
 Expected lifecycle:
 
@@ -23,7 +21,7 @@ Do not introduce a global PoolManager just to access unrelated pools.
 
 Add a `NucleusTargetingAgent` to the actor/system that owns selection.
 
-Add one or more sensors. For area sensing:
+For area sensing:
 
 ```text
 TargetingAgent
@@ -32,11 +30,9 @@ TargetingAgent
 ```
 
 Assign the agent explicitly when the hierarchy contains more than one plausible
-agent.
+agent. Add filters for validity and scorers for ranking.
 
-Add filters for validity and scorers for ranking.
-
-## Iteration 18 editor warnings
+## Editor warnings
 
 Area sensors warn when:
 
@@ -48,7 +44,7 @@ These are design-time diagnostics. They do not replace runtime guards.
 
 ## Integrations
 
-Use the existing target requirement/context integrations for actions instead of
+Use existing target requirement/context integrations for actions instead of
 running a second physics query inside every action.
 
 When spawning pooled projectiles, pass target/action context during the

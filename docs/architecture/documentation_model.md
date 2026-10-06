@@ -1,8 +1,11 @@
 # Documentation Model
 
-Nucleus documentation has two primary surfaces.
+Nucleus documentation is part of the product surface. Repository docs should
+help someone use, integrate, validate, release, or maintain the current template.
+Historical planning and iteration journals live in project-management/Git
+history rather than in the source template.
 
-## Public/user-facing documentation
+## User-facing documentation
 
 Location:
 
@@ -18,27 +21,16 @@ future project collaborators
 developers evaluating the template
 ```
 
-The primary objective is low-friction adoption.
-
 A guide should answer:
 
 1. What Nodes/Resources do I add?
-2. Where do I add them in the Godot editor?
-3. What Inspector fields matter?
-4. How do I connect this to existing Nucleus systems?
-5. What does a minimal working configuration look like?
+2. Where do I add them in Godot?
+3. Which Inspector fields matter?
+4. How does this connect to existing Nucleus systems?
+5. What does a minimal working setup look like?
 6. What mistakes are likely?
 
-Public guides should avoid requiring knowledge of:
-
-```text
-internal dictionaries
-private state
-algorithm implementation
-why another architecture was rejected
-```
-
-unless it directly affects correct usage.
+Avoid implementation details unless they directly affect correct usage.
 
 ## Technical documentation
 
@@ -46,66 +38,46 @@ Locations:
 
 ```text
 docs/components/
+docs/modules/
 docs/architecture/
+docs/policies/
 ```
 
-Audience:
+Component/module documents define ownership, lifetime, public API, data flow,
+extension points, Godot-native dependencies, and known limitations.
 
-```text
-Nucleus maintainers
-advanced users
-contributors
-future architecture work
-```
-
-Component documents define stable behavioral contracts.
-
-Architecture documents define design rationale and dependency direction.
-
-Technical docs should explicitly record:
-
-```text
-ownership
-lifetime
-thread/process assumptions
-data flow
-signals
-persistence behavior
-extension contracts
-Godot-native APIs being reused
-known limitations
-```
+Architecture documents explain dependency direction and maintainership rules.
+Policies define compatibility, stability, deprecation, and versioning promises.
 
 ## One source of truth
-
-Do not duplicate the same explanation across several guides.
 
 Prefer:
 
 ```text
-technical detail
-→ components/
+technical contract
+    → docs/components/ or docs/modules/
 
 editor workflow
-→ guides/
+    → docs/guides/
 
-design decision
-→ architecture/
+design/maintenance rationale
+    → docs/architecture/
 
-future work
-→ roadmap/
+compatibility/stability promise
+    → docs/policies/
+
+historical planning/status
+    → Git history, issues, pull requests, release notes
 ```
 
-Guides may link to technical docs when deeper explanation is useful.
+Guides may link to technical docs rather than duplicating full contracts.
 
 ## Documentation acceptance criteria
 
-A substantial new component is not considered production-ready until:
+A substantial reusable component is not production-ready until:
 
 - its API contract is documented;
 - its Godot editor setup is documented;
 - its relationship to adjacent Nucleus systems is clear;
-- any new architectural boundary is written down;
-- roadmap/handoff documents are updated when direction changes.
-
-This is a documentation requirement, not an optional cleanup phase.
+- any new architectural boundary is recorded;
+- affected guides/examples are updated.

@@ -4,14 +4,8 @@
 
 Nucleus versions the reusable **template**, not the game created from it.
 
-The source of truth is:
-
-```text
-VERSION
-```
-
-Do not couple the Nucleus version to a consuming game's
-`application/config/version` or release number.
+The source of truth is the root `VERSION` file. Do not couple that version to a
+consuming game's `application/config/version` or release number.
 
 ## Scheme
 
@@ -21,49 +15,41 @@ Nucleus uses Semantic Versioning:
 MAJOR.MINOR.PATCH
 ```
 
-Prerelease identifiers may be used:
+Prerelease identifiers are valid:
 
 ```text
-0.1.0-dev.1
-0.1.0-alpha.1
-0.1.0-rc.1
+0.13.0-dev.1
+0.13.0-alpha.1
+0.13.0-rc.1
 ```
 
-Git tags use the same version with a `v` prefix:
-
-```text
-v0.1.0
-v1.2.3
-```
-
-The tag version and `VERSION` must match exactly apart from that prefix.
+Git tags use the same version with a `v` prefix. The tag and `VERSION` must match
+apart from that prefix.
 
 ## Before 1.0
 
-The first real consuming projects are part of API discovery.
+Real consuming projects are still part of API discovery.
 
 For `0.x` releases:
 
-- PATCH means bug fixes and documentation corrections with no intentional
+- PATCH is for fixes and documentation corrections without an intentional
   public-contract break;
-- MINOR may contain breaking public API changes;
-- breaking changes must be called out in `CHANGELOG.md`;
-- migration guidance is required when the change affects commonly used public
-  contracts;
+- MINOR may add public API or intentionally revise a public contract;
+- migration guidance is required when commonly used public contracts change;
 - deprecation periods are best-effort rather than guaranteed.
 
-A consuming game should pin the exact Nucleus version or commit it started from.
+A consuming game should pin the exact Nucleus version or source commit it uses.
 
 ## From 1.0 onward
 
 After `1.0.0`:
 
-- PATCH contains backward-compatible bug fixes;
+- PATCH contains backward-compatible fixes;
 - MINOR adds backward-compatible functionality and may introduce deprecations;
 - MAJOR may remove deprecated APIs or otherwise break public contracts.
 
-Changing the minimum supported Godot minor version is considered a compatibility
-break after 1.0 unless the previously supported line remains release-gated.
+Changing the minimum supported Godot minor version is a compatibility break
+after 1.0 unless the previous line remains release-gated.
 
 ## What drives a version bump
 
@@ -84,18 +70,18 @@ changing required default project wiring
 Private helpers, tests, CI scripts, implementation details, and undocumented
 underscore-prefixed members do not independently require a compatibility bump.
 
-## Changelog discipline
+## Release discipline
 
 Before tagging a release:
 
 1. update `VERSION`;
-2. move the relevant `CHANGELOG.md` entries from `Unreleased` into a versioned
-   section with the release date;
-3. verify compatibility and deprecation documentation;
-4. require a green Nucleus CI run;
-5. generate the release package;
-6. verify its SHA-256 checksum;
+2. verify compatibility, deprecation, and migration documentation;
+3. require a green Nucleus CI run;
+4. generate the release package;
+5. verify its SHA-256 checksum;
+6. prepare concise GitHub Release notes from the merged work when useful;
 7. tag the exact packaged commit.
 
-Do not reconstruct historical Nucleus versions from Barebone. Nucleus versioning
-starts with its own explicit version contract.
+Historical iteration logs are not part of the source template. Git history,
+pull requests, tags, and release notes provide project history; repository docs
+remain focused on using and maintaining the current Nucleus contract.

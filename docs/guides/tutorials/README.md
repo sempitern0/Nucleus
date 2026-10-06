@@ -1,141 +1,91 @@
 # Hands-on Nucleus tutorials
 
-The quickstarts explain ownership and the minimum public surface. These tutorials
-teach Nucleus by building small features that you can reproduce in the Godot
-editor.
+Tutorials build concrete features in the Godot editor. Use them after a quickstart
+when you want scene trees, Inspector wiring, and minimal game-owned code.
 
-Use the documentation in three layers:
+The recommended documentation flow is:
 
 ```text
 Quickstart
-    choose the subsystem and learn the ownership rules
+    ownership and minimum setup
         ↓
 Tutorial
-    build one concrete feature step by step
+    build one complete example
         ↓
 Technical contract
-    inspect lifetime, signals, extension points, and limitations
+    lifetime, API, limits, extension points
 ```
-
-The tutorials intentionally keep native Godot nodes/APIs visible wherever
-Nucleus does not own the behavior.
 
 ## Recommended learning path
 
-If Nucleus is new to you, this sequence covers most of the baseline without
-requiring you to read the architecture first:
-
-1. [`core_services.md`](core_services.md) — understand the default Autoloads.
-2. [`bindings.md`](bindings.md) — build settings/input UI through composition.
-3. [`graphics_settings.md`](graphics_settings.md) — configure runtime graphics
-   while preserving scene ownership.
-4. [`performance_profiling.md`](performance_profiling.md) — add lightweight
-   monitoring and route bottlenecks into Godot's native profilers.
-5. [`localization.md`](localization.md) — ship two languages and persist choice.
-6. [`audio.md`](audio.md) — use cues, one-shots, buses and volume bindings.
-7. [`save_system.md`](save_system.md) — save scene-owned participant state.
-8. [`scene_flow.md`](scene_flow.md) — build a loading overlay around SceneFlow.
+1. [`core_services.md`](core_services.md) — default services and ownership.
+2. [`bindings.md`](bindings.md) — settings/input UI and rebinding.
+3. [`graphics_settings.md`](graphics_settings.md) — runtime graphics policy.
+4. [`performance_profiling.md`](performance_profiling.md) — budgets and profiling.
+5. [`localization.md`](localization.md) — languages and persisted choice.
+6. [`audio.md`](audio.md) — cues, buses, and persistent volume.
+7. [`save_system.md`](save_system.md) — scene-owned participant state.
+8. [`scene_flow.md`](scene_flow.md) — observable scene transitions.
 9. Choose a movement path:
    - [`platformer_2d.md`](platformer_2d.md)
    - [`third_person_3d.md`](third_person_3d.md)
-10. [`gameplay_actions.md`](gameplay_actions.md) — executable gameplay actions.
-11. [`components_first_steps.md`](components_first_steps.md) — common components.
-12. [`local_multiplayer.md`](local_multiplayer.md) — explicit local input seats.
-13. [`modules_first_steps.md`](modules_first_steps.md) — optional module survey.
-14. [`networking.md`](networking.md) — localhost through dedicated server.
-15. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
-    authoritative gameplay replication details.
-16. [`../multiplayer_deployment_quickstart.md`](../multiplayer_deployment_quickstart.md)
-    — deployment, capacity and cost.
-17. [`content_packs.md`](content_packs.md) — signed DLC and safe community data.
-18. [`mobile.md`](mobile.md) — touch, haptics, orientation, and lifecycle.
-
-Before choosing project-wide renderer or viewport defaults, read
-[`../project_configuration.md`](../project_configuration.md). When behavior is
-unexpected, use [`../troubleshooting.md`](../troubleshooting.md) before bypassing
-an ownership boundary.
+10. For a 3D character, continue with
+    [`character_animation_3d.md`](character_animation_3d.md).
+11. [`gameplay_actions.md`](gameplay_actions.md) — actions/costs/effects.
+12. [`components_first_steps.md`](components_first_steps.md) — common components.
+13. [`local_multiplayer.md`](local_multiplayer.md) — local input seats.
+14. [`modules_first_steps.md`](modules_first_steps.md) — optional modules.
+15. [`networking.md`](networking.md) — localhost to authoritative deployment path.
+16. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
+    authoritative gameplay replication.
+17. [`content_packs.md`](content_packs.md) — signed DLC and safe data mods.
+18. [`mobile.md`](mobile.md) — touch, haptics, orientation, lifecycle.
 
 ## Tutorials by area
 
 | Area | Tutorial | You build |
 | --- | --- | --- |
-| Core | [`core_services.md`](core_services.md) | tiny game shell using default services |
+| Core | [`core_services.md`](core_services.md) | game shell using default services |
 | Settings/Input | [`bindings.md`](bindings.md) | options + prompts + rebinding |
-| Graphics | [`graphics_settings.md`](graphics_settings.md) | runtime graphics + Environment policy |
-| Performance | [`performance_profiling.md`](performance_profiling.md) | budgets + diagnostics + traces |
-| Localization | [`localization.md`](localization.md) | English/Spanish menu + selector |
-| Audio | [`audio.md`](audio.md) | reusable UI cue + persistent volume |
-| Save | [`save_system.md`](save_system.md) | participant save/load/autosave |
-| Scene Flow | [`scene_flow.md`](scene_flow.md) | observable loading overlay |
-| 2D Movement | [`platformer_2d.md`](platformer_2d.md) | responsive platform controller |
+| Graphics | [`graphics_settings.md`](graphics_settings.md) | runtime graphics policy |
+| Performance | [`performance_profiling.md`](performance_profiling.md) | budgets + diagnostics |
+| Localization | [`localization.md`](localization.md) | two-language menu |
+| Audio | [`audio.md`](audio.md) | reusable cues + volume |
+| Save | [`save_system.md`](save_system.md) | participant save/load |
+| Scene Flow | [`scene_flow.md`](scene_flow.md) | loading overlay |
+| 2D Movement | [`platformer_2d.md`](platformer_2d.md) | platform controller |
 | 3D Movement | [`third_person_3d.md`](third_person_3d.md) | body + orbit camera |
+| 3D Animation | [`character_animation_3d.md`](character_animation_3d.md) | imported rig + retargeting + IK + ragdoll |
 | Gameplay Actions | [`gameplay_actions.md`](gameplay_actions.md) | action/cost/cooldown/effect |
-| Components | [`components_first_steps.md`](components_first_steps.md) | common components |
+| Components | [`components_first_steps.md`](components_first_steps.md) | common composition |
 | Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap + couch seats |
 | Modules | [`modules_first_steps.md`](modules_first_steps.md) | optional module survey |
-| Networking | [`networking.md`](networking.md) | local host to authoritative server |
+| Networking | [`networking.md`](networking.md) | host/join through dedicated server |
 | Content Packs | [`content_packs.md`](content_packs.md) | signed DLC + data-only mod |
-| Mobile | [`mobile.md`](mobile.md) | touch controller for existing gameplay |
+| Mobile | [`mobile.md`](mobile.md) | touch controls for existing gameplay |
 
 ## Learning paths by game type
 
-### 2D platform/action game
+### 3D action/survival
 
 ```text
 project_configuration
 → core_services
 → bindings
-→ graphics_settings when user-facing quality options are needed
-→ performance_profiling when target hardware/workloads exist
-→ localization/audio/save as needed
-→ platformer_2d
-→ gameplay_actions
-→ mobile when targeting touch
-```
-
-### 3D action/survival game
-
-```text
-project_configuration
-→ core_services
-→ bindings
-→ graphics_settings
-→ performance_profiling
-→ localization/audio/save/scene_flow
 → third_person_3d
+→ character_animation_3d
 → gameplay_actions
-→ inventory + loot + world state as needed
-→ content_packs for DLC/mod data
-→ mobile for phone/tablet targets
+→ inventory / loot / world state as needed
+→ networking when online play is actually required
 ```
 
-### RPG/ARPG systems layer
+### Online/co-op
 
-```text
-gameplay_actions
-→ components_first_steps
-→ inventory_equipment_quickstart
-→ loot_quickstart
-→ persistent_world_quickstart
-→ save_system
-```
-
-### Couch multiplayer
-
-```text
-bindings
-→ local_multiplayer
-→ movement tutorial for each local actor
-→ gameplay_actions
-```
-
-### Online/co-op game
-
-Build the local game first, then:
+Build the local gameplay first, then:
 
 ```text
 performance_profiling
-→ networking tutorial
+→ networking
 → online_replication_quickstart
 → multiplayer_deployment_quickstart
 → platform_services_quickstart when provider integration is needed
@@ -143,25 +93,18 @@ performance_profiling
 
 Connection transport does not decide gameplay authority.
 
-## Tutorial format
+## Tutorial contract
 
-Every tutorial should answer:
+A tutorial should answer:
 
 1. What are we building?
-2. Which Nodes/Resources do I add?
+2. Which Nodes/Resources are added?
 3. Which Inspector properties matter?
 4. What game-owned code is required?
 5. What should happen when it works?
-6. What should remain game-specific?
+6. What remains game-specific?
 7. What are the common mistakes?
 8. Which technical contract is authoritative?
 
-## Public API rule
-
-Tutorials use public `Nucleus*` APIs and native Godot APIs.
-
-Do not teach underscore-prefixed implementation helpers as supported integration
-points.
-
-Named commercial games may appear only as product/design analogies, never as
-claims about their source code or architecture.
+Tutorials use public `Nucleus*` APIs and native Godot APIs. They do not teach
+underscore-prefixed helpers as supported integration points.

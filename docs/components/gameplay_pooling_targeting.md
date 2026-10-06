@@ -42,9 +42,8 @@ sensors
 ```
 
 `NucleusTargetingAgent` owns candidates, current selection, and lock state.
-
-Sensors register candidates by source ownership so one sensor can be cleared
-without deleting candidates still observed by another sensor.
+Sensors register candidates by source ownership so clearing one sensor does not
+remove candidates still observed by another.
 
 Filters answer validity. Scorers rank valid candidates. Higher aggregate score
 wins.
@@ -52,26 +51,26 @@ wins.
 ## 2D/3D sensing
 
 Area sensors use native `Area2D`/`Area3D` overlap signals and shapes. Geometry
-helpers remain dimension-specific where Godot's coordinate conventions differ.
+helpers remain dimension-specific where Godot coordinate conventions differ.
 
-Iteration 18 adds editor warnings for:
+Editor warnings cover:
 
 - a sensor with neither body nor area detection enabled;
 - a sensor without an enabled collision shape;
 - an unassigned agent where runtime auto-resolution could be ambiguous.
 
-The warning does not remove runtime auto-resolution.
+Warnings do not remove runtime auto-resolution or runtime guards.
 
 ## Integrations
 
 Targeting has explicit seams for GameplayActions, interaction, status effects,
 local multiplayer contexts, and pooled projectile/action contexts.
 
-Do not make consumers query the physics space again if the TargetingAgent
-already owns the required selection.
+Do not make consumers query physics again if the TargetingAgent already owns the
+required selection.
 
 ## Extension rule
 
 New acquisition behavior should normally be a sensor, filter, or scorer.
-Introduce a new global targeting service only if a future feature genuinely
-requires cross-scene target ownership.
+Introduce a global targeting service only if a future feature genuinely requires
+cross-scene target ownership.

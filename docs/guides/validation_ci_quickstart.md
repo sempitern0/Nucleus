@@ -4,10 +4,10 @@ Nucleus validation has two local workflows:
 
 ```text
 Godot editor
-	fast manual feedback while developing
+    fast manual feedback while developing
 
 headless / CI
-	authoritative automation and export gate
+    authoritative automation and export gate
 ```
 
 ## Test infrastructure contract
@@ -29,9 +29,8 @@ be registered in tests/headless/test_manifest.gd
 ```
 
 `scripts/ci/static_checks.py` validates that contract before Godot starts.
-
-Engine API symbols and GDScript parsing still require Godot itself. CI therefore
-has a separate `--check-only` test-graph parse gate before executing assertions.
+Engine API symbols and GDScript parsing still require Godot itself, so CI has a
+separate `--check-only` test-graph parse gate before runtime assertions.
 
 ## Run tests from the Godot editor
 
@@ -47,24 +46,6 @@ A clean result looks like:
 
 ```text
 Nucleus editor tests: PASS (... checks, ... suites).
-```
-
-The automated suites now cover:
-
-```text
-SemanticVersion parsing / precedence
-ValuePool limits / overflow / restoration
-network utility validation
-InputBindingCodec serialization
-SmartDecal surface-basis contracts
-NucleusWindow screenshot path/file helpers
-Inventory / Equipment
-Probability / Loot
-Persistent World State
-AI utility / navigation policies
-online replication sequence/rate/snapshot policies
-platform provider/service contracts
-editor configuration warnings
 ```
 
 The editor runner is the convenient inner loop; headless parsing/runtime and
@@ -120,7 +101,7 @@ godot \
   --script res://tests/headless/test_runner.gd
 ```
 
-This gate catches engine symbols and transitive GDScript compile errors before
+This catches engine symbols and transitive GDScript compile errors before
 runtime assertions execute.
 
 ## Native headless tests
@@ -172,5 +153,6 @@ import, test parsing/runtime, smoke execution, and Linux/Windows/Web exports.
 
 Static generation checks are not equivalent to executing Godot.
 
-Mark an iteration runtime-validated only after local Godot validation or a
-successful CI run of import, parsing, runtime tests, smoke scene, and exports.
+Call a change runtime-validated only after local Godot validation or a successful
+CI run covering import, parsing, runtime tests, smoke scene, and relevant
+exports.

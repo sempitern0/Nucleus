@@ -1,7 +1,7 @@
 # Tutorial: build a third-person 3D controller and camera
 
-This tutorial builds the generic 3D foundation Nucleus provides before a game
-adds genre-specific movement.
+This tutorial builds the generic 3D gameplay shell Nucleus provides before a
+game adds genre-specific movement or production character art.
 
 The final composition uses:
 
@@ -21,10 +21,14 @@ It works with keyboard/mouse and the default gamepad movement/look actions.
 ```text
 Player : CharacterBody3D
 ├── CollisionShape3D
-├── MeshInstance3D
+├── VisualRoot : Node3D
+│   └── PrototypeMesh : MeshInstance3D
 ├── MotionInput : NucleusMotionInput
 └── Motor : NucleusCharacterMotor3D
 ```
+
+Keeping prototype geometry under `VisualRoot` makes the later art upgrade a
+presentation replacement rather than a gameplay rewrite.
 
 Configure the motor:
 
@@ -58,13 +62,7 @@ World
 └── MouseCapture : NucleusMouseCapture
 ```
 
-The packed rig already contains:
-
-```text
-SpringArm3D
-└── Camera3D
-LookRig
-```
+The packed rig contains a SpringArm/Camera composition plus look control.
 
 ## 3. Wire target and input
 
@@ -83,9 +81,6 @@ orientation_source = ThirdPersonCameraRig3D
 
 This makes planar movement camera-relative rather than actor-relative.
 
-The motor uses the orientation source's basis but projects movement onto the
-CharacterBody3D ground plane.
-
 ## 4. Start with camera values you can feel
 
 Example starting point:
@@ -99,8 +94,7 @@ zoom_step = 0.5
 zoom_response = 14.0
 ```
 
-These are not balance recommendations. Tune them against the scale of the actual
-world/character.
+Tune these against the scale of the real world/character.
 
 ## 5. Configure look feel
 
@@ -113,17 +107,7 @@ minimum_pitch = -70 degrees
 maximum_pitch = 70 degrees
 ```
 
-The important distinction is:
-
-```text
-mouse
-    angular delta per physical screen pixel
-
-gamepad
-    angular speed per second
-```
-
-so both input types can be tuned intentionally.
+Mouse look is angular delta per pixel. Gamepad look is angular speed per second.
 
 ## 6. Capture the mouse
 
@@ -133,10 +117,7 @@ Add `NucleusMouseCapture` with:
 capture_on_ready = true
 ```
 
-`NucleusMotionInput` requires captured mouse by default before accumulating
-pointer look.
-
-When opening a pause/options menu:
+When opening UI:
 
 ```gdscript
 mouse_capture.release()
@@ -148,26 +129,18 @@ When returning to gameplay:
 mouse_capture.capture()
 ```
 
-Do not assign `Input.mouse_mode` directly from the game when Nucleus cursor policy
-already owns it.
+Do not assign `Input.mouse_mode` directly when Nucleus cursor policy already
+owns it.
 
 ## 7. Test SpringArm collision
 
-Place a wall behind the player.
-
-Move the camera toward it. `SpringArm3D` should shorten the camera distance to
-avoid clipping through the obstacle.
-
-Nucleus leaves the actual collision shortening to Godot's native SpringArm.
+Place a wall behind the player and orbit into it. `SpringArm3D` should shorten
+the camera distance instead of clipping through the obstacle.
 
 ## 8. Test camera-relative movement
 
-Rotate the camera 90 degrees and press forward.
-
-The player should move toward the camera's new planar forward direction, not
-continue along a fixed global Z axis.
-
-This is the key reason to set `orientation_source` to the camera rig.
+Rotate the camera 90 degrees and press forward. The player should move toward the
+camera's new planar forward direction.
 
 ## 9. Add local-player input later without changing the motor
 
@@ -179,42 +152,49 @@ motion_input.bind_local_player_input(player_input)
 
 The motor and camera continue consuming the same `NucleusMotionInput` API.
 
-That makes controller hot-swap/couch-player ownership an input-layer concern.
+## 10. Replace the prototype mesh with a real rig
 
-## 10. What stays game-specific
+Do not replace `Player : CharacterBody3D`.
 
-Nucleus supplies generic movement/camera plumbing, not the final controller for
-every genre.
+Replace only the contents of `VisualRoot`, then add the native Godot animation
+stack and Nucleus animation adapters.
 
-Keep game policy outside the generic motor when implementing things such as:
+Continue with:
+
+[`character_animation_3d.md`](character_animation_3d.md)
+
+That tutorial covers Mixamo/KayKit/Mesh2Motion-style assets, Godot retargeting,
+AnimationTree locomotion, SkeletonModifier3D/IK, attachments, and ragdoll.
+
+## 11. What stays game-specific
+
+Keep game policy outside the generic motor for mechanics such as:
 
 ```text
 swimming
 climbing
-boat/vehicle control
+vehicles
 stamina sprint
 ledge vaulting
 lock-on movement
-surfing
-underwater buoyancy
+root-motion locomotion
 special camera composition
 ```
-
-If a behavior becomes repeatedly useful across unrelated games, that is evidence
-for a future reusable component.
 
 ## Validation
 
 - WASD/left stick moves the character;
-- movement rotates with the camera;
+- movement rotates with camera orientation;
 - mouse/right stick rotates the camera;
 - pitch clamps correctly;
-- SpringArm avoids a wall;
+- SpringArm avoids walls;
 - mouse releases for UI and captures again for gameplay;
-- gamepad movement still works without mouse capture.
+- gamepad works without mouse capture;
+- replacing `VisualRoot` does not change movement behavior.
 
 ## Related docs
 
+- [`character_animation_3d.md`](character_animation_3d.md)
 - [`platformer_2d.md`](platformer_2d.md)
 - [`local_multiplayer.md`](local_multiplayer.md)
 - [`../../components/gameplay_movement_camera.md`](../../components/gameplay_movement_camera.md)

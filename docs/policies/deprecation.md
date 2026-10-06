@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Deprecation exists to make intentional API evolution visible without preserving
+Deprecation makes intentional public-API evolution visible without preserving
 obsolete abstractions indefinitely.
 
 Nucleus does not maintain compatibility aliases merely because an older
@@ -26,18 +26,17 @@ Private implementation details are changed directly.
 
 ## Before 1.0
 
-Nucleus is currently pre-1.0.
-
-Breaking changes may occur in a MINOR version. When practical:
+Nucleus is currently pre-1.0. Breaking changes may occur in a MINOR version.
+When practical:
 
 1. mark the old API as deprecated in its technical documentation;
-2. add a `CHANGELOG.md` entry;
-3. provide the replacement API;
+2. provide the replacement API;
+3. document migration where a commonly used contract changes;
 4. preserve the old contract through at least one subsequent prerelease or
    minor development cycle;
-5. remove it only after migration guidance exists.
+5. remove it only after the replacement path is clear.
 
-This grace period is a goal, not a hard pre-1.0 guarantee. Early real-world use
+This grace period is a goal, not a hard pre-1.0 guarantee. Early production use
 may expose contracts that are actively harmful to preserve.
 
 ## From 1.0 onward
@@ -50,22 +49,17 @@ For stable public API:
 4. remove it only in a MAJOR release.
 
 Security, data-loss, or engine-compatibility problems may justify faster
-removal. Such exceptions must be explicit in the changelog.
+removal. Such exceptions must be explicit in the affected technical/release
+documentation.
 
 ## Runtime warnings
 
-Use runtime/editor warnings only when they are:
-
-- actionable;
-- emitted at a useful boundary;
-- unlikely to spam every frame;
-- able to identify the replacement.
-
-Do not add warning noise solely to satisfy the deprecation process.
+Use runtime/editor warnings only when they are actionable, emitted at a useful
+boundary, unlikely to spam every frame, and able to identify the replacement.
 
 ## Serialized data
 
-Renaming exported properties, resources, settings keys, or save fields can
+Renaming exported properties, Resources, settings keys, or save fields can
 outlive source-level APIs.
 
 Where Nucleus owns persisted data, use an explicit migration path when feasible.
@@ -79,6 +73,5 @@ Before removing a deprecated public contract:
 - search documentation and examples;
 - search tests;
 - update migration guidance;
-- update changelog;
-- update relevant version;
+- update the relevant version;
 - ensure CI is green without the old API.

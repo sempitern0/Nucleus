@@ -79,9 +79,11 @@ func apply_look(delta: float) -> void:
 
 	var mouse_scale: float = deg_to_rad(
 		mouse_sensitivity_degrees_per_pixel
+		* NucleusInputAccessibilityPolicy.get_mouse_look_sensitivity_scale()
 	)
 	var gamepad_scale: float = deg_to_rad(
 		gamepad_degrees_per_second
+		* NucleusInputAccessibilityPolicy.get_gamepad_look_sensitivity_scale()
 	)
 
 	var yaw_delta: float = (

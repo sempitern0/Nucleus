@@ -19,7 +19,7 @@ func run() -> Dictionary:
 	var catalog: NucleusSettingsCatalog = DEFAULT_CATALOG
 	var validation_errors: PackedStringArray = catalog.get_validation_errors()
 	expect_true(validation_errors.is_empty(), "Default settings catalog validates")
-	expect_equal(catalog.schema_version, 2, "Graphics expansion bumps settings schema")
+	expect_equal(catalog.schema_version, 3, "Accessibility expansion bumps settings schema")
 
 	var index := catalog.build_index()
 	var required_ids: Array[StringName] = [

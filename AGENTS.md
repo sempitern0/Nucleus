@@ -69,16 +69,16 @@ Use this decision order:
 
 ```text
 Existing Nucleus owner?
-    → use or extend that owner
+	→ use or extend that owner
 
 Godot already owns the problem well?
-    → use Godot directly
+	→ use Godot directly
 
 Repeated reusable friction across games?
-    → consider component/module/API refinement
+	→ consider component/module/API refinement
 
 Genre/content/balance/art/product/provider policy?
-    → keep it in the consuming game
+	→ keep it in the consuming game
 ```
 
 A helper being reusable does not automatically make it Core.
@@ -101,13 +101,13 @@ Nucleus should evolve through a real consuming game:
 
 ```text
 generic Nucleus primitive
-        ↓
+		↓
 real game integration
-        ↓
+		↓
 measured friction / repeated wiring / failure
-        ↓
+		↓
 small contract refinement
-        ↓
+		↓
 back to the game
 ```
 
@@ -267,10 +267,10 @@ Gameplay consumes semantic actions, not physical keys.
 
 ```text
 ui_* actions
-    → active UI navigation
+	→ active UI navigation
 
 move_* / interact / primary_action / secondary_action / pause
-    → gameplay semantics
+	→ gameplay semantics
 ```
 
 Do not interpret `ui_cancel` as a universal "leave gameplay" action.

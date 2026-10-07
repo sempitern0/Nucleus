@@ -85,13 +85,18 @@ func get_move_vector() -> Vector2:
 	if not enabled:
 		return Vector2.ZERO
 
+	var resolved_deadzone: float = _resolve_deadzone(
+		move_deadzone,
+		false,
+	)
+
 	if local_player_input:
 		return local_player_input.get_vector(
 			move_left,
 			move_right,
 			move_forward,
 			move_back,
-			move_deadzone,
+			resolved_deadzone,
 		)
 
 	return Input.get_vector(
@@ -99,7 +104,7 @@ func get_move_vector() -> Vector2:
 		move_right,
 		move_forward,
 		move_back,
-		move_deadzone,
+		resolved_deadzone,
 	)
 
 
@@ -107,13 +112,18 @@ func get_look_vector() -> Vector2:
 	if not enabled:
 		return Vector2.ZERO
 
+	var resolved_deadzone: float = _resolve_deadzone(
+		look_deadzone,
+		true,
+	)
+
 	if local_player_input:
 		return local_player_input.get_vector(
 			look_left,
 			look_right,
 			look_up,
 			look_down,
-			look_deadzone,
+			resolved_deadzone,
 		)
 
 	return Input.get_vector(
@@ -121,7 +131,7 @@ func get_look_vector() -> Vector2:
 		look_right,
 		look_up,
 		look_down,
-		look_deadzone,
+		resolved_deadzone,
 	)
 
 
@@ -188,3 +198,23 @@ func _route_event(event: InputEvent) -> void:
 
 	var mouse_motion := event as InputEventMouseMotion
 	_pointer_delta += mouse_motion.screen_relative
+
+
+func _resolve_deadzone(authored_deadzone: float, look: bool) -> float:
+	if authored_deadzone >= 0.0:
+		return authored_deadzone
+
+	if not _uses_gamepad_input():
+		return -1.0
+
+	if look:
+		return NucleusInputAccessibilityPolicy.get_gamepad_look_deadzone()
+
+	return NucleusInputAccessibilityPolicy.get_gamepad_move_deadzone()
+
+
+func _uses_gamepad_input() -> bool:
+	if local_player_input:
+		return local_player_input.is_gamepad()
+
+	return NucleusInput.active_source == NucleusInputTypes.Source.GAMEPAD

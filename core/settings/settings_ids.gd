@@ -26,6 +26,14 @@ const ENVIRONMENT_TONEMAP_MODE: StringName = &"environment/tonemap_mode"
 
 const INPUT_BINDINGS: StringName = &"input/bindings"
 const INPUT_VIBRATION_ENABLED: StringName = &"input/vibration_enabled"
+const INPUT_MOUSE_LOOK_SENSITIVITY_SCALE: StringName = (
+	&"input/mouse_look_sensitivity_scale"
+)
+const INPUT_GAMEPAD_LOOK_SENSITIVITY_SCALE: StringName = (
+	&"input/gamepad_look_sensitivity_scale"
+)
+const INPUT_GAMEPAD_MOVE_DEADZONE: StringName = &"input/gamepad_move_deadzone"
+const INPUT_GAMEPAD_LOOK_DEADZONE: StringName = &"input/gamepad_look_deadzone"
 
 const AUDIO_MUTED: StringName = &"audio/muted"
 const AUDIO_MASTER_VOLUME: StringName = &"audio/master_volume"
@@ -42,3 +50,5 @@ const ACCESSIBILITY_UI_MOTION_SCALE: StringName = &"accessibility/ui_motion_scal
 const ACCESSIBILITY_SCREEN_FLASH_INTENSITY: StringName = (
 	&"accessibility/screen_flash_intensity"
 )
+const ACCESSIBILITY_UI_SCALE: StringName = &"accessibility/ui_scale"
+const ACCESSIBILITY_HIGH_CONTRAST: StringName = &"accessibility/high_contrast"

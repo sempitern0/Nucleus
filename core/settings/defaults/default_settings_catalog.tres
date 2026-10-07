@@ -26,8 +26,14 @@
 [ext_resource type="Resource" path="res://core/settings/defaults/accessibility_reduced_motion.tres" id="24_reduced_motion"]
 [ext_resource type="Resource" path="res://core/settings/defaults/accessibility_ui_motion_scale.tres" id="25_motion_scale"]
 [ext_resource type="Resource" path="res://core/settings/defaults/accessibility_screen_flash_intensity.tres" id="26_flash_intensity"]
+[ext_resource type="Resource" path="res://core/settings/defaults/accessibility_ui_scale.tres" id="27_ui_scale"]
+[ext_resource type="Resource" path="res://core/settings/defaults/accessibility_high_contrast.tres" id="28_high_contrast"]
+[ext_resource type="Resource" path="res://core/settings/defaults/input_mouse_look_sensitivity_scale.tres" id="29_mouse_look_scale"]
+[ext_resource type="Resource" path="res://core/settings/defaults/input_gamepad_look_sensitivity_scale.tres" id="30_gamepad_look_scale"]
+[ext_resource type="Resource" path="res://core/settings/defaults/input_gamepad_move_deadzone.tres" id="31_move_deadzone"]
+[ext_resource type="Resource" path="res://core/settings/defaults/input_gamepad_look_deadzone.tres" id="32_look_deadzone"]
 
 [resource]
 script = ExtResource("1_catalog")
-schema_version = 2
-settings = Array[ExtResource("13_definition")]([ExtResource("2_window_mode"), ExtResource("3_borderless"), ExtResource("4_vsync"), ExtResource("5_max_fps"), ExtResource("6_render_scale"), ExtResource("7_scaling"), ExtResource("8_ssaa"), ExtResource("9_taa"), ExtResource("10_msaa_2d"), ExtResource("11_msaa_3d"), ExtResource("12_deband"), ExtResource("14_input_bindings"), ExtResource("15_vibration"), ExtResource("16_audio_muted"), ExtResource("17_master"), ExtResource("18_music"), ExtResource("19_sfx"), ExtResource("20_voice"), ExtResource("21_ui"), ExtResource("22_ambient"), ExtResource("23_locale"), ExtResource("24_reduced_motion"), ExtResource("25_motion_scale"), ExtResource("26_flash_intensity")])
+schema_version = 3
+settings = Array[ExtResource("13_definition")]([ExtResource("2_window_mode"), ExtResource("3_borderless"), ExtResource("4_vsync"), ExtResource("5_max_fps"), ExtResource("6_render_scale"), ExtResource("7_scaling"), ExtResource("8_ssaa"), ExtResource("9_taa"), ExtResource("10_msaa_2d"), ExtResource("11_msaa_3d"), ExtResource("12_deband"), ExtResource("14_input_bindings"), ExtResource("15_vibration"), ExtResource("16_audio_muted"), ExtResource("17_master"), ExtResource("18_music"), ExtResource("19_sfx"), ExtResource("20_voice"), ExtResource("21_ui"), ExtResource("22_ambient"), ExtResource("23_locale"), ExtResource("24_reduced_motion"), ExtResource("25_motion_scale"), ExtResource("26_flash_intensity"), ExtResource("27_ui_scale"), ExtResource("28_high_contrast"), ExtResource("29_mouse_look_scale"), ExtResource("30_gamepad_look_scale"), ExtResource("31_move_deadzone"), ExtResource("32_look_deadzone")])

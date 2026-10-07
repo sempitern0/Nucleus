@@ -32,4 +32,5 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/world_stamp_buffer_test.gd"),
 	preload("res://tests/headless/surface_sampler_test.gd"),
 	preload("res://tests/headless/buoyancy_test.gd"),
+	preload("res://tests/headless/resource_loading_test.gd"),
 ]

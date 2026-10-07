@@ -16,6 +16,7 @@ contract when you need lifetime, extension points, or limitations.
 | Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
 | Use audio, save, and localization | `guides/runtime_services_quickstart.md` |
 | Build scene transitions and recovery | `guides/scene_flow_quickstart.md` |
+| Preload resources with custom progress UI | `guides/resource_loading_quickstart.md` |
 | Build common gameplay composition | `guides/gameplay_foundation_quickstart.md` |
 | Use actions, attributes, status effects | `guides/actions_attributes_status_quickstart.md` |
 | Build movement/camera | `components/gameplay_movement_camera.md` |
@@ -76,6 +77,7 @@ Baseline component groups:
 - `components/core_runtime.md`
 - `components/settings_and_input.md`
 - `components/audio_save_scene_localization.md`
+- `components/resource_loading.md`
 - `components/gameplay_foundation.md`
 - `components/gameplay_actions_attributes_status.md`
 - `components/gameplay_movement_camera.md`

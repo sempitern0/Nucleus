@@ -8,79 +8,6 @@
     "components/world/*"
   ],
   "coverage": {
-    "core/accessibility": [
-      "docs/components/ui_and_accessibility.md"
-    ],
-    "core/application": [
-      "docs/components/core_runtime.md"
-    ],
-    "core/audio": [
-      "docs/components/audio_save_scene_localization.md"
-    ],
-    "core/diagnostics": [
-      "docs/components/core_runtime.md"
-    ],
-    "core/input": [
-      "docs/components/settings_and_input.md"
-    ],
-    "core/localization": [
-      "docs/components/audio_save_scene_localization.md"
-    ],
-    "core/platform": [
-      "docs/components/core_runtime.md"
-    ],
-    "core/save": [
-      "docs/components/audio_save_scene_localization.md"
-    ],
-    "core/scene_flow": [
-      "docs/components/audio_save_scene_localization.md"
-    ],
-    "core/settings": [
-      "docs/components/settings_and_input.md"
-    ],
-    "core/utils": [
-      "docs/components/core_runtime.md"
-    ],
-    "core/window": [
-      "docs/components/core_runtime.md"
-    ],
-    "modules/ai": [
-      "docs/modules/ai_navigation.md"
-    ],
-    "modules/content_packs": [
-      "docs/modules/content_packs.md"
-    ],
-    "modules/development_tools": [
-      "docs/modules/development_tools.md"
-    ],
-    "modules/event_bus": [
-      "docs/modules/event_bus.md"
-    ],
-    "modules/inventory": [
-      "docs/modules/inventory_equipment.md"
-    ],
-    "modules/loot": [
-      "docs/modules/probability_loot.md"
-    ],
-    "modules/mobile": [
-      "docs/modules/mobile.md"
-    ],
-    "modules/networking": [
-      "docs/modules/networking.md",
-      "docs/modules/online_replication.md"
-    ],
-    "modules/performance": [
-      "docs/modules/performance.md"
-    ],
-    "modules/platform_services": [
-      "docs/modules/platform_services.md"
-    ],
-    "modules/terrain": [
-      "docs/modules/terrain_generation.md"
-    ],
-    "modules/world_state": [
-      "docs/modules/persistent_world_state.md"
-    ],
     "components/gameplay/actions": [
       "docs/components/gameplay_actions_attributes_status.md"
     ],
@@ -198,6 +125,82 @@
     ],
     "components/world/time": [
       "docs/components/world_time_environment.md"
+    ],
+    "core/accessibility": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "core/application": [
+      "docs/components/core_runtime.md"
+    ],
+    "core/audio": [
+      "docs/components/audio_save_scene_localization.md"
+    ],
+    "core/diagnostics": [
+      "docs/components/core_runtime.md"
+    ],
+    "core/input": [
+      "docs/components/settings_and_input.md"
+    ],
+    "core/loading": [
+      "docs/components/resource_loading.md"
+    ],
+    "core/localization": [
+      "docs/components/audio_save_scene_localization.md"
+    ],
+    "core/platform": [
+      "docs/components/core_runtime.md"
+    ],
+    "core/save": [
+      "docs/components/audio_save_scene_localization.md"
+    ],
+    "core/scene_flow": [
+      "docs/components/audio_save_scene_localization.md"
+    ],
+    "core/settings": [
+      "docs/components/settings_and_input.md"
+    ],
+    "core/utils": [
+      "docs/components/core_runtime.md"
+    ],
+    "core/window": [
+      "docs/components/core_runtime.md"
+    ],
+    "modules/ai": [
+      "docs/modules/ai_navigation.md"
+    ],
+    "modules/content_packs": [
+      "docs/modules/content_packs.md"
+    ],
+    "modules/development_tools": [
+      "docs/modules/development_tools.md"
+    ],
+    "modules/event_bus": [
+      "docs/modules/event_bus.md"
+    ],
+    "modules/inventory": [
+      "docs/modules/inventory_equipment.md"
+    ],
+    "modules/loot": [
+      "docs/modules/probability_loot.md"
+    ],
+    "modules/mobile": [
+      "docs/modules/mobile.md"
+    ],
+    "modules/networking": [
+      "docs/modules/networking.md",
+      "docs/modules/online_replication.md"
+    ],
+    "modules/performance": [
+      "docs/modules/performance.md"
+    ],
+    "modules/platform_services": [
+      "docs/modules/platform_services.md"
+    ],
+    "modules/terrain": [
+      "docs/modules/terrain_generation.md"
+    ],
+    "modules/world_state": [
+      "docs/modules/persistent_world_state.md"
     ]
   }
 }

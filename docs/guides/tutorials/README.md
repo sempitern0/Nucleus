@@ -26,25 +26,26 @@ Technical contract
 6. [`audio.md`](audio.md) — cues, buses, and persistent volume.
 7. [`save_system.md`](save_system.md) — scene-owned participant state.
 8. [`scene_flow.md`](scene_flow.md) — observable scene transitions.
-9. Choose a movement path:
+9. [`resource_loading.md`](resource_loading.md) — bootstrap/runtime loading UI.
+10. Choose a movement path:
    - [`platformer_2d.md`](platformer_2d.md)
    - [`third_person_3d.md`](third_person_3d.md)
-10. For a 3D character, continue with
+11. For a 3D character, continue with
     [`character_animation_3d.md`](character_animation_3d.md).
-11. For generated 3D worlds:
+12. For generated 3D worlds:
     - [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md)
     - [`procedural_terrain_3d.md`](procedural_terrain_3d.md)
     - [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md)
     - [`terrain_debugging.md`](terrain_debugging.md)
-12. [`gameplay_actions.md`](gameplay_actions.md) — actions/costs/effects.
-13. [`components_first_steps.md`](components_first_steps.md) — common components.
-14. [`local_multiplayer.md`](local_multiplayer.md) — hot-swap + couch seats.
-15. [`modules_first_steps.md`](modules_first_steps.md) — optional modules.
-16. [`networking.md`](networking.md) — localhost to authoritative deployment path.
-17. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
+13. [`gameplay_actions.md`](gameplay_actions.md) — actions/costs/effects.
+14. [`components_first_steps.md`](components_first_steps.md) — common components.
+15. [`local_multiplayer.md`](local_multiplayer.md) — hot-swap + couch seats.
+16. [`modules_first_steps.md`](modules_first_steps.md) — optional modules.
+17. [`networking.md`](networking.md) — localhost to authoritative deployment path.
+18. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
     authoritative gameplay replication.
-18. [`content_packs.md`](content_packs.md) — signed DLC and safe data mods.
-19. [`mobile.md`](mobile.md) — touch, haptics, orientation, lifecycle.
+19. [`content_packs.md`](content_packs.md) — signed DLC and safe data mods.
+20. [`mobile.md`](mobile.md) — touch, haptics, orientation, lifecycle.
 
 ## Tutorials by area
 
@@ -58,6 +59,7 @@ Technical contract
 | Audio | [`audio.md`](audio.md) | cues, buses, and persistent volume |
 | Save | [`save_system.md`](save_system.md) | participant save/load |
 | Scene Flow | [`scene_flow.md`](scene_flow.md) | loading overlay |
+| Resource Loading | [`resource_loading.md`](resource_loading.md) | bootstrap + runtime preload UI |
 | 2D Movement | [`platformer_2d.md`](platformer_2d.md) | platform controller |
 | 3D Movement | [`third_person_3d.md`](third_person_3d.md) | body + orbit camera |
 | 3D Animation | [`character_animation_3d.md`](character_animation_3d.md) | imported rig + retargeting + IK + ragdoll |

@@ -80,6 +80,12 @@ The automated bootstrap fixture is:
 tests/smoke/smoke_main.tscn
 ```
 
+Threaded loading also has a dedicated runtime smoke fixture:
+
+```text
+tests/smoke/resource_loading_smoke.tscn
+```
+
 ## Local static checks
 
 ```bash
@@ -120,7 +126,7 @@ Use the normal executable instead when the console build is not installed.
 Linux/macOS:
 
 ```bash
-godot   --headless   --path .   res://tests/headless/test_runner.tscn
+godot --headless --path . res://tests/headless/test_runner.tscn
 ```
 
 PowerShell:
@@ -137,11 +143,22 @@ be emitted.
 ## Bootstrap smoke scene
 
 ```bash
-godot   --headless   --path .   res://tests/smoke/smoke_main.tscn
+godot --headless --path . res://tests/smoke/smoke_main.tscn
 ```
 
 This separately verifies the required default Autoloads and compatible Godot
 runtime.
+
+## Threaded resource-loading smoke
+
+```bash
+godot --headless --path . res://tests/smoke/resource_loading_smoke.tscn
+```
+
+This exercises real `ResourceLoader.load_threaded_request()` work across normal
+frames and verifies terminal progress plus retained-resource lookup.
+
+Run it whenever `core/loading` changes.
 
 ## Why the runner is a scene
 
@@ -183,14 +200,15 @@ then treat the resulting engine fallback as test data.
 With official Godot 4.7.2 templates installed:
 
 ```bash
-GODOT_BIN=/path/to/godot   bash scripts/ci/smoke_exports.sh "$PWD"
+GODOT_BIN=/path/to/godot \
+    bash scripts/ci/smoke_exports.sh "$PWD"
 ```
 
 ## GitHub Actions
 
 `.github/workflows/nucleus-ci.yml` runs repository audits first, then Godot
-import, the native headless test scene, bootstrap smoke execution, and
-Linux/Windows/Web exports.
+import, the native headless test scene, bootstrap smoke, threaded resource-load
+smoke, and Linux/Windows/Web exports.
 
 The native scene is both the transitive GDScript compile gate and the assertion
 runner because its manifest preloads every suite.
@@ -204,7 +222,8 @@ runner because its manifest preloads every suite.
 4. headless import
 5. headless native test scene
 6. bootstrap smoke scene if Core/Autoloads changed
-7. CI smoke exports for release-facing work
+7. resource-loading smoke if core/loading changed
+8. CI smoke exports for release-facing work
 ```
 
 ## Runtime validation status
@@ -212,5 +231,4 @@ runner because its manifest preloads every suite.
 Static generation checks are not equivalent to executing Godot.
 
 Call a change runtime-validated only after local Godot validation or a successful
-CI run covering import, native runtime tests, the smoke scene, and relevant
-exports.
+CI run covering import, native runtime tests, relevant smoke scenes, and exports.

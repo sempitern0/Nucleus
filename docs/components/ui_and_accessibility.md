@@ -291,6 +291,24 @@ typewriter.skip()
 typewriter.reveal_immediately()
 ```
 
+Reveal cadence is authored through:
+
+```text
+characters_per_second
+minor_punctuation_delay
+major_punctuation_delay
+minor_punctuation_characters
+major_punctuation_characters
+pause_on_line_break
+```
+
+The default punctuation sets cover common Latin, Arabic, CJK and Japanese
+punctuation. Projects can replace either string without changing reveal logic.
+
+Cadence is resolved from `RichTextLabel.get_parsed_text()`, so BBCode is never
+parsed or owned by Nucleus. A long frame consumes the same character and pause
+budget instead of skipping punctuation waits.
+
 The component can use real elapsed time while gameplay is paused or time-scaled.
 Under reduced motion, complete text is revealed immediately by default.
 
@@ -340,7 +358,8 @@ Localized controls observe `TranslationServer`/Nucleus locale changes. Store
 translation keys and source data, not permanently translated output.
 
 Typewriter presentation should be restarted after the consuming game changes
-the target text.
+the target text. Projects should also review punctuation character sets for
+languages that use different sentence or clause marks.
 
 ## Accessibility
 
@@ -369,7 +388,7 @@ hover/focus/press/selected states
 delayed progress feedback
 input glyph/text fallback
 shader parameter animation
-RichTextLabel reveal/skip
+RichTextLabel reveal/skip/punctuation cadence
 reduced-motion response
 ```
 

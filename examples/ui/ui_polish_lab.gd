@@ -259,21 +259,23 @@ func _build_shader_demo(parent: VBoxContainer) -> void:
 
 func _build_typewriter_demo(parent: VBoxContainer) -> void:
 	var heading := Label.new()
-	heading.text = "RichTextLabel typewriter reveal"
+	heading.text = "RichTextLabel reveal with punctuation cadence"
 	parent.add_child(heading)
 
 	var text := RichTextLabel.new()
 	text.custom_minimum_size = Vector2(560.0, 78.0)
 	text.bbcode_enabled = true
 	text.text = (
-		"[b]Nucleus[/b] reveals existing RichTextLabel content. "
-		+ "Dialogue, localization and BBCode stay game-owned."
+		"[b]Nucleus[/b] reveals text, respects punctuation, "
+		+ "and keeps dialogue ownership in the game. BBCode stays native."
 	)
 	parent.add_child(text)
 
 	_typewriter = NucleusUITypewriter.new()
 	_typewriter.target = text
 	_typewriter.characters_per_second = 42.0
+	_typewriter.minor_punctuation_delay = 0.08
+	_typewriter.major_punctuation_delay = 0.2
 	text.add_child(_typewriter)
 	_typewriter.restart()
 

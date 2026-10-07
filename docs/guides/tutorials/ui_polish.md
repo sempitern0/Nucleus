@@ -276,6 +276,21 @@ A skip action can call:
 typewriter.skip()
 ```
 
+Tune cadence independently from authored text:
+
+```gdscript
+typewriter.characters_per_second = 42.0
+typewriter.minor_punctuation_delay = 0.08
+typewriter.major_punctuation_delay = 0.2
+```
+
+Minor and major punctuation are configurable character sets. The defaults cover
+common Latin, Arabic, CJK and Japanese punctuation; line breaks use the major
+delay. This keeps localization flexible without adding dialogue semantics.
+
+The component reads parsed RichTextLabel content for cadence, so BBCode tags do
+not consume reveal time or need to be interpreted by Nucleus.
+
 The component controls only character visibility. Dialogue graphs, speaker
 portraits, localization, audio and choices remain outside it.
 
@@ -300,7 +315,8 @@ godot --headless --path . --import
 godot --headless --path . res://tests/headless/test_runner.tscn
 ```
 
-Inspect the lab manually with mouse, keyboard and controller.
+Inspect the lab manually with mouse, keyboard and controller. Pay attention to
+punctuation timing at normal frame rate and after deliberate frame stalls.
 
 ## Common mistakes
 
@@ -312,6 +328,7 @@ Avoid:
 - storing copyrighted/vendor glyph artwork inside Nucleus;
 - mutating shared ShaderMaterial Resources unintentionally;
 - turning typewriter presentation into dialogue authority;
+- hard-coding one locale's punctuation rules outside the typewriter exports;
 - using UI state as gameplay authority;
 - bypassing reduced-motion policy with ad hoc Tweens;
 - replacing `AnimationPlayer` with generic code for complex authored sequences.

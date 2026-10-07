@@ -10,6 +10,7 @@ func run() -> Dictionary:
 	_test_input_glyph_profile_resolution()
 	_test_shader_effect_value_contract()
 	_test_typewriter_immediate_and_skip()
+	_test_typewriter_punctuation_cadence()
 	return finish()
 
 
@@ -339,6 +340,58 @@ func _test_typewriter_immediate_and_skip() -> void:
 		typewriter.get_progress(),
 		1.0,
 		"Finished text reports full progress.",
+	)
+
+	free_test_node(root)
+
+
+func _test_typewriter_punctuation_cadence() -> void:
+	var root := Control.new()
+	var label := RichTextLabel.new()
+	var typewriter := NucleusUITypewriter.new()
+
+	label.bbcode_enabled = true
+	label.text = "[b]A,[/b]B"
+	typewriter.target = label
+	typewriter.characters_per_second = 100.0
+	typewriter.minor_punctuation_delay = 0.5
+	typewriter.major_punctuation_delay = 0.75
+	typewriter.respect_reduced_motion = false
+	typewriter.ignore_time_scale = false
+
+	root.add_child(label)
+	root.add_child(typewriter)
+
+	expect_true(
+		attach_test_node(root),
+		"Typewriter cadence fixture requires a live SceneTree.",
+	)
+
+	expect_equal(
+		typewriter.restart(),
+		OK,
+		"Typewriter cadence can start from BBCode text.",
+	)
+
+	typewriter._process(0.021)
+	expect_equal(
+		label.visible_characters,
+		2,
+		"Parsed punctuation becomes visible before its cadence pause.",
+	)
+
+	typewriter._process(0.25)
+	expect_equal(
+		label.visible_characters,
+		2,
+		"Minor punctuation holds the next character during the pause.",
+	)
+
+	typewriter._process(0.26)
+	expect_equal(
+		label.visible_characters,
+		label.get_total_character_count(),
+		"Reveal resumes after consuming the remaining punctuation pause.",
 	)
 
 	free_test_node(root)

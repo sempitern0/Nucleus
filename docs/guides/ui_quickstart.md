@@ -181,6 +181,18 @@ typewriter.skip()
 The component reveals parsed characters and leaves text, BBCode, localization,
 voice, dialogue state and choices to the consuming game.
 
+Cadence can be tuned without changing text ownership:
+
+```gdscript
+typewriter.characters_per_second = 42.0
+typewriter.minor_punctuation_delay = 0.08
+typewriter.major_punctuation_delay = 0.2
+```
+
+`minor_punctuation_characters` and `major_punctuation_characters` are
+project-configurable strings, so localization can use different punctuation
+conventions. Line breaks use the major delay by default.
+
 Reduced-motion users see the complete text immediately by default.
 
 ## Reduced motion
@@ -223,6 +235,8 @@ Keep translation keys in source data. Refresh display text through the
 localization components when locale changes.
 
 If text changes while a typewriter is active, restart the reveal explicitly.
+Review the typewriter punctuation sets when the selected locale uses different
+clause or sentence marks.
 
 ## Manual polish lab
 
@@ -233,8 +247,8 @@ examples/ui/ui_polish_lab.tscn
 ```
 
 Use it to compare transitions, interaction states, progress feedback, glyph
-fallback, shader animation and text reveal with mouse, keyboard/controller focus,
-hot swap and reduced motion.
+fallback, shader animation and punctuation-aware text reveal with mouse,
+keyboard/controller focus, hot swap and reduced motion.
 
 Hands-on tutorial:
 

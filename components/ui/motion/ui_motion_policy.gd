@@ -2,8 +2,9 @@ class_name NucleusUIMotionPolicy
 extends RefCounted
 ## Resolves UI animation and flash accessibility preferences.
 ##
-## Shared reduced-motion detection lives in NucleusMotionPolicy. UI-specific
-## duration/flash settings remain here.
+## Shared reduced-motion detection/amplitude policy lives in
+## [NucleusMotionPolicy]. UI-specific duration scaling and flash settings remain
+## here.
 
 static func is_reduced_motion_enabled() -> bool:
 	return NucleusMotionPolicy.is_reduced_motion_enabled()
@@ -26,16 +27,25 @@ static func get_motion_scale() -> float:
 static func get_effective_duration(
 	duration: float,
 	respect_reduced_motion: bool = true,
+	reduced_motion_scale: float = 0.0,
 ) -> float:
 	var safe_duration: float = maxf(0.0, duration)
+	var accessibility_scale := NucleusMotionPolicy.get_motion_scale(
+		respect_reduced_motion,
+		reduced_motion_scale,
+	)
 
-	if not respect_reduced_motion:
-		return safe_duration
+	return safe_duration * get_motion_scale() * accessibility_scale
 
-	if is_reduced_motion_enabled():
-		return 0.0
 
-	return safe_duration * get_motion_scale()
+static func get_effect_amplitude_scale(
+	respect_reduced_motion: bool = true,
+	reduced_motion_scale: float = 0.0,
+) -> float:
+	return NucleusMotionPolicy.get_motion_scale(
+		respect_reduced_motion,
+		reduced_motion_scale,
+	)
 
 
 static func get_screen_flash_intensity() -> float:

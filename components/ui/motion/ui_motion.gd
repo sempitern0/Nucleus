@@ -29,6 +29,18 @@ static func get_duration(
 	return NucleusUIMotionPolicy.get_effective_duration(
 		resolved.duration * maxf(0.0, multiplier),
 		resolved.respect_reduced_motion,
+		resolved.reduced_motion_scale,
+	)
+
+
+static func get_effect_amplitude_scale(
+	profile: NucleusUIMotionProfile = null,
+) -> float:
+	var resolved: NucleusUIMotionProfile = _profile(profile)
+
+	return NucleusUIMotionPolicy.get_effect_amplitude_scale(
+		resolved.respect_reduced_motion,
+		resolved.reduced_motion_scale,
 	)
 
 
@@ -124,8 +136,13 @@ static func pop(
 
 	var target_scale: Vector2 = target.scale
 	var target_alpha: float = target.modulate.a
+	var amplitude: float = get_effect_amplitude_scale(profile)
+	var effective_factor := Vector2.ONE.lerp(
+		from_scale_factor,
+		amplitude,
+	)
 
-	target.scale = target_scale * from_scale_factor
+	target.scale = target_scale * effective_factor
 	target.modulate.a = 0.0
 
 	return fade_scale_to(
@@ -144,7 +161,13 @@ static func punch_scale(
 	set_pivot_ratio(target, Vector2(0.5, 0.5))
 
 	var base_scale: Vector2 = target.scale
-	var peak_scale: Vector2 = base_scale * maxf(0.0, multiplier)
+	var amplitude: float = get_effect_amplitude_scale(profile)
+	var peak_multiplier: float = lerpf(
+		1.0,
+		maxf(0.0, multiplier),
+		amplitude,
+	)
+	var peak_scale: Vector2 = base_scale * peak_multiplier
 	var half_duration: float = get_duration(profile, 0.5)
 	var tween: Tween = create_tween(target, profile)
 
@@ -178,8 +201,15 @@ static func shake(
 	var duration: float = get_duration(profile)
 	var base_position: Vector2 = target.position
 	var safe_cycles: int = maxi(0, cycles)
+	var effective_amplitude := (
+		amplitude * get_effect_amplitude_scale(profile)
+	)
 
-	if safe_cycles == 0 or is_zero_approx(duration):
+	if (
+		safe_cycles == 0
+		or is_zero_approx(duration)
+		or effective_amplitude.length_squared() <= 0.000001
+	):
 		tween.tween_property(target, "position", base_position, 0.0)
 		return tween
 
@@ -188,7 +218,7 @@ static func shake(
 	for index: int in range(safe_cycles):
 		var decay: float = 1.0 - float(index) / float(safe_cycles)
 		var direction: float = -1.0 if index % 2 == 0 else 1.0
-		var offset: Vector2 = amplitude * decay * direction
+		var offset: Vector2 = effective_amplitude * decay * direction
 
 		tween.tween_property(
 			target,

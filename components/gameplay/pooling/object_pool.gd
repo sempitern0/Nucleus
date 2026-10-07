@@ -6,6 +6,11 @@ extends Node
 ## reparented elsewhere in the same SceneTree.
 
 signal prewarmed(created_count: int)
+signal prewarm_progress(
+	created_count: int,
+	total_count: int,
+	target_total: int,
+)
 signal instance_created(instance: Node)
 signal instance_reserved(instance: Node)
 signal instance_acquired(
@@ -24,6 +29,10 @@ var prewarm_count: int = 0
 var maximum_size: int = 0
 @export var allow_growth: bool = true
 @export var auto_prewarm: bool = true
+## Zero preserves the historical synchronous auto-prewarm behavior. A positive
+## value spreads automatic prewarming across frames.
+@export_range(0, 10000, 1, "or_greater")
+var auto_prewarm_instances_per_frame: int = 0
 
 @export_group("Ownership")
 @export var active_parent: Node
@@ -34,6 +43,7 @@ var _available: Array[Node] = []
 var _reserved: Dictionary[int, Node] = {}
 var _active: Dictionary[int, Node] = {}
 var _poolables: Dictionary[int, NucleusPoolable] = {}
+var _incremental_prewarm_running: bool = false
 
 
 func _enter_tree() -> void:
@@ -57,7 +67,10 @@ func _ready() -> void:
 		return
 
 	if auto_prewarm and prewarm_count > 0:
-		prewarm(prewarm_count)
+		if auto_prewarm_instances_per_frame > 0:
+			_run_auto_incremental_prewarm.call_deferred()
+		else:
+			prewarm(prewarm_count)
 
 
 func _exit_tree() -> void:
@@ -68,30 +81,83 @@ func prewarm(target_total: int = -1) -> int:
 	if packed_scene == null:
 		return 0
 
-	var desired_total: int = (
-		prewarm_count
-		if target_total < 0
-		else maxi(0, target_total)
-	)
-
-	if maximum_size > 0:
-		desired_total = mini(
-			desired_total,
-			maximum_size,
-		)
-
+	_prune_invalid()
+	var desired_total: int = _resolve_prewarm_target(target_total)
 	var created: int = 0
 
-	while get_total_count() < desired_total:
+	while _get_total_count_unchecked() < desired_total:
 		if _create_available_instance() == null:
 			break
 
 		created += 1
 
 	if created > 0:
+		prewarm_progress.emit(
+			created,
+			_get_total_count_unchecked(),
+			desired_total,
+		)
 		prewarmed.emit(created)
 
 	return created
+
+
+## Prewarms without concentrating all PackedScene instantiation into one frame.
+## The returned value is available after awaiting the call.
+func prewarm_incremental(
+	target_total: int = -1,
+	instances_per_frame: int = 4,
+) -> int:
+	if packed_scene == null or instances_per_frame <= 0:
+		return 0
+	if _incremental_prewarm_running:
+		return 0
+
+	_prune_invalid()
+	var desired_total: int = _resolve_prewarm_target(target_total)
+	if _get_total_count_unchecked() >= desired_total:
+		return 0
+
+	if not is_inside_tree():
+		return prewarm(desired_total)
+
+	_incremental_prewarm_running = true
+	var created: int = 0
+
+	while _get_total_count_unchecked() < desired_total and is_inside_tree():
+		var batch_created: int = 0
+
+		while (
+			batch_created < instances_per_frame
+			and _get_total_count_unchecked() < desired_total
+		):
+			if _create_available_instance() == null:
+				break
+
+			created += 1
+			batch_created += 1
+
+		prewarm_progress.emit(
+			created,
+			_get_total_count_unchecked(),
+			desired_total,
+		)
+
+		if batch_created == 0 or _get_total_count_unchecked() >= desired_total:
+			break
+
+		await get_tree().process_frame
+
+	_incremental_prewarm_running = false
+
+	if created > 0:
+		prewarmed.emit(created)
+
+	return created
+
+
+func is_incremental_prewarm_running() -> bool:
+	return _incremental_prewarm_running
 
 
 func can_reserve(count: int = 1) -> bool:
@@ -110,7 +176,7 @@ func can_reserve(count: int = 1) -> bool:
 		return true
 
 	var missing: int = count - _available.size()
-	return get_total_count() + missing <= maximum_size
+	return _get_total_count_unchecked() + missing <= maximum_size
 
 
 ## Reserves an inactive instance without activating it.
@@ -278,12 +344,7 @@ func get_poolable(
 
 func get_total_count() -> int:
 	_prune_invalid()
-
-	return (
-		_available.size()
-		+ _reserved.size()
-		+ _active.size()
-	)
+	return _get_total_count_unchecked()
 
 
 func get_available_count() -> int:
@@ -310,6 +371,29 @@ func get_active_instances() -> Array[Node]:
 		result.append(instance)
 
 	return result
+
+
+func _run_auto_incremental_prewarm() -> void:
+	await prewarm_incremental(
+		prewarm_count,
+		auto_prewarm_instances_per_frame,
+	)
+
+
+func _resolve_prewarm_target(target_total: int) -> int:
+	var desired_total: int = (
+		prewarm_count
+		if target_total < 0
+		else maxi(0, target_total)
+	)
+
+	if maximum_size > 0:
+		desired_total = mini(
+			desired_total,
+			maximum_size,
+		)
+
+	return desired_total
 
 
 func _create_available_instance() -> Node:
@@ -377,7 +461,15 @@ func _has_growth_capacity() -> bool:
 	if maximum_size <= 0:
 		return true
 
-	return get_total_count() < maximum_size
+	return _get_total_count_unchecked() < maximum_size
+
+
+func _get_total_count_unchecked() -> int:
+	return (
+		_available.size()
+		+ _reserved.size()
+		+ _active.size()
+	)
 
 
 func _prune_invalid() -> void:
@@ -405,6 +497,7 @@ func _prune_invalid() -> void:
 
 
 func _free_owned_instances() -> void:
+	_incremental_prewarm_running = false
 	var instances: Array[Node] = []
 
 	for instance: Node in _available:

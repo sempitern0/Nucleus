@@ -29,9 +29,7 @@ signal evaluation_completed(
 		active = value
 
 		if is_node_ready() and not Engine.is_editor_hint():
-			set_physics_process(
-				active and automatic_evaluation
-			)
+			_refresh_evaluation_driver()
 
 @export_group("Evaluation")
 @export var automatic_evaluation: bool = true
@@ -42,12 +40,22 @@ var minimum_score: float = 0.001
 @export_range(0.0, 1.0, 0.001)
 var current_option_bonus: float = 0.05
 
+@export_group("Scheduling")
+## Optional scene-owned scheduler. When assigned and evaluation_interval > 0,
+## automatic evaluations are staggered with the scheduler instead of polling
+## every physics frame.
+@export var update_scheduler: NucleusUpdateScheduler
+@export_range(-1.0, 1.0, 0.001)
+var evaluation_phase: float = -1.0
+@export var evaluation_priority: int = 0
+
 var current_option: NucleusAIUtilityOption
 var _elapsed: float = 0.0
 var _evaluation_requested: bool = true
 var _last_context: Dictionary = {}
 var _last_scores: Dictionary = {}
 var _context_providers: Array[NucleusAIContextProvider] = []
+var _scheduler_token: int = -1
 
 
 func _ready() -> void:
@@ -59,12 +67,11 @@ func _ready() -> void:
 		return
 
 	_connect_context_providers()
-	set_physics_process(
-		active and automatic_evaluation
-	)
+	_refresh_evaluation_driver()
 
 
 func _exit_tree() -> void:
+	_unregister_scheduler_task()
 	_disconnect_context_providers()
 
 
@@ -175,6 +182,13 @@ func evaluate(
 
 func request_evaluation() -> void:
 	_evaluation_requested = true
+
+	if (
+		update_scheduler != null
+		and is_instance_valid(update_scheduler)
+		and _scheduler_token != -1
+	):
+		update_scheduler.request_task(_scheduler_token)
 
 
 func refresh_context_providers() -> void:
@@ -291,3 +305,58 @@ func _disconnect_context_providers() -> void:
 			)
 
 	_context_providers.clear()
+
+
+func _refresh_evaluation_driver() -> void:
+	if Engine.is_editor_hint():
+		set_physics_process(false)
+		return
+
+	var use_scheduler: bool = (
+		active
+		and automatic_evaluation
+		and update_scheduler != null
+		and evaluation_interval > 0.0
+	)
+
+	if use_scheduler:
+		_register_scheduler_task()
+		set_physics_process(false)
+		return
+
+	_unregister_scheduler_task()
+	set_physics_process(active and automatic_evaluation)
+
+
+func _register_scheduler_task() -> void:
+	if update_scheduler == null or _scheduler_token != -1:
+		return
+
+	_scheduler_token = update_scheduler.register_task(
+		Callable(self, "_on_scheduled_evaluation"),
+		evaluation_interval,
+		evaluation_phase,
+		evaluation_priority,
+	)
+
+	if _scheduler_token != -1 and not active:
+		update_scheduler.set_task_enabled(_scheduler_token, false)
+
+
+func _unregister_scheduler_task() -> void:
+	if (
+		update_scheduler != null
+		and is_instance_valid(update_scheduler)
+		and _scheduler_token != -1
+	):
+		update_scheduler.unregister_task(_scheduler_token)
+	_scheduler_token = -1
+
+
+func _on_scheduled_evaluation(_elapsed_seconds: float) -> void:
+	if not active or not automatic_evaluation:
+		return
+
+	_elapsed = 0.0
+	_evaluation_requested = false
+	evaluate()

@@ -28,15 +28,7 @@ The outer slot participates in layout. The inner roots are free to animate.
 
 ## 2. Add a panel presenter
 
-Attach:
-
-```text
-NucleusUIPresenter
-```
-
-and assign `PresentationRoot` as `target`.
-
-Create a `NucleusUITransitionProfile` Resource or configure one in code:
+Attach `NucleusUIPresenter` and assign `PresentationRoot` as `target`.
 
 ```gdscript
 var slide := NucleusUITransitionProfile.slide(
@@ -83,15 +75,7 @@ feedback_profile.focus_state = focus
 feedback_profile.pressed_state = pressed
 ```
 
-Then add `NucleusUIInteractionFeedback` next to the Button and assign:
-
-```text
-target = Button
-profile = feedback_profile
-```
-
-Mouse hover, keyboard/controller focus and button-down now use the same reusable
-presentation contract.
+Then add `NucleusUIInteractionFeedback` next to the Button.
 
 Godot Theme still owns the button's actual style.
 
@@ -114,8 +98,7 @@ For another type of selectable widget:
 feedback.set_selected(is_selected)
 ```
 
-Use selected state for presentation only. Selection authority remains in the
-menu/game model.
+Selection authority remains in the menu/game model.
 
 ## 5. Build a delayed health/progress bar
 
@@ -142,16 +125,14 @@ When gameplay changes health:
 progress_feedback.set_value(current_health)
 ```
 
-The primary display responds first. The trailing display waits and catches up.
-
 For normalized data:
 
 ```gdscript
 progress_feedback.set_ratio(0.65)
 ```
 
-The component is not health-specific; it can present shield, stamina, XP, boss
-health, a resource meter or loading sub-progress.
+The component can also present shield, stamina, XP, boss health or loading
+sub-progress.
 
 ## 6. Add optional punch feedback
 
@@ -169,11 +150,10 @@ pulse_scale = 1.04
 ```
 
 Do not assign the same Control that another component is independently scaling.
-Use the layer pattern instead.
 
 ## 7. Tune reduced motion
 
-`NucleusUIMotionProfile` now exposes:
+`NucleusUIMotionProfile` exposes:
 
 ```text
 reduced_motion_scale
@@ -190,12 +170,9 @@ motion.reduced_motion_scale = 0.25
 
 The same factor attenuates Nucleus-owned shake/punch/transition displacement.
 
-Test with both the OS accessibility preference and Nucleus' Reduce Motion
-setting.
-
 ## 8. Theme the result
 
-Do not put game art into Nucleus profiles.
+Do not put game art into Nucleus behavior profiles.
 
 Use Godot Theme/type variations for:
 
@@ -207,18 +184,104 @@ icons
 StyleBoxes
 ```
 
-Use Nucleus profiles for reusable behavior:
+Use Nucleus profiles for timing, transform motion, opacity and interaction
+response.
+
+## 9. Add input glyphs
+
+Create one `NucleusInputGlyphProfile` owned by the game.
+
+For every supported binding glyph create a `NucleusInputGlyphEntry`:
 
 ```text
-timing
-transform motion
-opacity feedback
-focus/interaction response
+event_key
+texture
 ```
 
-This lets the same interaction component serve very different visual styles.
+When authoring tools or setup code have the relevant InputEvent:
 
-## 9. Validate
+```gdscript
+entry.event_key = NucleusInputGlyphProfile.event_key(event)
+```
+
+Keep separate arrays for:
+
+```text
+keyboard/mouse
+generic gamepad
+Xbox
+PlayStation
+Nintendo
+Steam
+touch
+```
+
+Add a `TextureRect`, optional fallback `Label`, then:
+
+```gdscript
+var binding := NucleusInputGlyphBinding.new()
+binding.action = &"interact"
+binding.profile = glyph_profile
+binding.glyph_target = glyph
+binding.fallback_label = fallback
+```
+
+The binding refreshes after rebinds and input-source/gamepad-family changes.
+
+If no matching texture exists, the text label can remain usable. Nucleus does not
+ship copyrighted or style-specific controller artwork.
+
+## 10. Animate a game-owned shader parameter
+
+Create the shader and ShaderMaterial normally in Godot.
+
+Attach `NucleusUIShaderEffect` to that Control:
+
+```gdscript
+shader_effect.animate_parameter(
+    &"intensity",
+    1.0,
+)
+```
+
+The default mode duplicates the material at runtime so the effect is local.
+
+When the shader uses `instance uniform`, switch the component to
+`INSTANCE_UNIFORM` to keep one shared material across many controls.
+
+Use this for reusable glue around effects such as highlight, dissolve, glow or
+selection, while keeping the actual shader completely game-owned.
+
+For authored multi-parameter timelines, use `AnimationPlayer`.
+
+## 11. Add RichTextLabel reveal
+
+Build dialogue/help/tutorial text with native `RichTextLabel`.
+
+Attach:
+
+```text
+NucleusUITypewriter
+```
+
+Then:
+
+```gdscript
+typewriter.restart()
+```
+
+A skip action can call:
+
+```gdscript
+typewriter.skip()
+```
+
+The component controls only character visibility. Dialogue graphs, speaker
+portraits, localization, audio and choices remain outside it.
+
+Under reduced motion the complete text is revealed immediately by default.
+
+## 12. Validate
 
 Run:
 
@@ -237,7 +300,7 @@ godot --headless --path . --import
 godot --headless --path . res://tests/headless/test_runner.tscn
 ```
 
-Inspect the lab manually with mouse and controller/keyboard focus.
+Inspect the lab manually with mouse, keyboard and controller.
 
 ## Common mistakes
 
@@ -246,6 +309,9 @@ Avoid:
 - animating a Container-owned position directly;
 - assigning presenter and feedback scale animation to the same Control;
 - putting Theme colors/fonts/textures inside behavior profiles;
+- storing copyrighted/vendor glyph artwork inside Nucleus;
+- mutating shared ShaderMaterial Resources unintentionally;
+- turning typewriter presentation into dialogue authority;
 - using UI state as gameplay authority;
 - bypassing reduced-motion policy with ad hoc Tweens;
 - replacing `AnimationPlayer` with generic code for complex authored sequences.

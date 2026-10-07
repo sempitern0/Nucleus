@@ -17,11 +17,13 @@ TEXT_SUFFIXES = {
 	".sh",
 	".tscn",
 	".tres",
+	".uid",
 	".yaml",
 	".yml",
 }
 SKIP_DIRS = {".ci", ".git", ".godot", "build", "dist"}
 CLASS_NAME_RE = re.compile(r"^\s*class_name\s+([A-Za-z_][A-Za-z0-9_]*)\s*$")
+UID_RE = re.compile(r"^uid://[a-z0-9]+$")
 
 TEST_ROOT = Path("tests/headless")
 TEST_CASE_PATH = TEST_ROOT / "test_case.gd"
@@ -146,6 +148,38 @@ def check_file(path: Path, repository_root: Path) -> list[str]:
 	return errors
 
 
+def check_uid_contract(repository_root: Path) -> list[str]:
+	errors: list[str] = []
+	seen: dict[str, str] = {}
+
+	for path in sorted(repository_root.rglob("*.uid")):
+		relative = path.relative_to(repository_root).as_posix()
+
+		if any(part in SKIP_DIRS for part in path.parts):
+			continue
+
+		try:
+			value = path.read_text(encoding="utf-8").strip()
+		except (OSError, UnicodeDecodeError) as exc:
+			errors.append(f"{relative}: unable to read UID ({exc})")
+			continue
+
+		if not UID_RE.fullmatch(value):
+			errors.append(f"{relative}: invalid Godot UID '{value}'")
+			continue
+
+		if value in seen:
+			errors.append(
+				f"{relative}: duplicate Godot UID {value}; "
+				f"already used by {seen[value]}"
+			)
+			continue
+
+		seen[value] = relative
+
+	return errors
+
+
 def check_test_contract(repository_root: Path) -> list[str]:
 	errors: list[str] = []
 	test_root = repository_root / TEST_ROOT
@@ -233,6 +267,7 @@ def main() -> int:
 	for path in iter_text_files(repository_root):
 		errors.extend(check_file(path, repository_root))
 
+	errors.extend(check_uid_contract(repository_root))
 	errors.extend(check_test_contract(repository_root))
 
 	if errors:

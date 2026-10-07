@@ -3,7 +3,8 @@ extends Control
 
 var _presenter: NucleusUIPresenter
 var _progress: NucleusUIProgressFeedback
-var _demo_feedback: NucleusUIInteractionFeedback
+var _typewriter: NucleusUITypewriter
+var _shader_effect: NucleusUIShaderEffect
 var _panel_visible: bool = true
 var _health: float = 100.0
 
@@ -20,15 +21,20 @@ func _build_lab() -> void:
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
 
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(scroll)
+
 	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.custom_minimum_size.x = 720.0
 	margin.add_theme_constant_override(&"margin_left", 32)
 	margin.add_theme_constant_override(&"margin_top", 28)
 	margin.add_theme_constant_override(&"margin_right", 32)
 	margin.add_theme_constant_override(&"margin_bottom", 28)
-	add_child(margin)
+	scroll.add_child(margin)
 
 	var root_box := VBoxContainer.new()
+	root_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root_box.add_theme_constant_override(&"separation", 16)
 	margin.add_child(root_box)
 
@@ -48,6 +54,9 @@ func _build_lab() -> void:
 	_build_presenter_demo(root_box)
 	_build_interaction_demo(root_box)
 	_build_progress_demo(root_box)
+	_build_glyph_demo(root_box)
+	_build_shader_demo(root_box)
+	_build_typewriter_demo(root_box)
 
 
 func _build_presenter_demo(parent: VBoxContainer) -> void:
@@ -128,10 +137,10 @@ func _build_interaction_demo(parent: VBoxContainer) -> void:
 	profile.pressed_state = pressed
 	profile.selected_state = selected
 
-	_demo_feedback = NucleusUIInteractionFeedback.new()
-	_demo_feedback.target = button
-	_demo_feedback.profile = profile
-	parent.add_child(_demo_feedback)
+	var feedback := NucleusUIInteractionFeedback.new()
+	feedback.target = button
+	feedback.profile = profile
+	parent.add_child(feedback)
 
 
 func _build_progress_demo(parent: VBoxContainer) -> void:
@@ -185,6 +194,139 @@ func _build_progress_demo(parent: VBoxContainer) -> void:
 	actions.add_child(reset)
 
 
+func _build_glyph_demo(parent: VBoxContainer) -> void:
+	var heading := Label.new()
+	heading.text = "Input glyph with automatic text fallback"
+	parent.add_child(heading)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 10)
+	parent.add_child(row)
+
+	var glyph := TextureRect.new()
+	glyph.custom_minimum_size = Vector2(32.0, 32.0)
+	glyph.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	glyph.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	row.add_child(glyph)
+
+	var fallback := Label.new()
+	fallback.text = "Binding"
+	row.add_child(fallback)
+
+	var profile := NucleusInputGlyphProfile.new()
+	_add_demo_glyphs(profile, NucleusInputTypes.Source.KEYBOARD_MOUSE)
+	_add_demo_glyphs(profile, NucleusInputTypes.Source.GAMEPAD)
+
+	var binding := NucleusInputGlyphBinding.new()
+	binding.action = &"ui_accept"
+	binding.profile = profile
+	binding.glyph_target = glyph
+	binding.fallback_label = fallback
+	row.add_child(binding)
+
+
+func _build_shader_demo(parent: VBoxContainer) -> void:
+	var heading := Label.new()
+	heading.text = "Game-owned shader parameter animation"
+	parent.add_child(heading)
+
+	var rect := ColorRect.new()
+	rect.custom_minimum_size = Vector2(560.0, 46.0)
+	parent.add_child(rect)
+
+	var shader := Shader.new()
+	shader.code = (
+		"shader_type canvas_item;\n"
+		+ "uniform float intensity : hint_range(0.0, 1.0) = 0.0;\n"
+		+ "void fragment() {\n"
+		+ "\tCOLOR = vec4(0.12 + intensity * 0.35, 0.28, 0.62, 1.0);\n"
+		+ "}\n"
+	)
+
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	rect.material = material
+
+	_shader_effect = NucleusUIShaderEffect.new()
+	_shader_effect.target = rect
+	rect.add_child(_shader_effect)
+
+	var pulse := Button.new()
+	pulse.text = "Animate shader intensity"
+	pulse.pressed.connect(_pulse_shader)
+	parent.add_child(pulse)
+
+
+func _build_typewriter_demo(parent: VBoxContainer) -> void:
+	var heading := Label.new()
+	heading.text = "RichTextLabel typewriter reveal"
+	parent.add_child(heading)
+
+	var text := RichTextLabel.new()
+	text.custom_minimum_size = Vector2(560.0, 78.0)
+	text.bbcode_enabled = true
+	text.text = (
+		"[b]Nucleus[/b] reveals existing RichTextLabel content. "
+		+ "Dialogue, localization and BBCode stay game-owned."
+	)
+	parent.add_child(text)
+
+	_typewriter = NucleusUITypewriter.new()
+	_typewriter.target = text
+	_typewriter.characters_per_second = 42.0
+	text.add_child(_typewriter)
+	_typewriter.restart()
+
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override(&"separation", 10)
+	parent.add_child(actions)
+
+	var replay := Button.new()
+	replay.text = "Replay text"
+	replay.pressed.connect(_typewriter.restart)
+	actions.add_child(replay)
+
+	var skip := Button.new()
+	skip.text = "Skip reveal"
+	skip.pressed.connect(_typewriter.skip)
+	actions.add_child(skip)
+
+
+func _add_demo_glyphs(
+	profile: NucleusInputGlyphProfile,
+	source: int,
+) -> void:
+	var events: Array[InputEvent] = NucleusInput.get_action_events(
+		&"ui_accept",
+		source,
+	)
+
+	if events.is_empty():
+		return
+
+	var entry := NucleusInputGlyphEntry.new()
+	entry.event_key = NucleusInputGlyphProfile.event_key(events[0])
+	entry.texture = _make_demo_texture(
+		Color(0.85, 0.9, 1.0, 1.0)
+	)
+
+	if source == NucleusInputTypes.Source.GAMEPAD:
+		profile.generic_gamepad.append(entry)
+	else:
+		profile.keyboard_mouse.append(entry)
+
+
+func _make_demo_texture(color: Color) -> Texture2D:
+	var image := Image.create_empty(
+		24,
+		24,
+		false,
+		Image.FORMAT_RGBA8,
+	)
+	image.fill(color)
+	return ImageTexture.create_from_image(image)
+
+
 func _toggle_panel() -> void:
 	_panel_visible = not _panel_visible
 
@@ -202,3 +344,22 @@ func _change_health(delta: float) -> void:
 func _reset_health() -> void:
 	_health = 100.0
 	_progress.set_value(_health)
+
+
+func _pulse_shader() -> void:
+	var tween := _shader_effect.animate_parameter(
+		&"intensity",
+		1.0,
+		0.65,
+	)
+
+	if tween:
+		tween.finished.connect(_restore_shader_intensity)
+
+
+func _restore_shader_intensity() -> void:
+	_shader_effect.animate_parameter(
+		&"intensity",
+		0.0,
+		1.0,
+	)

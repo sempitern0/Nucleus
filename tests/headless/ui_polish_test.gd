@@ -7,6 +7,9 @@ func run() -> Dictionary:
 	_test_visual_state_math()
 	_test_progress_feedback_immediate()
 	_test_interaction_selected_state()
+	_test_input_glyph_profile_resolution()
+	_test_shader_effect_value_contract()
+	_test_typewriter_immediate_and_skip()
 	return finish()
 
 
@@ -221,6 +224,121 @@ func _test_interaction_selected_state() -> void:
 		button.scale,
 		Vector2(2.0, 2.0),
 		"Reset restores the authored scale.",
+	)
+
+	free_test_node(root)
+
+
+func _test_input_glyph_profile_resolution() -> void:
+	var profile := NucleusInputGlyphProfile.new()
+	var event := InputEventJoypadButton.new()
+	var generic_entry := NucleusInputGlyphEntry.new()
+	var xbox_entry := NucleusInputGlyphEntry.new()
+	var generic_texture := ImageTexture.new()
+	var xbox_texture := ImageTexture.new()
+
+	event.button_index = 1
+	var key := NucleusInputGlyphProfile.event_key(event)
+
+	expect_false(
+		key == &"",
+		"Gamepad button bindings produce a stable glyph key.",
+	)
+
+	generic_entry.event_key = key
+	generic_entry.texture = generic_texture
+	profile.generic_gamepad.append(generic_entry)
+
+	expect_true(
+		profile.resolve_event(
+			event,
+			NucleusInputTypes.GamepadFamily.XBOX,
+		) == generic_texture,
+		"Family lookup falls back to the generic gamepad glyph.",
+	)
+
+	xbox_entry.event_key = key
+	xbox_entry.texture = xbox_texture
+	profile.xbox_gamepad.append(xbox_entry)
+
+	expect_true(
+		profile.resolve_event(
+			event,
+			NucleusInputTypes.GamepadFamily.XBOX,
+		) == xbox_texture,
+		"Family-specific glyphs override the generic gamepad fallback.",
+	)
+
+
+func _test_shader_effect_value_contract() -> void:
+	expect_true(
+		NucleusUIShaderEffect.is_interpolatable_value(0.5),
+		"Shader effects accept float uniforms.",
+	)
+	expect_true(
+		NucleusUIShaderEffect.is_interpolatable_value(
+			Color(1.0, 0.5, 0.25)
+		),
+		"Shader effects accept Color uniforms.",
+	)
+	expect_false(
+		NucleusUIShaderEffect.is_interpolatable_value("not interpolatable"),
+		"Shader effects reject string uniforms for Tween interpolation.",
+	)
+
+
+func _test_typewriter_immediate_and_skip() -> void:
+	var root := Control.new()
+	var label := RichTextLabel.new()
+	var typewriter := NucleusUITypewriter.new()
+
+	label.text = "Nucleus"
+	typewriter.target = label
+	typewriter.respect_reduced_motion = false
+
+	root.add_child(label)
+	root.add_child(typewriter)
+
+	expect_true(
+		attach_test_node(root),
+		"Typewriter fixture requires a live SceneTree.",
+	)
+
+	expect_equal(
+		typewriter.reset(),
+		OK,
+		"Typewriter can reset an attached RichTextLabel.",
+	)
+	expect_equal(
+		label.visible_characters,
+		0,
+		"Reset hides parsed text.",
+	)
+
+	expect_equal(
+		typewriter.restart(),
+		OK,
+		"Typewriter can start a new reveal.",
+	)
+	expect_true(
+		typewriter.is_revealing(),
+		"Restart enters revealing state.",
+	)
+
+	typewriter.skip()
+	expect_false(
+		typewriter.is_revealing(),
+		"Skip finishes the reveal.",
+	)
+	expect_equal(
+		label.visible_characters,
+		label.get_total_character_count(),
+		"Skip exposes every parsed character.",
+	)
+	expect_float(
+		typewriter.get_progress(),
+		1.0,
+		"Finished text reports full progress.",
 	)
 
 	free_test_node(root)

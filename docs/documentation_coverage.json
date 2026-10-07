@@ -78,6 +78,9 @@
     "components/ui/gameplay": [
       "docs/components/ui_and_accessibility.md"
     ],
+    "components/ui/input": [
+      "docs/components/ui_and_accessibility.md"
+    ],
     "components/ui/interaction": [
       "docs/components/ui_and_accessibility.md"
     ],
@@ -97,6 +100,9 @@
       "docs/components/ui_and_accessibility.md"
     ],
     "components/ui/presentation": [
+      "docs/components/ui_and_accessibility.md"
+    ],
+    "components/ui/text": [
       "docs/components/ui_and_accessibility.md"
     ],
     "components/ui/toast": [

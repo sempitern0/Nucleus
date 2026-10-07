@@ -15,6 +15,9 @@ motion and microinteractions
 modal/toast/tooltip hosts
 safe-area/breakpoint layout
 virtualization
+input glyph presentation
+shader-parameter effects
+text reveal
 screen effects
 localization
 accessibility behavior
@@ -66,8 +69,7 @@ pop
 slide
 ```
 
-For complex authored sequences use `AnimationPlayer`; the transition profile is
-for repeated panel/widget motion.
+For complex authored sequences use `AnimationPlayer`.
 
 ## Interaction visual states
 
@@ -83,8 +85,7 @@ profile.focus_state = focus
 feedback.profile = profile
 ```
 
-Theme still owns the actual button skin. Visual states are additive
-transform/opacity feedback only.
+Theme still owns the actual button skin.
 
 Toggle buttons automatically drive `selected`. Other Controls may call:
 
@@ -115,11 +116,72 @@ or:
 progress_feedback.set_ratio(0.65)
 ```
 
-The primary value moves first. On decreases the trailing bar can wait briefly
-before catching up.
+The same component can present health, shield, stamina, experience, or loading
+sub-progress.
 
-Use the same component for health, shield, stamina, experience or loading
-sub-progress; gameplay owns the meaning of the value.
+## Input glyphs
+
+Create a game-owned `NucleusInputGlyphProfile` and populate it with
+`NucleusInputGlyphEntry` Resources.
+
+Each entry stores:
+
+```text
+event_key
+Texture2D
+```
+
+Obtain a key from an actual InputEvent with:
+
+```gdscript
+var key := NucleusInputGlyphProfile.event_key(event)
+```
+
+Then add `NucleusInputGlyphBinding` to the UI and assign:
+
+```text
+action
+profile
+glyph_target : TextureRect
+fallback_label : Label
+```
+
+The component follows active keyboard/gamepad/touch source and gamepad family.
+
+No icon pack ships with Nucleus. When a texture mapping is absent, the optional
+Label uses Nucleus' normal human-readable binding text.
+
+## Shader effects
+
+Attach `NucleusUIShaderEffect` beside a `CanvasItem` with a game-owned
+`ShaderMaterial`.
+
+```gdscript
+shader_effect.animate_parameter(
+    &"intensity",
+    1.0,
+)
+```
+
+The default mode duplicates the ShaderMaterial so local animation does not
+mutate every user of a shared resource. If the shader declares `instance uniform`,
+select `INSTANCE_UNIFORM` to preserve shared-material reuse.
+
+Nucleus animates parameters; the game's shader owns the look.
+
+## Typewriter/text reveal
+
+Attach `NucleusUITypewriter` to an existing `RichTextLabel`:
+
+```gdscript
+typewriter.restart()
+typewriter.skip()
+```
+
+The component reveals parsed characters and leaves text, BBCode, localization,
+voice, dialogue state and choices to the consuming game.
+
+Reduced-motion users see the complete text immediately by default.
 
 ## Reduced motion
 
@@ -160,6 +222,8 @@ consumer genuinely lack a natural reference/signal path.
 Keep translation keys in source data. Refresh display text through the
 localization components when locale changes.
 
+If text changes while a typewriter is active, restart the reveal explicitly.
+
 ## Manual polish lab
 
 Open and run:
@@ -168,8 +232,9 @@ Open and run:
 examples/ui/ui_polish_lab.tscn
 ```
 
-Use it to compare panel transitions, interaction states and progress feedback
-with mouse, keyboard/controller focus and reduced motion.
+Use it to compare transitions, interaction states, progress feedback, glyph
+fallback, shader animation and text reveal with mouse, keyboard/controller focus,
+hot swap and reduced motion.
 
 Hands-on tutorial:
 

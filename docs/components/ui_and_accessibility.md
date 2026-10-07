@@ -9,6 +9,7 @@ components/ui/effects
 components/ui/feedback
 components/ui/focus
 components/ui/gameplay
+components/ui/input
 components/ui/interaction
 components/ui/layout
 components/ui/localization
@@ -16,6 +17,7 @@ components/ui/modal
 components/ui/motion
 components/ui/navigation
 components/ui/presentation
+components/ui/text
 components/ui/toast
 components/ui/tooltip
 components/ui/virtualization
@@ -33,6 +35,7 @@ Theme inheritance and type variations
 StyleBox / fonts / icons
 focus neighbors and native focus behavior
 Tween / AnimationPlayer
+ShaderMaterial
 RichTextLabel
 accessibility tree integration
 ```
@@ -50,7 +53,7 @@ layer.
 
 ## UI polish ownership
 
-Reusable polish is split into three layers:
+Reusable polish is split into layers:
 
 ```text
 authored/native visual state
@@ -61,10 +64,12 @@ presentation transition
 
 local interaction/feedback
     NucleusUIInteractionFeedback + NucleusUIVisualStateProfile
+
+specialized presentation adapters
+    progress / input glyph / shader parameter / text reveal
 ```
 
-When both presentation and feedback need to animate transforms, prefer separate
-Controls:
+When multiple systems need to animate transforms, prefer separate Controls:
 
 ```text
 LayoutSlot
@@ -99,13 +104,13 @@ shared `NucleusMotionPolicy` reports reduced motion.
 
 The default remains `0`, preserving the historical UI behavior of completing
 nonessential transitions immediately. Projects may use a small value such as
-`0.25` when they want orientation/selection cues to remain visible.
+`0.25` when an orientation/selection cue should remain visible.
 
 `NucleusUIMotion.get_effect_amplitude_scale()` exposes the same policy for
 effects whose displacement should be attenuated as well as shortened.
 
-The normal user setting `accessibility/ui_motion_scale` remains a duration
-multiplier independent of the reduced-motion decision.
+The user setting `accessibility/ui_motion_scale` remains a duration multiplier
+independent of the reduced-motion decision.
 
 ## Declarative transitions
 
@@ -139,8 +144,7 @@ Existing `fade`, `scale`, `hidden_scale`, and `motion` exports remain as the
 legacy fallback when no transition profile is assigned.
 
 For authored timeline animation, cinematic menus, or elaborate art-direction
-sequences, keep using native `AnimationPlayer`. Transition profiles are for
-repeated microinteraction/panel behavior, not a replacement animation system.
+sequences, keep using native `AnimationPlayer`.
 
 ## Interaction visual states
 
@@ -154,17 +158,8 @@ alpha multiplier
 optional motion override
 ```
 
-It intentionally does not contain:
-
-```text
-fonts
-icons
-StyleBoxes
-Theme colors
-textures
-```
-
-Those remain in Godot `Theme`.
+It intentionally does not contain fonts, icons, StyleBoxes, Theme colors, or
+textures. Those remain in Godot `Theme`.
 
 `NucleusUIFeedbackProfile` may assign visual states for:
 
@@ -193,21 +188,11 @@ optional delayed trailing Range
 optional punch target
 ```
 
-It is suitable for:
+It is suitable for health, shield, stamina, boss health, experience, resource
+meters, or loading sub-progress. The component does not know what the number
+means.
 
-```text
-health
-shield
-stamina
-boss health
-experience
-resource meters
-loading sub-progress
-```
-
-The component does not know what the number means.
-
-Typical damage-bar composition:
+Typical composition:
 
 ```text
 ProgressSlot
@@ -223,6 +208,95 @@ When the two `Range` nodes use different numeric bounds, the trailing value is
 mapped through normalized progress. `sync_trailing_bounds` can instead keep both
 ranges identical.
 
+## Input glyph presentation
+
+Core Input owns actions, current bindings, active input source, and gamepad
+family detection.
+
+UI owns visual glyphs:
+
+```text
+NucleusInput
+    current InputEvent + active family
+        ↓
+NucleusInputGlyphProfile
+    game-owned Texture2D mapping
+        ↓
+NucleusInputGlyphBinding
+    TextureRect + optional Label fallback
+```
+
+Nucleus ships no keyboard/controller icon artwork.
+
+`NucleusInputGlyphProfile.event_key()` converts supported InputEvents into stable
+mapping keys. Gamepad lookup first checks the active family and then the generic
+gamepad table.
+
+`NucleusInputGlyphBinding` observes the same Input signals as text prompts, so a
+rebind or input-source hot swap refreshes presentation automatically.
+
+If no glyph exists, the binding can show
+`NucleusInput.get_binding_text()` through a normal Label.
+
+## Shader parameter effects
+
+`NucleusUIShaderEffect` is a small adapter over a game-owned `ShaderMaterial`.
+
+It supports:
+
+```text
+set one shader parameter
+Tween one interpolatable parameter
+stop one parameter animation
+stop all local parameter animations
+```
+
+Supported Tween value categories are numeric values, vectors, and colors.
+
+The default `DUPLICATED_MATERIAL` mode prevents one widget effect from
+mutating every Control that shares the original Resource.
+
+For shaders authored with `instance uniform`, use `INSTANCE_UNIFORM` mode to keep
+the material shared and write through CanvasItem per-instance parameters. A
+`SHARED_MATERIAL` mode exists only when deliberately animating every user of one
+material.
+
+The shader itself remains game-owned. Nucleus does not prescribe glow, dissolve,
+glitch, outline, vignette, selection, damage, or rarity styles.
+
+Use native `AnimationPlayer` when several shader/transform tracks need an authored
+timeline.
+
+## Text reveal
+
+`NucleusUITypewriter` controls only `RichTextLabel.visible_characters`.
+
+It does not own:
+
+```text
+dialogue graphs
+speaker state
+localization data
+voice playback
+choices
+quest state
+BBCode authoring
+```
+
+The game sets the RichTextLabel content, then calls:
+
+```gdscript
+typewriter.restart()
+typewriter.skip()
+typewriter.reveal_immediately()
+```
+
+The component can use real elapsed time while gameplay is paused or time-scaled.
+Under reduced motion, complete text is revealed immediately by default.
+
+This preserves accessibility and keeps `RichTextLabel` authoritative for shaping
+and BBCode.
+
 ## Theme boundary
 
 Nucleus does not implement a parallel design-token or skinning framework.
@@ -231,8 +305,8 @@ Use Godot Theme/type variations for visual identity. Dynamically generated
 Nucleus controls should expose stable type variations where practical, as
 `NucleusUIToastHost` already does.
 
-A consuming game should be able to replace its Theme, fonts, icons and StyleBox
-assets without changing UI behavior code.
+A consuming game should be able to replace Theme, fonts, icons and StyleBoxes
+without changing UI behavior code.
 
 ## Layout and virtualization
 
@@ -256,14 +330,17 @@ implementation details.
 Screen effects are visual presentation. They should not become the authority for
 gameplay state such as damage, pause, or status effects.
 
-`NucleusUIScreenEffects` currently owns common fade/flash presentation. More
-specialized material effects should remain game-owned until repeated production
-usage proves a generic adapter.
+`NucleusUIScreenEffects` owns common fade/flash presentation.
+`NucleusUIShaderEffect` covers local game-owned material parameters without
+turning screen effects into a gameplay-state manager.
 
 ## Localization
 
 Localized controls observe `TranslationServer`/Nucleus locale changes. Store
 translation keys and source data, not permanently translated output.
+
+Typewriter presentation should be restarted after the consuming game changes
+the target text.
 
 ## Accessibility
 
@@ -272,6 +349,9 @@ semantics.
 
 Reduced motion is shared through `NucleusMotionPolicy`; UI-specific duration and
 flash preferences remain in `NucleusUIMotionPolicy`.
+
+Input glyphs should retain a readable text fallback. Do not make controller
+artwork the only way to understand a required action.
 
 ## Validation lab
 
@@ -287,15 +367,19 @@ to inspect:
 panel transitions
 hover/focus/press/selected states
 delayed progress feedback
+input glyph/text fallback
+shader parameter animation
+RichTextLabel reveal/skip
 reduced-motion response
 ```
 
-Use mouse, keyboard and controller while validating focus and motion.
+Use mouse, keyboard and controller while validating focus, hot swap and motion.
 
 ## Extension rule
 
-First ask whether a native Control, Theme, Container, focus, Tween or
-AnimationPlayer behavior already solves the problem.
+First ask whether a native Control, Theme, Container, focus, Tween,
+AnimationPlayer, ShaderMaterial, or RichTextLabel behavior already solves the
+problem.
 
 Add a Nucleus component only when it removes repeated production wiring across
 projects without taking ownership away from the engine or the game's art

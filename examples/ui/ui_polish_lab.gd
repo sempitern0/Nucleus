@@ -243,9 +243,9 @@ func _build_shader_demo(parent: VBoxContainer) -> void:
 		+ "}\n"
 	)
 
-	var material := ShaderMaterial.new()
-	material.shader = shader
-	rect.material = material
+	var shader_material := ShaderMaterial.new()
+	shader_material.shader = shader
+	rect.material = shader_material
 
 	_shader_effect = NucleusUIShaderEffect.new()
 	_shader_effect.target = rect

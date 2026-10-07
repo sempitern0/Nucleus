@@ -1,9 +1,13 @@
-extends SceneTree
+extends Node
+## Project-scene runner for the dependency-free native test suites.
+##
+## Running as a normal project scene ensures project Autoloads are registered
+## before the manifest and its transitive scripts are compiled.
 
 const TEST_MANIFEST := preload("res://tests/headless/test_manifest.gd")
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	call_deferred("_run_all")
 
 
@@ -12,24 +16,25 @@ func _run_all() -> void:
 	var failures: PackedStringArray = result["failures"]
 	var total_checks: int = result["checks"]
 	var suite_count: int = TEST_MANIFEST.SUITES.size()
+	var exit_code := 0
 
 	if failures.is_empty():
 		print(
 			"Nucleus headless tests: PASS (%d checks, %d suites)."
 			% [total_checks, suite_count]
 		)
-		quit(0)
-		return
+	else:
+		exit_code = 1
+		push_error(
+			"Nucleus headless tests: FAIL (%d failures / %d checks)."
+			% [failures.size(), total_checks]
+		)
 
-	push_error(
-		"Nucleus headless tests: FAIL (%d failures / %d checks)."
-		% [failures.size(), total_checks]
-	)
+		for failure: String in failures:
+			push_error("  - " + failure)
 
-	for failure: String in failures:
-		push_error("  - " + failure)
-
-	quit(1)
+	await _flush_engine_cleanup()
+	get_tree().quit(exit_code)
 
 
 func _execute_suites() -> Dictionary:
@@ -51,3 +56,10 @@ func _execute_suites() -> Dictionary:
 		"checks": total_checks,
 		"failures": failures,
 	}
+
+
+func _flush_engine_cleanup() -> void:
+	# Several tests create rendering/physics objects and some production code
+	# uses queue_free(). Give Godot normal frame boundaries before process exit.
+	await get_tree().process_frame
+	await get_tree().process_frame

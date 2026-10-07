@@ -234,10 +234,12 @@ Godot validation:
 
 ```bash
 godot --headless --path . --import
-godot --headless --path . --check-only --script res://tests/headless/test_runner.gd
-godot --headless --path . --script res://tests/headless/test_runner.gd
+godot --headless --path . res://tests/headless/test_runner.tscn
 godot --headless --path . res://tests/smoke/smoke_main.tscn
 ```
+
+The headless suite runs as a project scene so the normal Autoload contract is
+available while its manifest and transitive scripts compile.
 
 CI also smoke-exports Linux, Windows, and Web.
 

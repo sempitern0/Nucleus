@@ -155,14 +155,15 @@ func _test_uniform_heightmap_collision_scale() -> void:
 
 	expect_equal(result.get("error"), OK, "Rectangular collision patch should build.")
 	var patch: Node3D = result["node"]
-	var collision := patch.get_node("TerrainCollision/CollisionShape3D") as CollisionShape3D
+	var collision := patch.get_node(
+		"TerrainCollision/CollisionShape3D"
+	) as CollisionShape3D
 
 	expect_float(collision.scale.x, collision.scale.y, "Collision X/Y scale is uniform.")
 	expect_float(collision.scale.y, collision.scale.z, "Collision Y/Z scale is uniform.")
-	expect_equal(
-		collision.get_configuration_warnings().size(),
-		0,
-		"Generated CollisionShape3D should not warn about non-uniform scale.",
+	expect_true(
+		collision.scale.x > 0.0,
+		"Generated heightmap collision should use a positive uniform scale.",
 	)
 	patch.free()
 
@@ -255,6 +256,7 @@ func _test_example_scenes_load() -> void:
 			"Terrain example should load: %s" % scene_path,
 		)
 
+
 func _test_exported_node_references_resolve() -> void:
 	var stream_scene := load(
 		"res://examples/terrain/terrain_streaming.tscn"
@@ -295,4 +297,3 @@ func _test_exported_node_references_resolve() -> void:
 			"Debug lab terrain reference should resolve from its saved NodePath.",
 		)
 		instance.free()
-

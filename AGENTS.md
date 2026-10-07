@@ -31,7 +31,7 @@ Read only as deep as needed:
 ```text
 README/docs index → orientation
 quickstart        → ownership + setup
-tutorial          → concrete scene wiring
+tutorial          → concrete scenes, Inspector setup, and minimal code
 technical contract→ behavior + limits
 source            → exact current API
 tests             → executable edge cases
@@ -214,10 +214,13 @@ python3 scripts/ci/documentation_audit.py
 python3 scripts/ci/productization_audit.py
 
 godot --headless --path . --import
-godot --headless --path . --check-only --script res://tests/headless/test_runner.gd
-godot --headless --path . --script res://tests/headless/test_runner.gd
+godot --headless --path . res://tests/headless/test_runner.tscn
 godot --headless --path . res://tests/smoke/smoke_main.tscn
 ```
+
+Run the native suite as the project scene above. Do not replace it with
+`--check-only --script` or `--script tests/headless/test_runner.gd`; Nucleus
+scripts legitimately depend on the project's registered Autoload names.
 
 If Godot is unavailable, say so. Static checks are not runtime validation.
 Release-facing changes also require export/package workflows.
@@ -232,5 +235,5 @@ Release-facing changes also require export/package workflows.
 - hidden Godot warnings or weakened trust boundaries.
 
 Repository docs should help users integrate, operate, extend, debug, validate,
-or maintain Nucleus. History belongs in Git history, issues, pull requests, and
-release notes; do not add roadmap/iteration/changelog journals to the template.
+or maintain Nucleus. History belongs in Git history, issues, pull requests, tags,
+and release notes; do not add roadmap/iteration/changelog journals to the template.

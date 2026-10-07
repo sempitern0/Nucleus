@@ -80,8 +80,14 @@ func _test_volume_follow_axes() -> void:
 	var root := Node3D.new()
 	var target := Node3D.new()
 	var volume := NucleusLocalFxVolume3D.new()
+	root.name = "LocalFxTestRoot"
 	root.add_child(target)
 	root.add_child(volume)
+
+	expect_true(
+		attach_test_node(root),
+		"Local FX transform test requires a live SceneTree.",
+	)
 
 	target.position = Vector3(10.0, 20.0, 30.0)
 	volume.global_position = Vector3(1.0, 5.0, 1.0)
@@ -103,7 +109,7 @@ func _test_volume_follow_axes() -> void:
 		"XZ follow should preserve the volume's authored Y coordinate.",
 	)
 
-	root.free()
+	free_test_node(root)
 
 
 func _test_volume_intensity_and_quality() -> void:

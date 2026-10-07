@@ -43,6 +43,35 @@ func expect_float(
 		)
 
 
+## Attaches a parentless test subtree to the active SceneTree root.
+## Use this before testing APIs that require global transforms or lifecycle.
+func attach_test_node(node: Node) -> bool:
+	if node == null or not is_instance_valid(node):
+		return false
+
+	if node.is_inside_tree():
+		return true
+
+	if node.get_parent() != null:
+		return false
+
+	var main_loop := Engine.get_main_loop()
+
+	if not main_loop is SceneTree:
+		return false
+
+	var tree := main_loop as SceneTree
+	tree.root.add_child(node)
+	return node.is_inside_tree()
+
+
+func free_test_node(node: Node) -> void:
+	if node == null or not is_instance_valid(node):
+		return
+
+	node.free()
+
+
 func finish() -> Dictionary:
 	return {
 		"checks": _checks,

@@ -5,6 +5,10 @@ const TEST_MANIFEST := preload("res://tests/headless/test_manifest.gd")
 
 
 func _ready() -> void:
+	call_deferred("_run_all")
+
+
+func _run_all() -> void:
 	var total_checks: int = 0
 	var failures := PackedStringArray()
 
@@ -19,20 +23,23 @@ func _ready() -> void:
 				% [suite_script.resource_path.get_file(), failure]
 			)
 
+	var exit_code := 0
+
 	if failures.is_empty():
 		print(
 			"Nucleus editor tests: PASS (%d checks, %d suites)."
 			% [total_checks, TEST_MANIFEST.SUITES.size()]
 		)
-		get_tree().quit(0)
-		return
+	else:
+		exit_code = 1
+		push_error(
+			"Nucleus editor tests: FAIL (%d failures / %d checks)."
+			% [failures.size(), total_checks]
+		)
 
-	push_error(
-		"Nucleus editor tests: FAIL (%d failures / %d checks)."
-		% [failures.size(), total_checks]
-	)
+		for failure: String in failures:
+			push_error("  - " + failure)
 
-	for failure: String in failures:
-		push_error("  - " + failure)
-
-	get_tree().quit(1)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	get_tree().quit(exit_code)

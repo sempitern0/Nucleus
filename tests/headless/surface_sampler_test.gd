@@ -50,6 +50,10 @@ func _test_plane_sampler() -> void:
 	var plane := NucleusPlaneSurfaceSampler3D.new()
 	plane.position = Vector3(0.0, 4.0, 0.0)
 	plane.surface_velocity = Vector3(2.0, 0.0, -1.0)
+	expect_true(
+		attach_test_node(plane),
+		"Plane sampler transform test requires a live SceneTree.",
+	)
 	var sample := plane.sample(Vector3(10.0, -20.0, 8.0), 3.0)
 
 	expect_true(sample != null, "Horizontal plane should produce a surface sample.")
@@ -65,12 +69,16 @@ func _test_plane_sampler() -> void:
 		)
 		expect_float(sample.sampled_time, 3.0, "Explicit sample time should be retained.")
 
-	plane.free()
+	free_test_node(plane)
 
 
 func _test_sample_into_reuses_result() -> void:
 	var plane := NucleusPlaneSurfaceSampler3D.new()
 	plane.position.y = 6.0
+	expect_true(
+		attach_test_node(plane),
+		"Reusable plane sampler test requires a live SceneTree.",
+	)
 	var scratch := NucleusSurfaceSample3D.new()
 
 	expect_true(
@@ -88,13 +96,17 @@ func _test_sample_into_reuses_result() -> void:
 		scratch.position.is_equal_approx(Vector3(4.0, 9.0, 5.0)),
 		"Repeated sample_into should overwrite the previous result.",
 	)
-	plane.free()
+	free_test_node(plane)
 
 
 func _test_tilted_plane_sampler() -> void:
 	var plane := NucleusPlaneSurfaceSampler3D.new()
 	plane.rotation_degrees = Vector3(0.0, 0.0, 30.0)
 	plane.position = Vector3(0.0, 2.0, 0.0)
+	expect_true(
+		attach_test_node(plane),
+		"Tilted plane sampler test requires a live SceneTree.",
+	)
 	var query := Vector3(3.0, -10.0, -2.0)
 	var sample := plane.sample(query)
 
@@ -110,7 +122,7 @@ func _test_tilted_plane_sampler() -> void:
 		expect_float(sample.position.x, query.x, "Tilted sample should preserve world X.")
 		expect_float(sample.position.z, query.z, "Tilted sample should preserve world Z.")
 
-	plane.free()
+	free_test_node(plane)
 
 
 func _test_disabled_sampler() -> void:
@@ -131,6 +143,10 @@ func _test_terrain_sampler_matches_height_source() -> void:
 	terrain.position = Vector3(4.0, 3.0, -6.0)
 	var sampler := NucleusTerrainSurfaceSampler3D.new()
 	terrain.add_child(sampler)
+	expect_true(
+		attach_test_node(terrain),
+		"Terrain sampler transform test requires a live SceneTree.",
+	)
 	var local_xz := Vector2(5.0, -7.0)
 	var query := terrain.to_global(Vector3(local_xz.x, 50.0, local_xz.y))
 	var expected_sampler := TerrainHeightSampler.new()
@@ -165,7 +181,7 @@ func _test_terrain_sampler_matches_height_source() -> void:
 			"Single terrain layout should identify patch zero.",
 		)
 
-	terrain.free()
+	free_test_node(terrain)
 
 
 func _test_terrain_sampler_layout_selection() -> void:
@@ -176,7 +192,11 @@ func _test_terrain_sampler_layout_selection() -> void:
 	layout.grid_size = Vector2i(2, 1)
 	terrain.layout = layout
 	var sampler := NucleusTerrainSurfaceSampler3D.new()
-	sampler.terrain = terrain
+	terrain.add_child(sampler)
+	expect_true(
+		attach_test_node(terrain),
+		"Terrain grid sampler test requires a live SceneTree.",
+	)
 	var sample := sampler.sample(Vector3(20.0, 0.0, 0.0))
 
 	expect_true(sample != null, "Terrain grid should resolve the containing patch.")
@@ -188,22 +208,24 @@ func _test_terrain_sampler_layout_selection() -> void:
 			"Terrain sampler should report the selected static layout patch.",
 		)
 
-	terrain.free()
-	sampler.free()
+	free_test_node(terrain)
 
 
 func _test_terrain_sampler_bounds() -> void:
 	var terrain := NucleusTerrainGenerator3D.new()
 	terrain.profile = _make_terrain_profile()
 	var sampler := NucleusTerrainSurfaceSampler3D.new()
-	sampler.terrain = terrain
+	terrain.add_child(sampler)
+	expect_true(
+		attach_test_node(terrain),
+		"Terrain bounds sampler test requires a live SceneTree.",
+	)
 
 	expect_true(
 		sampler.sample(Vector3(1000.0, 0.0, 1000.0)) == null,
 		"Terrain adapter should reject positions outside static layout coverage.",
 	)
-	terrain.free()
-	sampler.free()
+	free_test_node(terrain)
 
 
 func _make_terrain_profile() -> NucleusTerrainProfile:

@@ -49,40 +49,22 @@ jobs:
           GODOT_BIN="$(bash scripts/ci/install_godot.sh)"
           echo "bin=$GODOT_BIN" >> "$GITHUB_OUTPUT"
 
-      - name: Import and parse project headlessly
+      - name: Import project headlessly
         run: |
-          "${{ steps.godot.outputs.bin }}" \
-            --headless \
-            --path . \
-            --import
+          "${{ steps.godot.outputs.bin }}"             --headless             --path .             --import
 
-      - name: Parse native test graph
+      - name: Run native headless test scene
         run: |
-          "${{ steps.godot.outputs.bin }}" \
-            --headless \
-            --path . \
-            --check-only \
-            --script res://tests/headless/test_runner.gd
-
-      - name: Run native headless tests
-        run: |
-          "${{ steps.godot.outputs.bin }}" \
-            --headless \
-            --path . \
-            --script res://tests/headless/test_runner.gd
+          "${{ steps.godot.outputs.bin }}"             --headless             --path .             res://tests/headless/test_runner.tscn
 
       - name: Run bootstrap smoke scene
         run: |
-          "${{ steps.godot.outputs.bin }}" \
-            --headless \
-            --path . \
-            res://tests/smoke/smoke_main.tscn
+          "${{ steps.godot.outputs.bin }}"             --headless             --path .             res://tests/smoke/smoke_main.tscn
 
       - name: Install official export templates
         shell: bash
         run: |
-          GODOT_INSTALL_EXPORT_TEMPLATES=1 \
-            bash scripts/ci/install_godot.sh >/dev/null
+          GODOT_INSTALL_EXPORT_TEMPLATES=1             bash scripts/ci/install_godot.sh >/dev/null
 
       - name: Smoke export Linux, Windows, and Web
         id: smoke_export

@@ -1,81 +1,56 @@
 # Nucleus agent contract
 
-Nucleus is a reusable Godot project foundation, not one game's codebase. Work as
-a template maintainer: preserve clear ownership, normal Godot workflows, and
-reuse across unrelated games.
+Nucleus is a reusable Godot project foundation, not one game's codebase.
+Contributors act as maintainers of a production-oriented template that must
+remain useful across unrelated games.
 
-This file is the fast routing layer. Detailed contracts live in `docs/`; exact
-behavior lives in current source/tests.
+This file is the fast operating contract for human and AI agents. Detailed
+behavior lives in current source/tests; public intent and integration contracts
+live under `docs/`.
 
-## 1. Fast operating model
+## 1. First minute: establish the real baseline
 
-Before answering or editing, classify the task:
+Before proposing or changing anything:
 
-- **Implement X in a game:** start at `docs/guides/real_game_patterns.md`, then
-  the matching quickstart/tutorial. Inspect source only for exact API details.
-- **Explain Nucleus X:** read its technical contract, then source/tests.
-- **Debug X:** follow error/warning → owner → relevant test → caller.
-- **Extend Nucleus:** read owner + contract + tests + API policies if public.
-- **Game-specific mechanic:** compose existing primitives before proposing new
-  reusable Nucleus API.
+1. inspect the current branch/HEAD and `VERSION`;
+2. inspect the exact affected source files;
+3. locate the current tests and technical contract;
+4. check `project.godot` and
+   `docs/policies/godot_compatibility.md` before assuming engine/runtime state;
+5. search for an existing Nucleus owner before designing a new abstraction.
 
-Do not scan the whole repository for a focused task.
+Never use stale conversation context, an old handoff, or this file's examples as
+a substitute for current source.
 
-Use `docs/documentation_coverage.json` to map subsystem directories to technical
-documentation.
+For focused work, do not scan the whole repository. Search exact `class_name`,
+method, signal, export, scene path, error text, or subsystem first.
 
-## 2. Minimal context ladder
+Use `docs/documentation_coverage.json` to map subsystem directories to their
+technical documentation.
 
-Read only as deep as needed:
+## 2. Core philosophy
 
-```text
-README/docs index → orientation
-quickstart        → ownership + setup
-tutorial          → concrete scenes, Inspector setup, and minimal code
-technical contract→ behavior + limits
-source            → exact current API
-tests             → executable edge cases
-examples          → known-good integration
-```
-
-Search exact `class_name`, method, signal, export, scene path, or error text
-before browsing adjacent folders.
-
-Never invent a Nucleus class, method, signal, export, Autoload, or file path.
-
-If evidence conflicts: source/tests describe current behavior; technical docs
-describe intended public behavior. Report/fix the mismatch.
-
-## 3. Architecture rules
-
-1. **Godot-native first.** Use native APIs when no Nucleus owner exists.
-2. **Do not bypass a Nucleus owner.** Existing public boundaries are deliberate.
+1. **Godot-native first.** Use native Godot APIs when no Nucleus ownership
+   boundary exists.
+2. **Do not bypass an existing owner.** Stable Nucleus boundaries are
+   deliberate.
 3. **Composition over inheritance.** Prefer small Nodes, Resources, adapters,
    signals, and explicit references.
-4. **Scene ownership by default.** Autoloads require genuine cross-scene life.
-5. **Optional means optional.** Modules cannot become hidden baseline deps.
-6. **Production evidence before abstraction.** Repeated friction justifies API.
-7. **Public API is deliberate.** Public `class_name` uses the `Nucleus` prefix.
-8. **Trust boundaries are code boundaries.** Never weaken them for convenience.
-9. **Godot remains authoritative.** Do not mirror strong engine systems.
+4. **Scene ownership by default.** Autoloads require genuine cross-scene
+   lifetime.
+5. **Optional means optional.** `modules/` must not become hidden baseline
+   dependencies.
+6. **Production evidence before abstraction.** Real repeated friction earns
+   reusable API; imagined flexibility does not.
+7. **Godot remains authoritative.** Do not mirror strong engine systems with a
+   parallel framework.
+8. **Public API is deliberate.** Public `class_name` identifiers use the
+   `Nucleus` prefix.
+9. **Trust boundaries are code boundaries.** Never weaken content, networking,
+   save, or platform security for convenience.
+10. **Small ownership surfaces beat manager proliferation.**
 
-Ownership decision:
-
-```text
-Existing Nucleus owner? → use/extend it
-Godot already owns it?  → use Godot directly
-Reusable across games?  → consider component/module
-Genre/content/balance/backend/art policy? → keep game-owned
-```
-
-A reusable helper is not automatically a Core service.
-
-## 4. Baseline ownership
-
-Check `VERSION`, `project.godot`, and
-`docs/policies/godot_compatibility.md` before assuming state.
-
-Default cross-scene services:
+The default cross-scene services remain:
 
 ```text
 NucleusApp
@@ -86,106 +61,241 @@ NucleusSave
 NucleusSceneFlow
 ```
 
-Everything under `modules/` is opt-in unless its contract says otherwise.
+Do not add another Autoload merely to avoid explicit scene wiring.
 
-| Concern | Preferred owner |
-| --- | --- |
-| lifecycle / quit / back | `NucleusApp` |
-| settings | `NucleusSettings` |
-| input/rebinding/device state | `NucleusInput` |
-| audio routing | `NucleusAudio` |
-| save sessions | `NucleusSave` |
-| app scene transitions | `NucleusSceneFlow` |
-| cursor/local devices/haptics | matching `Nucleus*` helper |
-| common mechanics/UI | `components/gameplay/*`, `components/ui/*` |
-| optional production systems | matching `modules/*` |
-| engine primitives | native Godot unless adapted |
-| rules/content/balance | consuming game |
+## 3. Ownership decision
 
-The rule is not "wrap every Godot API"; it is "do not bypass an owner".
-
-## 5. Feature router
-
-Start from the closest entry, then use `docs/documentation_coverage.json` for the
-technical contract.
-
-| Area | Start here |
-| --- | --- |
-| project/component choice | `foundation_quickstart.md`, `real_game_patterns.md` |
-| input/settings/local devices | `settings_input_quickstart.md` |
-| audio/save/localization/scene flow | `runtime_services_quickstart.md` |
-| gameplay foundation/actions/status | matching gameplay/action quickstart |
-| movement/camera/animation | `gameplay_movement_camera.md`, `animation_integration_quickstart.md` |
-| pooling/targeting/game feel | matching pooling/camera quickstart |
-| terrain | `terrain_generation_quickstart.md` |
-| inventory/loot/world state/AI | matching quickstart in `docs/guides/` |
-| performance/dev tools | `performance_quickstart.md`, `development_tools_quickstart.md` |
-| networking/replication/deployment | matching networking quickstart |
-| platform/content packs/mobile | matching quickstart in `docs/guides/` |
-| troubleshooting/CI | `troubleshooting.md`, `validation_ci_quickstart.md` |
-
-## 6. Answer contract: "How do I implement X?"
-
-Give one preferred architecture, not a catalogue. Include when relevant:
-
-1. ownership: Nucleus vs Godot vs game-owned;
-2. composition: scene/object graph + data/control flow;
-3. verified current public APIs;
-4. implementation order: editor → Resources → glue → runtime;
-5. lifetime/authority/persistence/performance/security constraints;
-6. likely failure modes and recovery;
-7. matching tests/examples and profiling/assertions;
-8. exact follow-up docs.
-
-Prefer alternatives only when they materially change architecture/tradeoffs.
-
-Useful composition shapes:
+Use this decision order:
 
 ```text
-3D player: semantic input → movement → CharacterBody3D → camera → animation
-combat: hit/action → value pool/state/status → animation/feedback
-persistence: stable identity → state adapter → NucleusSave → reconcile
-online: input → intent → server validation → mutation → replication
-terrain: profile + layout + material → generator/streamer → native Godot data
+Existing Nucleus owner?
+    → use or extend that owner
+
+Godot already owns the problem well?
+    → use Godot directly
+
+Repeated reusable friction across games?
+    → consider component/module/API refinement
+
+Genre/content/balance/art/product/provider policy?
+    → keep it in the consuming game
 ```
 
-Keep project rules around those primitives game-owned.
+A helper being reusable does not automatically make it Core.
 
-## 7. Critical invariants
+Examples of game-owned policy include:
 
-- **Input:** gameplay uses semantic actions, not physical keys. `ui_*` is UI
-  navigation. Rebinding goes through `NucleusInput`; touch feeds same semantics.
-- **Animation:** Godot owns `AnimationTree`, `Skeleton3D`, retargeting, IK,
-  constraints, attachments, and physical bones. Nucleus adapts glue only.
-- **Networking:** separate transport, authority, authentication, replication,
-  and deployment. Peer-hosted transport does not imply client authority.
-- **Terrain:** Nucleus owns procedural heightfield generation/preview/streaming,
-  not a replacement terrain editor. Keep native mesh/collision/material visible.
-- **UI/mobile:** use native `Control`, focus, responsive layout, platform APIs.
-  Do not add global UI/Mobile managers for convenience.
-- **Persistence:** persist stable plain data, not live Nodes/Callables/transient
-  state. Do not use arbitrary node paths as durable world identity.
-- **External content:** never mount untrusted community PCK/ZIP with
-  `ProjectSettings.load_resource_pack()` or pass it to executable loaders.
-  Official packs use Content Packs verification; community mods stay data-only.
+- survival rules and progression;
+- procedural-world layout policy;
+- exact mission/objective design;
+- art direction and water/terrain palettes;
+- encounter pacing and balance;
+- provider/store-specific product policy;
+- whether a game is solo, LAN, peer-hosted, or dedicated.
 
-## 8. Repository change protocol
+Nucleus may provide primitives that those systems compose.
 
-1. inspect current HEAD/files;
-2. locate the existing owner;
-3. read its technical contract;
-4. inspect relevant tests;
-5. inspect an example/tutorial when integration matters;
-6. make the smallest coherent change;
-7. update tests;
-8. update current-use docs for public behavior;
-9. run relevant validation;
-10. state what could not be validated.
+## 4. Consumer-driven development loop
 
-Do not use old conversation context instead of current source.
+Nucleus should evolve through a real consuming game:
 
-Before changing public classes, methods, signals, exports, Autoloads, save
-formats, settings schemas, or required wiring, read:
+```text
+generic Nucleus primitive
+        ↓
+real game integration
+        ↓
+measured friction / repeated wiring / failure
+        ↓
+small contract refinement
+        ↓
+back to the game
+```
+
+Do not reverse this loop by building a generalized framework before a consuming
+game proves the need.
+
+When Nautica or another game exposes a problem, classify it first:
+
+- incorrect use of an existing Nucleus contract → fix the game/integration;
+- reusable bug in Nucleus → fix Nucleus;
+- repeated cross-game wiring → consider a small adapter/component;
+- game-specific world/content/product policy → keep it game-owned.
+
+One game's architecture is evidence, not universal policy.
+
+## 5. Current architectural boundaries
+
+### UI
+
+Nucleus UI composes native `Control`, `Container`, focus, Theme, Tween,
+AnimationPlayer, and shader materials.
+
+Do not introduce a global UI manager, custom layout engine, design-token
+replacement, transform mixer, generic dialogue framework, or UI EventBus without
+strong production evidence.
+
+Preferred transform ownership remains:
+
+```text
+LayoutSlot
+    → PresentationRoot
+        → FeedbackRoot
+            → Content
+```
+
+Reusable UI work should primarily harden existing contracts and fix observed
+consumer friction rather than expand horizontally.
+
+### World runtime and streaming
+
+World streaming must not become a monolithic `WorldManager`.
+
+Prefer small scene-owned composition:
+
+```text
+game-owned spatial heuristic
+        ↓
+NucleusWorldStreamLifecycle
+        ↓
+bounded load/unload admission
+        ↓
+game-owned loading/materialization/persistence
+```
+
+The game decides which regions are wanted and why. Nucleus owns reusable
+lifecycle mechanics only when justified.
+
+Use request tokens/operation identity for asynchronous work. A stale completion
+must never acknowledge a newer retry for the same logical region.
+
+### Terrain
+
+Nucleus owns reusable procedural heightfield generation, materials, samplers,
+debugging, preview, and bounded streaming primitives.
+
+It does not own a game's island distribution, biome layout, shoreline art
+direction, erosion style, objective placement, or world progression.
+
+### Persistence
+
+Persist stable plain data, not live Nodes, Callables, RIDs, temporary node paths,
+or presentation state.
+
+`NucleusSave` owns storage/versioned documents. Scene/game code owns capture and
+restore meaning through explicit save participants.
+
+### Networking
+
+Keep transport, discovery, authentication, authority, replication, and
+deployment separate.
+
+Transport connectivity does not imply gameplay authority. First decide who owns
+a mutation; then replicate the minimum required state.
+
+## 6. Strict GDScript rules
+
+The repository is maintained as if warnings can be treated as errors.
+
+### Never rely on Variant inference
+
+Do not use `:=` when the right-hand side can return `Variant`, including common
+cases such as:
+
+```text
+Object.get(...)
+Dictionary.get(...)
+Array/Dictionary dynamic indexing
+Callable.call(...)
+Node.call(...)
+metadata lookups
+dynamic resources
+```
+
+Use an explicit type plus cast/conversion instead.
+
+Prefer:
+
+```gdscript
+var raw_value: Variant = source.get("value")
+var count: int = int(raw_value)
+var target: Node3D = source.get("target") as Node3D
+```
+
+over inferred Variant locals.
+
+### Do not shadow Godot/base-class members
+
+Avoid local variables and parameters that shadow properties/methods inherited
+from Godot base classes. Common high-risk names include:
+
+```text
+basis
+transform
+position
+rotation
+scale
+name
+owner
+process_mode
+visible
+material
+```
+
+Use semantic names such as `body_basis`, `target_position`,
+`spawn_transform`, or `surface_material`.
+
+Do not suppress `SHADOWED_VARIABLE_BASE_CLASS`; rename the identifier.
+
+### Constant expressions
+
+Do not assume constructed packed arrays/resources are valid constant
+expressions. Prefer literal `Array` constants when needed, or initialize packed
+containers at runtime.
+
+### General style
+
+- explicit types at public and dynamic boundaries;
+- tabs for GDScript indentation;
+- no trailing whitespace;
+- keep GDScript lines within repository limits;
+- no invented APIs;
+- no warning suppression as a substitute for clean code.
+
+## 7. Input and UI invariants
+
+Gameplay consumes semantic actions, not physical keys.
+
+```text
+ui_* actions
+    → active UI navigation
+
+move_* / interact / primary_action / secondary_action / pause
+    → gameplay semantics
+```
+
+Do not interpret `ui_cancel` as a universal "leave gameplay" action.
+
+Use `NucleusInput`, `NucleusLocalInputSession`, and the matching public input
+helpers instead of caching device IDs, physical keys, or prompt strings in
+gameplay.
+
+## 8. Save, content, and security invariants
+
+- untrusted community content remains data-only;
+- never mount an untrusted PCK/ZIP with
+  `ProjectSettings.load_resource_pack()`;
+- official trusted packs must pass Content Packs verification;
+- private signing keys never enter repository/export/log output;
+- save payloads must remain deterministic, bounded, and save-safe;
+- authentication secrets/passwords are never announced through LAN discovery;
+- do not weaken validation because a feature is "development only" if the same
+  boundary can ship.
+
+## 9. Public API changes
+
+Before changing public classes, methods, signals, exports, Autoloads, required
+scene wiring, save formats, settings schemas, or stable resource contracts,
+read:
 
 ```text
 docs/policies/api_stability.md
@@ -193,47 +303,98 @@ docs/policies/versioning.md
 docs/policies/deprecation.md
 ```
 
-Pre-1.0 allows intentional change, not accidental change.
+Pre-1.0 permits intentional change, not accidental breakage.
 
-Optional modules stay explicit and must not be promoted to Autoloads merely for
-convenience.
+When a public contract changes, update:
 
-## 9. Performance and validation
+- implementation;
+- tests;
+- technical documentation;
+- migration/deprecation guidance when applicable.
 
-Separate CPU, GPU, physics, memory, and I/O. Profile the consuming game and real
-low-end target; do not infer performance from architecture alone.
+Do not add historical iteration journals to technical docs. Git history,
+releases, issues, and changelogs own history.
 
-Use `tests/headless/` for executable contracts and `examples/` for known-good
-integration. A small example can be more useful than more prose.
+## 10. Repository change protocol
 
-Normal validation:
+For implementation work:
+
+1. inspect current HEAD and affected files;
+2. identify the existing owner;
+3. read its contract and relevant tests;
+4. inspect a real example/consumer when integration matters;
+5. make the smallest coherent change;
+6. add or update executable coverage;
+7. update current-use documentation if public behavior changed;
+8. run available validation;
+9. state exactly what was and was not executed.
+
+When the user explicitly requests non-mutating delivery, do not push or edit the
+remote repository. Produce root-relative replacement files or an overlay ZIP
+that can be applied at repository root.
+
+Never claim repository mutation, Godot runtime validation, CI success, or export
+success unless it actually occurred.
+
+## 11. Validation contract
+
+Normal static validation:
 
 ```bash
 python3 scripts/ci/static_checks.py
 python3 scripts/ci/documentation_audit.py
 python3 scripts/ci/productization_audit.py
+```
 
+Authoritative runtime validation uses the project so Autoloads are registered:
+
+```bash
 godot --headless --path . --import
 godot --headless --path . res://tests/headless/test_runner.tscn
 godot --headless --path . res://tests/smoke/smoke_main.tscn
 ```
 
-Run the native suite as the project scene above. Do not replace it with
-`--check-only --script` or `--script tests/headless/test_runner.gd`; Nucleus
-scripts legitimately depend on the project's registered Autoload names.
+Do not replace the native project runner with an isolated script invocation when
+the test graph depends on project Autoloads.
 
-If Godot is unavailable, say so. Static checks are not runtime validation.
-Release-facing changes also require export/package workflows.
+If Godot is unavailable, say so explicitly. Static checks are not runtime
+validation.
 
-## 10. Avoid
+For performance work, separate CPU, GPU, physics, memory, and I/O evidence.
+Profile the consuming game and real target hardware; architecture alone is not a
+performance result.
 
-- invented/stale APIs or unnecessary full-repo scans;
-- bypassed owners, hidden module dependencies, or manager proliferation;
-- parallel replacements for strong Godot abstractions;
-- generic APIs containing game balance/content/product policy;
-- multiplayer sync before authority;
-- hidden Godot warnings or weakened trust boundaries.
+## 12. Answer/implementation quality bar
 
-Repository docs should help users integrate, operate, extend, debug, validate,
-or maintain Nucleus. History belongs in Git history, issues, pull requests, tags,
-and release notes; do not add roadmap/iteration/changelog journals to the template.
+For "How should I implement X?", give one preferred architecture first.
+
+When relevant include:
+
+- ownership: Nucleus vs Godot vs consuming game;
+- scene/object/data flow;
+- verified current APIs;
+- lifetime and authority;
+- persistence implications;
+- performance/trust constraints;
+- failure/recovery behavior;
+- tests and validation;
+- what evidence would justify further abstraction.
+
+Prefer a small working vertical slice over a broad speculative subsystem.
+
+## 13. Avoid
+
+Do not:
+
+- invent or assume stale APIs;
+- bypass existing Nucleus owners;
+- create service locators;
+- proliferate global managers;
+- make optional modules mandatory;
+- replace native Theme/layout/AnimationTree/navigation/physics abstractions;
+- add networking replication before defining authority;
+- generalize one game's balance/content/world rules into Nucleus;
+- hide warnings instead of fixing them;
+- call static validation "runtime-green";
+- expand a subsystem horizontally when the current production bottleneck is
+  elsewhere.

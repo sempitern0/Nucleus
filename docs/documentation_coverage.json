@@ -126,6 +126,9 @@
     "components/world/feedback": [
       "docs/components/world_feedback.md"
     ],
+    "components/world/streaming": [
+      "docs/components/world_streaming.md"
+    ],
     "components/world/surfaces": [
       "docs/components/world_surfaces.md"
     ],

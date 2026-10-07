@@ -35,4 +35,5 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/resource_loading_test.gd"),
 	preload("res://tests/headless/ui_polish_test.gd"),
 	preload("res://tests/headless/ui_runtime_bindings_test.gd"),
+	preload("res://tests/headless/world_streaming_test.gd"),
 ]

@@ -21,6 +21,7 @@ contract when you need lifetime, extension points, or limitations.
 | Build movement/camera | `components/gameplay_movement_camera.md` |
 | Add world time/daylight/localized FX | `components/world_time_environment.md` |
 | Classify or analytically sample world surfaces | `components/world_surfaces.md` |
+| Add multi-point rigid-body buoyancy | `components/world_buoyancy.md` |
 | Add bounded world-space visual history | `components/world_feedback.md` |
 | Replace prototype geometry with an animated 3D rig | `guides/tutorials/character_animation_3d.md` |
 | Wire AnimationTree/Nucleus adapters | `guides/animation_integration_quickstart.md` |
@@ -81,6 +82,7 @@ Baseline component groups:
 - `components/gameplay_pooling_targeting.md`
 - `components/world_time_environment.md`
 - `components/world_surfaces.md`
+- `components/world_buoyancy.md`
 - `components/world_feedback.md`
 - `components/world_decals.md`
 - `components/ui_and_accessibility.md`

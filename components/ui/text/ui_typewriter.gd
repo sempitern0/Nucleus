@@ -83,6 +83,8 @@ func restart() -> Error:
 	if target == null:
 		return ERR_UNCONFIGURED
 
+	_revealing = false
+	set_process(false)
 	_cache_target_text()
 	_reset_timing()
 	target.visible_characters = 0
@@ -108,8 +110,18 @@ func restart() -> Error:
 
 
 func skip() -> void:
-	if target == null or not _revealing:
+	if target == null:
 		return
+
+	if _total_characters <= 0:
+		_cache_target_text()
+
+	if not _revealing:
+		if target.visible_characters < 0:
+			return
+
+		if target.visible_characters >= _total_characters:
+			return
 
 	_finish_reveal(true)
 
@@ -223,8 +235,11 @@ func _get_pause_after_character(character_index: int) -> float:
 
 
 func _cache_target_text() -> void:
-	_total_characters = target.get_total_character_count()
 	_parsed_text = target.get_parsed_text()
+	_total_characters = target.get_total_character_count()
+
+	if _total_characters <= 0 and not _parsed_text.is_empty():
+		_total_characters = _parsed_text.length()
 
 
 func _reset_timing() -> void:

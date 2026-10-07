@@ -11,6 +11,8 @@ func run() -> Dictionary:
 	_test_shader_effect_value_contract()
 	_test_typewriter_immediate_and_skip()
 	_test_typewriter_punctuation_cadence()
+	_test_typewriter_button_replay_and_skip()
+	_test_typewriter_skip_after_reset()
 	return finish()
 
 
@@ -392,6 +394,91 @@ func _test_typewriter_punctuation_cadence() -> void:
 		label.visible_characters,
 		label.get_total_character_count(),
 		"Reveal resumes after consuming the remaining punctuation pause.",
+	)
+
+	free_test_node(root)
+
+
+func _test_typewriter_button_replay_and_skip() -> void:
+	var root := Control.new()
+	var label := RichTextLabel.new()
+	var typewriter := NucleusUITypewriter.new()
+	var replay := Button.new()
+	var skip := Button.new()
+
+	label.text = "Replay integration"
+	typewriter.target = label
+	typewriter.respect_reduced_motion = false
+	typewriter.ignore_time_scale = false
+
+	root.add_child(label)
+	root.add_child(typewriter)
+	root.add_child(replay)
+	root.add_child(skip)
+
+	expect_true(
+		attach_test_node(root),
+		"Typewriter button fixture requires a live SceneTree.",
+	)
+
+	replay.pressed.connect(typewriter.restart)
+	skip.pressed.connect(typewriter.skip)
+
+	typewriter.reveal_immediately()
+	replay.emit_signal(&"pressed")
+	expect_true(
+		typewriter.is_revealing(),
+		"A Button pressed signal can restart typewriter presentation.",
+	)
+	expect_equal(
+		label.visible_characters,
+		0,
+		"Replay starts again from zero visible characters.",
+	)
+
+	typewriter._process(0.2)
+	skip.emit_signal(&"pressed")
+	expect_false(
+		typewriter.is_revealing(),
+		"A Button pressed signal can skip an active reveal.",
+	)
+	expect_equal(
+		label.visible_characters,
+		label.get_total_character_count(),
+		"Button-driven skip exposes all remaining characters.",
+	)
+
+	free_test_node(root)
+
+
+func _test_typewriter_skip_after_reset() -> void:
+	var root := Control.new()
+	var label := RichTextLabel.new()
+	var typewriter := NucleusUITypewriter.new()
+
+	label.text = "Reset then skip"
+	typewriter.target = label
+	typewriter.respect_reduced_motion = false
+
+	root.add_child(label)
+	root.add_child(typewriter)
+
+	expect_true(
+		attach_test_node(root),
+		"Typewriter reset fixture requires a live SceneTree.",
+	)
+
+	typewriter.reset()
+	expect_false(
+		typewriter.is_revealing(),
+		"Reset keeps the typewriter idle.",
+	)
+
+	typewriter.skip()
+	expect_equal(
+		label.visible_characters,
+		label.get_total_character_count(),
+		"Skip can finish deliberately hidden text after reset.",
 	)
 
 	free_test_node(root)

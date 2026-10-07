@@ -14,12 +14,20 @@ signal loading_finished(state: int)
 @export var progress_feedback: NucleusUIProgressFeedback
 @export var progress_target: Range
 @export var animate_progress: bool = false
+## When enabled, multiple progress signals in one message-queue burst apply only
+## the latest value. Lifecycle start/finish updates remain immediate.
+@export var coalesce_progress_updates: bool = false
 
 @export_group("Optional text")
 @export var count_label: Label
 @export var item_label: Label
 @export var count_template: String = "{processed} / {total}"
 @export var clear_item_on_finish: bool = false
+
+var _progress_flush_pending: bool = false
+var _pending_progress: float = 0.0
+var _pending_processed: int = 0
+var _pending_total: int = 0
 
 
 func _ready() -> void:
@@ -45,6 +53,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	_progress_flush_pending = false
 	_disconnect_source()
 
 
@@ -54,6 +63,7 @@ func bind(queue: NucleusResourceLoadQueue) -> Error:
 
 	_disconnect_source()
 	source = queue
+	_progress_flush_pending = false
 
 	if is_inside_tree():
 		_connect_source()
@@ -152,10 +162,39 @@ func _apply_progress(
 		)
 
 
+func _queue_progress(
+	progress: float,
+	processed: int,
+	total: int,
+) -> void:
+	_pending_progress = progress
+	_pending_processed = processed
+	_pending_total = total
+
+	if _progress_flush_pending:
+		return
+
+	_progress_flush_pending = true
+	call_deferred("_flush_pending_progress")
+
+
+func _flush_pending_progress() -> void:
+	if not _progress_flush_pending:
+		return
+
+	_progress_flush_pending = false
+	_apply_progress(
+		_pending_progress,
+		_pending_processed,
+		_pending_total,
+	)
+
+
 func _on_batch_started(
 	_plan: NucleusLoadPlan,
 	total_items: int,
 ) -> void:
+	_progress_flush_pending = false
 	_apply_progress(0.0, 0, total_items)
 
 	if item_label:
@@ -169,6 +208,14 @@ func _on_progress_changed(
 	processed_items: int,
 	total_items: int,
 ) -> void:
+	if coalesce_progress_updates:
+		_queue_progress(
+			progress,
+			processed_items,
+			total_items,
+		)
+		return
+
 	_apply_progress(
 		progress,
 		processed_items,
@@ -197,6 +244,7 @@ func _on_batch_cancelled(_plan: NucleusLoadPlan) -> void:
 
 
 func _finish_presentation() -> void:
+	_progress_flush_pending = false
 	refresh()
 
 	if clear_item_on_finish and item_label:

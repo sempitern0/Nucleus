@@ -8,6 +8,9 @@ extends Node
 signal snapshot_saved(result: NucleusSaveResult)
 signal snapshot_loaded(result: NucleusSaveResult)
 signal autosave_skipped(reason: String)
+signal snapshot_capture_started(total_participants: int)
+signal snapshot_capture_progress(processed: int, total: int)
+signal snapshot_capture_completed
 
 @export var slot_id: String = "slot_1"
 @export var autosave_policy: NucleusAutosavePolicy
@@ -148,6 +151,80 @@ func autosave(force: bool = false) -> NucleusSaveResult:
 	return result
 
 
+## Captures and saves a manual snapshot while bounding participant capture work.
+func save_manual_incremental(
+	participants_per_frame: int = 8,
+	format: int = -1,
+) -> NucleusSaveResult:
+	var payload: Dictionary = await capture_snapshot_incremental(
+		participants_per_frame
+	)
+	var result: NucleusSaveResult = NucleusSave.save_manual(
+		slot_id,
+		payload,
+		_capture_metadata(),
+		format,
+	)
+
+	snapshot_saved.emit(result)
+	return result
+
+
+## Captures and saves a quick snapshot while bounding participant capture work.
+func save_quick_incremental(
+	participants_per_frame: int = 8,
+	format: int = -1,
+) -> NucleusSaveResult:
+	var payload: Dictionary = await capture_snapshot_incremental(
+		participants_per_frame
+	)
+	var result: NucleusSaveResult = NucleusSave.save_quick(
+		slot_id,
+		payload,
+		_capture_metadata(),
+		format,
+	)
+
+	snapshot_saved.emit(result)
+	return result
+
+
+## Incremental autosave is opt-in. Lifecycle-triggered autosaves remain
+## synchronous so application pause/quit cannot abandon a partially captured job.
+func autosave_incremental(
+	force: bool = false,
+	participants_per_frame: int = 8,
+	format: int = -1,
+) -> NucleusSaveResult:
+	if _saving:
+		return _skipped_result("save already in progress")
+
+	if not autosave_policy.enabled:
+		return _skipped_result("autosave disabled")
+
+	if not force and not _autosave_interval_elapsed():
+		return _skipped_result("minimum autosave interval not reached")
+
+	_saving = true
+	var payload: Dictionary = await capture_snapshot_incremental(
+		participants_per_frame
+	)
+	var result: NucleusSaveResult = NucleusSave.save_autosave(
+		slot_id,
+		payload,
+		_capture_metadata(),
+		autosave_policy.max_slots,
+		format,
+	)
+	_saving = false
+
+	if result.succeeded():
+		_last_autosave_msec = Time.get_ticks_msec()
+
+	snapshot_saved.emit(result)
+	return result
+
+
 func load_manual() -> NucleusSaveResult:
 	var result: NucleusSaveResult = NucleusSave.load_manual(slot_id)
 
@@ -195,6 +272,36 @@ func capture_snapshot() -> Dictionary:
 
 		snapshot[String(participant_id)] = capture.call()
 
+	return snapshot
+
+
+## Creates a stable, step-driven capture job for custom frame budgeting.
+func create_capture_job() -> NucleusSaveCaptureJob:
+	return NucleusSaveCaptureJob.new(_participants)
+
+
+## Convenience coroutine that captures a bounded participant batch per frame.
+func capture_snapshot_incremental(
+	participants_per_frame: int = 8,
+) -> Dictionary:
+	var batch_size: int = maxi(participants_per_frame, 1)
+	var job: NucleusSaveCaptureJob = create_capture_job()
+	var total: int = job.get_total_count()
+
+	snapshot_capture_started.emit(total)
+
+	while not job.is_completed():
+		job.step(batch_size)
+		snapshot_capture_progress.emit(
+			job.get_processed_count(),
+			total,
+		)
+
+		if not job.is_completed() and is_inside_tree():
+			await get_tree().process_frame
+
+	var snapshot: Dictionary = job.take_snapshot()
+	snapshot_capture_completed.emit()
 	return snapshot
 
 

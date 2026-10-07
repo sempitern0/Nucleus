@@ -2,8 +2,12 @@ class_name NucleusAudioOneShotPool
 extends Node
 ## Dynamic pool for arbitrary non-positional one-shot sounds.
 ##
-## The pool grows on demand up to [member max_players]. If every player is
-## busy at the limit, the oldest playback is recycled.
+## The pool grows on demand up to [member max_players]. At capacity, a new voice
+## may replace the oldest voice among the lowest active priority. Lower-priority
+## requests are rejected instead of interrupting more important playback.
+
+signal voice_rejected(priority: int)
+signal voice_stolen(previous_priority: int, new_priority: int)
 
 const LOG_CONTEXT: StringName = &"Audio"
 
@@ -14,6 +18,7 @@ var max_players: int = 32
 
 var _players: Array[AudioStreamPlayer] = []
 var _started_at_usec: Dictionary[AudioStreamPlayer, int] = {}
+var _priorities: Dictionary[AudioStreamPlayer, int] = {}
 
 
 func _ready() -> void:
@@ -30,11 +35,12 @@ func play(
 	volume_linear: float = 1.0,
 	pitch_scale: float = 1.0,
 	from_position: float = 0.0,
+	voice_priority: int = 0,
 ) -> AudioStreamPlayer:
 	if stream == null:
 		return null
 
-	var player: AudioStreamPlayer = _acquire_player()
+	var player: AudioStreamPlayer = _acquire_player(voice_priority)
 
 	if player == null:
 		return null
@@ -47,6 +53,7 @@ func play(
 	player.pitch_scale = clampf(pitch_scale, 0.01, 4.0)
 
 	_started_at_usec[player] = Time.get_ticks_usec()
+	_priorities[player] = voice_priority
 	player.play(maxf(0.0, from_position))
 
 	return player
@@ -63,6 +70,7 @@ func play_cue(cue: NucleusAudioCue) -> AudioStreamPlayer:
 		cue.volume_linear,
 		cue.pitch_scale,
 		cue.from_position,
+		cue.voice_priority,
 	)
 
 
@@ -81,6 +89,16 @@ func stop_bus(bus: StringName) -> void:
 			_reset_player(player)
 
 
+func get_active_voice_count() -> int:
+	var count: int = 0
+
+	for player: AudioStreamPlayer in _players:
+		if player.playing:
+			count += 1
+
+	return count
+
+
 func _create_player() -> AudioStreamPlayer:
 	var player := AudioStreamPlayer.new()
 	player.name = "OneShot%d" % _players.size()
@@ -90,11 +108,12 @@ func _create_player() -> AudioStreamPlayer:
 	add_child(player)
 	_players.append(player)
 	_started_at_usec[player] = 0
+	_priorities[player] = 0
 
 	return player
 
 
-func _acquire_player() -> AudioStreamPlayer:
+func _acquire_player(priority: int) -> AudioStreamPlayer:
 	for player: AudioStreamPlayer in _players:
 		if not player.playing:
 			return player
@@ -102,20 +121,32 @@ func _acquire_player() -> AudioStreamPlayer:
 	if _players.size() < max_players:
 		return _create_player()
 
-	var oldest_player: AudioStreamPlayer
-	var oldest_time: int = 9223372036854775807
+	var victim: AudioStreamPlayer
+	var victim_priority: int = 2147483647
+	var victim_started_at: int = 9223372036854775807
 
 	for player: AudioStreamPlayer in _players:
-		var started_at: int = _started_at_usec.get(player, 0)
+		var player_priority: int = int(_priorities.get(player, 0))
+		var started_at: int = int(_started_at_usec.get(player, 0))
 
-		if started_at < oldest_time:
-			oldest_time = started_at
-			oldest_player = player
+		if (
+			player_priority < victim_priority
+			or (
+				player_priority == victim_priority
+				and started_at < victim_started_at
+			)
+		):
+			victim = player
+			victim_priority = player_priority
+			victim_started_at = started_at
 
-	if oldest_player:
-		oldest_player.stop()
+	if victim == null or priority < victim_priority:
+		voice_rejected.emit(priority)
+		return null
 
-	return oldest_player
+	victim.stop()
+	voice_stolen.emit(victim_priority, priority)
+	return victim
 
 
 func _reset_player(player: AudioStreamPlayer) -> void:
@@ -125,6 +156,7 @@ func _reset_player(player: AudioStreamPlayer) -> void:
 	player.pitch_scale = 1.0
 	player.stream_paused = false
 	_started_at_usec[player] = 0
+	_priorities[player] = 0
 
 
 func _validated_bus(bus: StringName) -> StringName:

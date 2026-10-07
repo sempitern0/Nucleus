@@ -32,6 +32,7 @@ func play_one_shot(
 	volume_linear: float = 1.0,
 	pitch_scale: float = 1.0,
 	from_position: float = 0.0,
+	voice_priority: int = 0,
 ) -> AudioStreamPlayer:
 	return _one_shots.play(
 		stream,
@@ -39,6 +40,7 @@ func play_one_shot(
 		volume_linear,
 		pitch_scale,
 		from_position,
+		voice_priority,
 	)
 
 
@@ -163,6 +165,7 @@ func _apply_all_settings() -> void:
 			0.9,
 		),
 	)
+
 
 func _on_setting_changed(
 	setting_id: StringName,

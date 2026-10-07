@@ -20,7 +20,7 @@ contract when you need lifetime, extension points, or limitations.
 | Use actions, attributes, status effects | `guides/actions_attributes_status_quickstart.md` |
 | Build movement/camera | `components/gameplay_movement_camera.md` |
 | Add world time/daylight/localized FX | `components/world_time_environment.md` |
-| Classify collision surfaces | `components/world_surfaces.md` |
+| Classify or analytically sample world surfaces | `components/world_surfaces.md` |
 | Add bounded world-space visual history | `components/world_feedback.md` |
 | Replace prototype geometry with an animated 3D rig | `guides/tutorials/character_animation_3d.md` |
 | Wire AnimationTree/Nucleus adapters | `guides/animation_integration_quickstart.md` |

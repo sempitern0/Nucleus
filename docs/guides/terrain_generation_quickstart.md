@@ -187,6 +187,47 @@ Detailed guide:
 
 [`tutorials/terrain_streaming_runtime.md`](tutorials/terrain_streaming_runtime.md)
 
+## 9. Query terrain without a raycast
+
+For static `NucleusTerrainGenerator3D` layouts, add:
+
+```text
+Terrain : NucleusTerrainGenerator3D
+└── SurfaceSampler : NucleusTerrainSurfaceSampler3D
+```
+
+Then query the same analytical height source used to build the terrain:
+
+```gdscript
+var sample := surface_sampler.sample(world_position)
+
+if sample != null:
+	print(sample.position)
+	print(sample.normal)
+```
+
+This works even when final terrain geometry has not been generated and avoids
+coupling height queries to collision resolution.
+
+For hot paths, reuse one result:
+
+```gdscript
+var surface_sample := NucleusSurfaceSample3D.new()
+
+func query_surface(world_position: Vector3) -> bool:
+	return surface_sampler.sample_into(
+		world_position,
+		surface_sample,
+	)
+```
+
+The static adapter supports translated/yawed/scaled heightfields whose local +Y
+remains world-up. Runtime streamer sampling is intentionally a separate future
+contract.
+
+See [`../components/world_surfaces.md`](../components/world_surfaces.md) for the
+generic analytical-surface API and ownership boundary.
+
 ## Performance checklist
 
 Start here on weak hardware:

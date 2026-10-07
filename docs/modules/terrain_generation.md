@@ -32,6 +32,7 @@ NucleusTerrainTextureLayer
 NucleusTerrainMaterialProfile
 NucleusTerrainGenerator3D
 NucleusTerrainStreamer3D
+NucleusTerrainSurfaceSampler3D
 ```
 
 ## Ownership model
@@ -191,6 +192,61 @@ For islands, `collision_holes_below_height` can replace samples below a chosen
 height with `NAN`. Godot treats those samples as holes in `HeightMapShape3D`,
 which is useful when underwater terrain does not need collision.
 
+## Analytical surface sampling
+
+`NucleusTerrainSurfaceSampler3D` adapts a static
+`NucleusTerrainGenerator3D` to the generic `NucleusSurfaceSampler3D` contract.
+
+Typical composition:
+
+```text
+Terrain : NucleusTerrainGenerator3D
+└── SurfaceSampler : NucleusTerrainSurfaceSampler3D
+```
+
+The adapter reuses the same internal height source and layout descriptors used
+for generated mesh/collision:
+
+```text
+TerrainProfile + TerrainLayout
+        ↓
+shared analytical height source
+   ├── ArrayMesh
+   ├── HeightMapShape3D
+   └── SurfaceSampler3D result
+```
+
+No physics raycast is required and generated geometry does not need to exist.
+This is useful for server-side world queries, procedural placement, camera rules,
+and future physics systems that should sample the authored field rather than a
+lower-resolution collision representation.
+
+The sampler returns world-space:
+
+```text
+position
+normal
+zero surface velocity
+```
+
+Normals are estimated from nearby analytical samples. Configure
+`normal_sample_distance` according to the terrain scale: too small can amplify
+high-frequency noise; too large smooths small features.
+
+The adapter respects translation, yaw, scale, and static `SINGLE`, `GRID`,
+`LINEAR`, and `ISLANDS` descriptors. It returns `null` outside patch coverage.
+Pitch/roll are intentionally rejected because the transformed terrain would no
+longer be a single-valued surface over world X/Z.
+
+Use `sample_into()` with a reusable `NucleusSurfaceSample3D` for high-frequency
+queries such as future buoyancy loops.
+
+Runtime `NucleusTerrainStreamer3D` is intentionally not covered by this first
+adapter. Streaming introduces loaded/unloaded chunk policy and moving ownership;
+that contract should be added only when a production consumer requires it.
+
+See `docs/components/world_surfaces.md` for the generic sampler contract.
+
 ## Materials
 
 `NucleusTerrainMaterialProfile` provides a small default procedural material,
@@ -248,7 +304,6 @@ Use Godot `NavigationRegion3D` normally and choose whether navigation should
 parse generated static colliders or authored source geometry.
 
 Navigation ownership, bake timing, agents, and region lifetime are game policy.
-
 
 ## Executable examples
 

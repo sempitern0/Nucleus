@@ -1,5 +1,9 @@
 extends "res://tests/headless/test_case.gd"
 
+const DevelopmentValidation := preload(
+	"res://modules/development_tools/validation/development_validation.gd"
+)
+
 
 class WarningNode:
 	extends Node
@@ -32,10 +36,14 @@ func run() -> Dictionary:
 func _test_clean_node_tree() -> void:
 	var root := Node.new()
 	root.name = "Root"
-	var report := NucleusDevelopmentValidation.validate_node_tree(root)
+
+	if not _attach_fixture(root, "Clean validation fixture requires a live SceneTree."):
+		return
+
+	var report := DevelopmentValidation.validate_node_tree(root)
 	expect_true(bool(report.get("ok", false)), "Clean node trees pass validation.")
 	expect_equal(report.get("issue_count"), 0, "Clean node trees have no issues.")
-	root.free()
+	free_test_node(root)
 
 
 func _test_configuration_warning_collection() -> void:
@@ -44,15 +52,19 @@ func _test_configuration_warning_collection() -> void:
 	var warning_node := WarningNode.new()
 	warning_node.name = "WarningNode"
 	root.add_child(warning_node)
-	var report := NucleusDevelopmentValidation.validate_node_tree(root)
+
+	if not _attach_fixture(root, "Warning validation fixture requires a live SceneTree."):
+		return
+
+	var report := DevelopmentValidation.validate_node_tree(root)
 	expect_equal(report.get("warning_count"), 1, "Node warnings are collected.")
 	expect_equal(report.get("error_count"), 0, "Node warnings are not errors.")
-	root.free()
+	free_test_node(root)
 
 
 func _test_resource_error_collection() -> void:
 	var fixture := InvalidResource.new()
-	var report := NucleusDevelopmentValidation.validate_resource_object(
+	var report := DevelopmentValidation.validate_resource_object(
 		fixture,
 		"fixture",
 	)
@@ -64,10 +76,24 @@ func _test_exported_resource_collection() -> void:
 	var root := ResourceHolder.new()
 	root.name = "Holder"
 	root.fixture = InvalidResource.new()
-	var report := NucleusDevelopmentValidation.validate_node_tree(root)
+
+	if not _attach_fixture(root, "Resource validation fixture requires a live SceneTree."):
+		return
+
+	var report := DevelopmentValidation.validate_node_tree(root)
 	expect_equal(
 		report.get("error_count"),
 		1,
 		"Resources exported by scene nodes participate in validation.",
 	)
-	root.free()
+	free_test_node(root)
+
+
+func _attach_fixture(node: Node, message: String) -> bool:
+	var attached := attach_test_node(node)
+	expect_true(attached, message)
+
+	if not attached:
+		node.free()
+
+	return attached

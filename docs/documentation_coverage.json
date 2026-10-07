@@ -187,6 +187,9 @@
     "components/world/environment": [
       "docs/components/world_time_environment.md"
     ],
+    "components/world/feedback": [
+      "docs/components/world_feedback.md"
+    ],
     "components/world/surfaces": [
       "docs/components/world_surfaces.md"
     ],

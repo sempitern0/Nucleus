@@ -11,6 +11,9 @@ func run() -> Dictionary:
 	_test_activity_gate_restores_baseline()
 	_test_pool_prewarm_progress()
 	_test_ai_uses_scheduler()
+	_test_render_audit_repeated_instances()
+	_test_physics_audit_flags_expensive_state()
+	_test_warmup_plan_validation()
 	return finish()
 
 
@@ -190,6 +193,101 @@ func _test_ai_uses_scheduler() -> void:
 	)
 
 	free_test_node(root)
+
+
+func _test_render_audit_repeated_instances() -> void:
+	var root := Node3D.new()
+	var shared_mesh := BoxMesh.new()
+	var shared_material := StandardMaterial3D.new()
+
+	for index: int in range(3):
+		var instance := MeshInstance3D.new()
+		instance.name = "Repeated%d" % index
+		instance.mesh = shared_mesh
+		instance.material_override = shared_material
+		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(instance)
+
+	var diagnostics := NucleusRenderAudit.inspect(root, 3, 99, 99)
+	expect_true(
+		_has_diagnostic_code(
+			diagnostics,
+			&"render_audit_repeated_instances",
+		),
+		"Render audit identifies repeated mesh/material presentation.",
+	)
+	root.free()
+
+
+func _test_physics_audit_flags_expensive_state() -> void:
+	var root := Node3D.new()
+
+	for index: int in range(3):
+		var body := RigidBody3D.new()
+		body.name = "Body%d" % index
+		body.can_sleep = false
+		body.contact_monitor = true
+		root.add_child(body)
+
+	var diagnostics := NucleusPhysicsAudit.inspect(root, 99, 3, 3, 99)
+	expect_true(
+		_has_diagnostic_code(
+			diagnostics,
+			&"physics_audit_sleep_disabled",
+		),
+		"Physics audit identifies rigid bodies that can never sleep.",
+	)
+	expect_true(
+		_has_diagnostic_code(
+			diagnostics,
+			&"physics_audit_contact_monitors",
+		),
+		"Physics audit identifies broad contact-monitor usage.",
+	)
+	root.free()
+
+
+func _test_warmup_plan_validation() -> void:
+	var invalid_entry := NucleusWarmupEntry.new()
+	expect_false(
+		invalid_entry.get_validation_errors().is_empty(),
+		"Warmup entries reject a missing PackedScene.",
+	)
+
+	var template := Node.new()
+	var packed := PackedScene.new()
+	expect_equal(
+		packed.pack(template),
+		OK,
+		"Warmup test can create a PackedScene fixture.",
+	)
+	template.free()
+
+	var entry := NucleusWarmupEntry.new()
+	entry.scene = packed
+	entry.instance_count = 3
+	var plan := NucleusWarmupPlan.new()
+	plan.entries.append(entry)
+
+	expect_true(
+		plan.get_validation_errors().is_empty(),
+		"Valid warmup plans pass validation.",
+	)
+	expect_equal(
+		plan.get_total_instances(),
+		3,
+		"Warmup plans expose deterministic total instance work.",
+	)
+
+
+func _has_diagnostic_code(
+	diagnostics: Array[NucleusPerformanceDiagnostic],
+	code: StringName,
+) -> bool:
+	for diagnostic: NucleusPerformanceDiagnostic in diagnostics:
+		if diagnostic.code == code:
+			return true
+	return false
 
 
 func _on_scheduler_tick(_elapsed: float) -> void:

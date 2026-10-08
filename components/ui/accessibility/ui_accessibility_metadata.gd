@@ -62,7 +62,8 @@ func _apply_metadata() -> void:
 		description_key,
 		fallback_description,
 	)
-	target.accessibility_live = live_mode
+	
+	target.accessibility_live = live_mode as AccessibilityServer.AccessibilityLiveMode
 
 
 func _translated_or_fallback(

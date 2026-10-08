@@ -19,7 +19,9 @@ Quickstart → Tutorial → Technical contract
 8. [`save_system.md`](save_system.md) — participant state and incremental capture.
 9. [`scene_flow.md`](scene_flow.md) — observable scene transitions.
 10. [`resource_loading.md`](resource_loading.md) — load plans, progress and first-use warmup.
-11. Choose a movement path: [`platformer_2d.md`](platformer_2d.md) or [`third_person_3d.md`](third_person_3d.md).
+11. For 2D start at [`2d_foundation.md`](2d_foundation.md), then follow the
+    [`platformer_2d.md`](platformer_2d.md) or [`top_down_2d.md`](top_down_2d.md) recipe;
+    for 3D use [`third_person_3d.md`](third_person_3d.md).
 12. Use [`animation_pipeline_3d.md`](animation_pipeline_3d.md) to import a rig and build the first AnimationTree.
 13. Add [`animation_directional_layers_quality_3d.md`](animation_directional_layers_quality_3d.md) for advanced locomotion/layers/quality.
 14. Continue with [`character_animation_3d.md`](character_animation_3d.md) for IK, attachments and ragdoll runtime.
@@ -45,7 +47,9 @@ Quickstart → Tutorial → Technical contract
 | Save | [`save_system.md`](save_system.md) |
 | Scene Flow | [`scene_flow.md`](scene_flow.md) |
 | Resource Loading | [`resource_loading.md`](resource_loading.md) |
-| 2D movement | [`platformer_2d.md`](platformer_2d.md) |
+| **Reusable 2D character** | [`2d_foundation.md`](2d_foundation.md) |
+| 2D platformer recipe | [`platformer_2d.md`](platformer_2d.md) |
+| 2D top-down recipe | [`top_down_2d.md`](top_down_2d.md) |
 | 3D movement | [`third_person_3d.md`](third_person_3d.md) |
 | 3D animation setup | [`animation_pipeline_3d.md`](animation_pipeline_3d.md) |
 | Directional/layered animation | [`animation_directional_layers_quality_3d.md`](animation_directional_layers_quality_3d.md) |

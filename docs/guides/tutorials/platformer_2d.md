@@ -1,347 +1,87 @@
-# Tutorial: build a responsive 2D platformer controller
+# Tutorial: assemble a 2D platformer using common Nucleus components
 
-This tutorial builds a side-view `CharacterBody2D` controller with:
+A platformer is a *game configuration*, not a Nucleus subclass. Build it using
+`NucleusCharacterMotor2D`, Godot `CharacterBody2D`, semantic input, and
+project-owned mechanics.
 
-- keyboard and gamepad movement;
-- acceleration/deceleration;
-- gravity;
-- jump buffering;
-- coyote time;
-- variable jump height;
-- optional extra air jumps;
-- a following `Camera2D`.
-
-The goal is a responsive platformer foundation in the product space of games
-such as Celeste.
-
-That is a **feel/design analogy only**. These values and systems are not claims
-about Celeste's internal implementation.
-
-## 1. Create the input actions
-
-Nucleus already provides semantic horizontal movement through:
-
-```text
-move_left
-move_right
-```
-
-Create a project action for jumping:
-
-```text
-jump
-```
-
-In:
-
-```text
-Project
-→ Project Settings
-→ Input Map
-```
-
-Give `jump` keyboard and gamepad defaults appropriate to the game.
-
-The motor can use any StringName action, so `jump` does not need to become a new
-Nucleus Core constant just because one project uses it.
-
-## 2. Create the player scene
-
-Create:
+## Scene structure
 
 ```text
 Player : CharacterBody2D
-├── Sprite2D
 ├── CollisionShape2D
-├── MotionInput : Node
-└── PlatformerMotor : Node
+├── AnimatedSprite2D
+├── MotionInput : NucleusMotionInput
+└── Motor : NucleusCharacterMotor2D
+
+World : Node2D
+├── TileMapLayer (world geometry)
+├── Player
+└── Camera2D
+    └── Follow : NucleusCameraFollow2D
 ```
 
-Assign:
+## Physics configuration
+
+In the `Player` inspector set:
 
 ```text
-MotionInput
-    res://components/gameplay/control/motion_input.gd
-
-PlatformerMotor
-    res://components/gameplay/movement/platformer_motor_2d.gd
+motion_mode = MOTION_MODE_GROUNDED
+up_direction = Vector2.UP
 ```
 
-Give `CollisionShape2D` an appropriate capsule/rectangle/shape for the character.
-
-## 3. Configure MotionInput
-
-For a basic platformer, the defaults are already useful:
+Configure `Motor.body = Player` and `Motor.motion_input = MotionInput`.
+Suggested starting values (illustrative, not universal balance):
 
 ```text
-move_left     = move_left
-move_right    = move_right
-move_forward  = move_forward
-move_back     = move_back
+speed = 260 px/s
+acceleration = 2200 px/s²
+deceleration = 2600 px/s²
+gravity_scale = 1.0
 ```
 
-`NucleusPlatformerMotor2D` only consumes the horizontal X component from
-`get_move_vector()`.
+The motor applies world-space tangent velocity and only adds gravity when the
+body is airborne. Godot manages collision response and floor detection.
 
-You do not need a custom keyboard/gamepad branch.
+## Author jump policy in the game
 
-## 4. Configure PlatformerMotor
-
-Assign:
-
-```text
-body         = Player
-motion_input = MotionInput
-jump_action  = jump
-```
-
-A good first-pass configuration is the component's current default profile:
-
-```text
-speed                 = 260
-ground_acceleration   = 2200
-ground_deceleration   = 2600
-air_acceleration      = 1100
-air_deceleration      = 800
-
-gravity_scale         = 1.0
-
-jump_speed            = 420
-coyote_time           = 0.10
-jump_buffer_time      = 0.10
-extra_air_jumps       = 0
-
-shorten_jump_on_release = true
-jump_release_multiplier = 0.5
-```
-
-These are starting values, not a recommended final game balance.
-
-## 5. Add a floor
-
-Create a test level using normal Godot collision:
-
-```text
-TestLevel : Node2D
-├── StaticBody2D
-│   └── CollisionShape2D
-└── Player
-```
-
-Run the scene.
-
-Expected behavior:
-
-- left/right accelerates to the configured speed;
-- releasing input decelerates;
-- the body falls under gravity;
-- pressing jump on the floor jumps;
-- releasing jump early produces a shorter jump.
-
-## 6. Understand coyote time
-
-With:
-
-```text
-coyote_time = 0.10
-```
-
-the player may still jump for a short window after leaving a platform edge.
-
-This is input forgiveness, not an animation feature.
-
-Tune it with level scale and player speed. Too much coyote time can feel like
-the character is jumping from empty air.
-
-## 7. Understand jump buffering
-
-With:
-
-```text
-jump_buffer_time = 0.10
-```
-
-a jump request made shortly before landing remains queued.
-
-When the player touches the floor inside that window, the motor can consume the
-request immediately.
-
-This removes the need for frame-perfect landing input.
-
-## 8. Tune variable jump height
-
-When:
-
-```text
-shorten_jump_on_release = true
-```
-
-the motor shortens upward velocity when the jump action is released.
-
-`jump_release_multiplier` controls how much upward speed remains.
-
-Try:
-
-```text
-0.35
-    strong difference between tap and hold
-
-0.5
-    balanced starting point
-
-0.7
-    gentler difference
-```
-
-Tune by feel; do not copy values from another game without matching your own
-gravity, sprite scale, collision shape, and level metrics.
-
-## 9. Add a Camera2D
-
-Create:
-
-```text
-Camera2D
-└── Follow : Node
-```
-
-Assign to `Follow`:
-
-```text
-res://components/gameplay/camera/camera_follow_2d.gd
-```
-
-Configure:
-
-```text
-camera = Camera2D
-target = Player
-```
-
-`NucleusCameraFollow2D` only owns target-following/snap behavior.
-
-Keep native `Camera2D` responsible for:
-
-```text
-position smoothing
-drag margins
-limits
-zoom
-rotation smoothing
-```
-
-For example, enable native position smoothing in the Camera2D Inspector and tune
-it there.
-
-Nucleus does not wrap those native camera features.
-
-## 10. Gamepad support
-
-For ordinary single-player global input, `NucleusMotionInput` uses InputMap and
-the same `move_left`/`move_right` bindings work with keyboard or gamepad.
-
-For a scene with explicit local-player ownership:
-
-```text
-Session
-├── LocalInput : NucleusLocalInputSession
-└── Player
-    └── MotionInput
-```
-
-Create/bind the local seat once:
+A jump is **not** a generic movement state. Gravity, jump height, buffers,
+coyote time, double jumps, wall jump, drop-through and dash are product policy.
+Write those rules in the consuming game, calling the motor's single velocity
+impulse API when the jump is authorized:
 
 ```gdscript
-var local_player := local_input.join_keyboard_mouse(0)
-motion_input.bind_local_player_input(local_player)
+extends Node
+
+@export var body: CharacterBody2D
+@export var motor: NucleusCharacterMotor2D
+@export var jump_speed: float = 420.0
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"jump") and body.is_on_floor():
+		motor.request_velocity_impulse(body.up_direction * jump_speed)
 ```
 
-With:
+This simple example deliberately omits buffering and coyote time. Add them as
+small game-owned policies when required, rather than introducing a platformer
+motor into the public Nucleus API. Use a physical-frame queue if gameplay input
+must be adjudicated on physics ticks.
 
-```text
-max_players = 1
-single_player_hot_swap = true
-```
+## Animation and camera
 
-the stable player seat can move between keyboard/mouse and gamepad activity.
+Use `AnimatedSprite2D` for native frame playback, or `AnimationTree` with
+`NucleusAnimationVelocityBinding2D` for state/blend parameters. Map actual
+`body.velocity`/`body.is_on_floor()` to game-authored animation clips.
 
-## 11. Add animation without coupling it to the motor
+`NucleusCameraFollow2D` follows the Player while native `Camera2D` manages
+smoothing, drag margins, limits and zoom. Existing `NucleusCameraFeedback2D`
+and `NucleusLandingFeedback2D` add optional presentation effects.
 
-Observe motor/body state:
+## Validate your gameplay
 
-```text
-desired_axis
-body.velocity
-body.is_on_floor()
-jumped
-landed
-left_ground
-```
+1. Run and stop; check tangent movement and deceleration.
+2. Jump with floor contact, jump off edges, and land on slopes.
+3. Verify `move_and_slide()` is called by **only the motor**.
+4. Confirm the same player can use keyboard and gamepad semantic input.
+5. Test pause, respawn, terrain edges, moving platforms and camera boundaries.
 
-Feed those values into an AnimationTree adapter/state layer.
-
-Do not make `NucleusPlatformerMotor2D` choose game-specific animation names.
-
-See:
-
-[`../animation_integration_quickstart.md`](../animation_integration_quickstart.md)
-
-## 12. Add platformer-specific mechanics in the game
-
-The generic motor intentionally stops before genre-specific policy such as:
-
-- dash;
-- wall slide/wall jump;
-- ledge grabbing;
-- corner correction;
-- drop-through one-way platforms;
-- climb/stamina systems;
-- knockback rules;
-- character-specific gravity curves;
-- speed-running tech;
-- pixel-perfect camera policy.
-
-Implement those in the game first.
-
-If multiple unrelated games later need the same clean abstraction, that is
-evidence for expanding Nucleus.
-
-## 13. Suggested tuning workflow
-
-Tune in this order:
-
-1. collision size and level scale;
-2. gravity;
-3. jump height/time;
-4. horizontal top speed;
-5. ground acceleration/deceleration;
-6. air control;
-7. coyote time;
-8. jump buffer;
-9. jump-release multiplier;
-10. camera smoothing.
-
-Changing all of them at once makes movement feel difficult to diagnose.
-
-## 14. Validation checklist
-
-Test:
-
-- keyboard left/right;
-- gamepad left stick;
-- gamepad D-pad if mapped;
-- tap versus held jump;
-- jumping just after walking off an edge;
-- pressing jump just before landing;
-- reversing direction on ground;
-- reversing direction in air;
-- collision with floor/walls;
-- camera follow at low/high speed;
-- controller hot-swap if using LocalInputSession.
-
-## Related docs
-
-- [`../gameplay_foundation_quickstart.md`](../gameplay_foundation_quickstart.md)
-- [`../../components/gameplay_movement_camera.md`](../../components/gameplay_movement_camera.md)
-- [`bindings.md`](bindings.md)
-- [`gameplay_actions.md`](gameplay_actions.md)
+For full shared wiring, read [`2d_foundation.md`](2d_foundation.md).

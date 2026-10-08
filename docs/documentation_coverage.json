@@ -134,6 +134,9 @@
     "components/world/feedback": [
       "docs/components/world_feedback.md"
     ],
+    "components/world/rendering": [
+      "docs/components/rendering_quality.md"
+    ],
     "components/world/streaming": [
       "docs/components/world_streaming.md"
     ],
@@ -216,7 +219,8 @@
     ],
     "modules/performance": [
       "docs/modules/performance.md",
-      "docs/components/runtime_optimization.md"
+      "docs/components/runtime_optimization.md",
+      "docs/components/rendering_quality.md"
     ],
     "modules/platform_services": [
       "docs/modules/platform_services.md"

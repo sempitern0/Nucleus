@@ -225,6 +225,9 @@
     "modules/platform_services": [
       "docs/modules/platform_services.md"
     ],
+    "modules/scatter": [
+      "docs/modules/scatter_generation.md"
+    ],
     "modules/terrain": [
       "docs/modules/terrain_generation.md"
     ],

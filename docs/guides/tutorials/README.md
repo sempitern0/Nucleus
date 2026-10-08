@@ -23,7 +23,8 @@ Quickstart → Tutorial → Technical contract
 12. Use [`animation_pipeline_3d.md`](animation_pipeline_3d.md) to import a rig and build the first AnimationTree.
 13. Add [`animation_directional_layers_quality_3d.md`](animation_directional_layers_quality_3d.md) for advanced locomotion/layers/quality.
 14. Continue with [`character_animation_3d.md`](character_animation_3d.md) for IK, attachments and ragdoll.
-15. Continue into gameplay actions, components and optional modules as required.
+15. Build [`ai_character_3d.md`](ai_character_3d.md) when the same 3D locomotion stack should be AI-controlled.
+16. Continue into gameplay actions, components and optional modules as required.
 
 ## By area
 
@@ -44,6 +45,7 @@ Quickstart → Tutorial → Technical contract
 | 3D animation setup | [`animation_pipeline_3d.md`](animation_pipeline_3d.md) |
 | Directional/layered animation | [`animation_directional_layers_quality_3d.md`](animation_directional_layers_quality_3d.md) |
 | 3D animation advanced | [`character_animation_3d.md`](character_animation_3d.md) |
+| 3D AI character | [`ai_character_3d.md`](ai_character_3d.md) |
 | Terrain preview | [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md) |
 | Procedural terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) |
 | Terrain streaming | [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md) |

@@ -382,6 +382,32 @@ PhysicalBoneSimulator3D
 
 Nucleus only coordinates reusable integration points and quality policy.
 
+## AI-controlled characters
+
+AI does not require a separate animation controller.
+
+The recommended path is:
+
+```text
+Utility / gameplay state
+→ NavigationFollower3D
+→ NavigationMotionSource3D
+→ CharacterMotor3D
+→ CharacterBody3D.velocity
+→ AnimationVelocityBinding3D
+→ same AnimationTree used by a player
+```
+
+This keeps locomotion animation based on the physical result rather than the
+identity of the controller.
+
+For target-facing combat, `NucleusMovementFacing3D` may face the selected target
+while the directional BlendSpace2D continues to read local body velocity. The AI
+therefore gets forward/back/strafe animation without issuing clip names.
+
+GameplayActions should also remain shared where rules match. AI chooses to attempt
+an action; the action owns gameplay validity/effects; OneShots present the result.
+
 ## Networking
 
 Replicate gameplay state/intent rather than bones by default:

@@ -1,93 +1,164 @@
 # AI / Navigation Quickstart
 
-## Recommended composition
+## Recommended 3D composition
 
-A production-oriented 3D enemy can start as:
+A reusable ground AI character can start as:
 
 ```text
 Enemy : CharacterBody3D
+├── CollisionShape3D
+├── CharacterMotor3D
 ├── NavigationAgent3D
-├── NavigationFollower : NucleusNavigationFollower3D
-├── TargetingAgent : NucleusTargetingAgent
-│   └── sensors / filters / scorers
-├── UtilityBrain : NucleusAIUtilityBrain
-│   └── TargetContext : NucleusAITargetContextProvider
-├── StateMachine : NucleusStateMachine
+├── NavigationFollower3D
+├── NavigationMotionSource3D
+├── MovementFacing3D
+├── TargetingAgent
+├── UtilityBrain
+├── StateMachine
 │   ├── Idle
 │   ├── Patrol
 │   ├── Chase
 │   ├── Attack
 │   └── Flee
-└── AIBridge : NucleusAIStateMachineBridge
+├── AIStateMachineBridge
+├── AICharacterSetup3D
+└── VisualRoot
+    ├── imported rig
+    ├── AnimationTree
+    └── AnimationVelocity3D
 ```
 
-A simple patrol NPC may need only NavigationAgent, NavigationFollower and
-NavigationWander.
+The important rule is:
 
-## 1. Build Godot navigation first
+```text
+AI chooses intent
+Navigation chooses a path velocity
+CharacterMotor3D owns physical movement
+Animation reads the resulting body velocity
+```
 
-Create/bake a native `NavigationRegion2D/3D`.
+Do not create separate AI physics or animation controllers when the player and AI
+share the same movement rules.
 
-Configure the NavigationAgent for the actor:
+## 1. Build native navigation first
+
+Create/bake a Godot `NavigationRegion3D`.
+
+Configure `NavigationAgent3D` for the actor:
 
 ```text
 radius / height
 path_desired_distance
 target_desired_distance
 navigation_layers
+avoidance only when actually needed
 ```
 
 Nucleus does not replace navigation mesh authoring.
 
-## 2. Configure NavigationFollower
+## 2. Keep CharacterMotor3D as locomotion authority
 
-Example 3D values:
+Configure the same motor you would use for a player:
+
+```text
+speed
+ground_acceleration
+ground_deceleration
+air_acceleration
+gravity
+jump policy when applicable
+```
+
+AI does not write `CharacterBody3D.velocity` directly.
+
+## 3. Add NavigationFollower3D
+
+Configure:
 
 ```text
 agent = NavigationAgent3D
 origin = Enemy
-movement_speed = 4.0
 target_repath_distance = 0.75
 minimum_repath_interval = 0.20
 ```
 
-Static goal:
+The follower owns path/repath/avoidance intent.
+
+## 4. Add NavigationMotionSource3D
+
+Assign:
+
+```text
+follower = NavigationFollower3D
+```
+
+Then:
+
+```text
+CharacterMotor3D.motion_source
+    = NavigationMotionSource3D
+```
+
+The complete movement path becomes:
+
+```text
+NavigationFollower.output_velocity
+→ NavigationMotionSource3D
+→ CharacterMotor3D
+→ CharacterBody3D
+```
+
+The adapter synchronizes navigation max speed to:
+
+```gdscript
+motor.get_max_planar_speed()
+```
+
+The setup helper also schedules the follower before the motor by default so each
+physics tick consumes freshly computed navigation intent rather than a
+tree-order-dependent previous-frame value.
+
+by default.
+
+This means a motor speed multiplier, slow effect or other locomotion modifier
+does not leave navigation steering at an obsolete speed.
+
+## 5. Use AICharacterSetup3D to remove wiring work
+
+Add:
+
+```text
+NucleusAICharacterSetup3D
+```
+
+Use Inspector actions:
+
+```text
+Auto Resolve AI Character
+Wire Navigation Locomotion
+Sync Locomotion Speeds
+Print AI Character Report
+```
+
+The helper can create missing plumbing components according to its creation
+toggles.
+
+It does not create an authored NavigationAgent automatically because agent
+radius, layers and avoidance policy are game/world-specific.
+
+## 6. Manage goals from behavior states
+
+Static destination:
 
 ```gdscript
 follower.set_target_position(destination)
 ```
 
-Moving goal:
+Moving target:
 
 ```gdscript
-follower.follow_node(player)
+follower.follow_node(target)
 ```
-
-The follower handles the required NavigationAgent physics update.
-
-## 3. Move the actor
-
-Follower does not move the body.
-
-A simple ground state can consume:
-
-```gdscript
-var nav_velocity: Vector3 = follower.output_velocity
-
-body.velocity.x = nav_velocity.x
-body.velocity.z = nav_velocity.z
-
-_apply_gravity()
-body.move_and_slide()
-```
-
-When avoidance is enabled, `output_velocity` is the most recently computed safe
-velocity. You may also cache `velocity_ready`.
-
-This separation keeps gravity, acceleration, root motion and special movement in
-the gameplay locomotion layer.
-
-## 4. Manage goals
 
 Stop:
 
@@ -95,165 +166,9 @@ Stop:
 follower.clear_target()
 ```
 
-Force a new path next update:
+A Chase state no longer needs to assign body velocity every physics frame.
 
-```gdscript
-follower.request_repath()
-```
-
-Following a moving Node does not reset `target_position` each frame. The
-distance and interval policies throttle repathing.
-
-## 5. Add wander/patrol
-
-Add `NucleusNavigationWander3D` and assign the follower.
-
-Example:
-
-```text
-radius = 15
-minimum_wait = 1.5
-maximum_wait = 4.0
-```
-
-For a StateMachine-driven NPC, stop Wander when leaving Patrol and restart it
-when Patrol enters.
-
-For explicit patrol routes, do not use Wander; advance authored waypoints from
-the Patrol state.
-
-## 6. Reuse targeting as perception
-
-The existing targeting pipeline stays responsible for candidate discovery:
-
-```text
-sensors
-→ filters
-→ scorers
-→ TargetingAgent.current
-```
-
-Add `NucleusAITargetContextProvider` under the brain and assign that
-TargetingAgent.
-
-The Utility context receives:
-
-```text
-has_target
-targetable
-target
-target_point
-target_position
-target_distance
-```
-
-Changing the selected target requests immediate reevaluation.
-
-## 7. Create utility options
-
-Create `NucleusAIUtilityOption` Resources.
-
-Example Chase:
-
-```text
-option_id = chase
-base_score = 0.8
-```
-
-Add `NucleusAIContextBoolConsideration`:
-
-```text
-context_key = has_target
-expected_value = true
-```
-
-No target now means zero Chase utility.
-
-## 8. Attack by range
-
-Attack option:
-
-```text
-option_id = attack
-base_score = 1.0
-```
-
-Considerations:
-
-```text
-Boolean:
-    context_key = has_target
-    expected_value = true
-
-Float:
-    context_key = target_distance
-    minimum_value = 0
-    maximum_value = 10
-    invert = true
-```
-
-A native Godot `Curve` can make the distance response non-linear.
-
-## 9. Add game-specific context
-
-For low-health fleeing:
-
-```gdscript
-class_name GameHealthAIContext
-extends NucleusAIContextProvider
-
-@export var attributes: NucleusAttributeSet
-@export var maximum_health: float = 100.0
-
-
-func contribute(context: Dictionary) -> void:
-	var health: float = attributes.get_value(&"health")
-	context[&"health_ratio"] = clampf(
-		health / maxf(maximum_health, 0.001),
-		0.0,
-		1.0,
-	)
-```
-
-When health changes, the provider may call:
-
-```gdscript
-notify_context_changed()
-```
-
-so the brain reevaluates at the next physics opportunity rather than waiting for
-the normal interval.
-
-Nucleus deliberately does not hard-code a `health` attribute ID.
-
-## 10. Bridge Utility AI into FSM
-
-Create `NucleusAIStateBinding` Resources:
-
-```text
-patrol → Patrol
-chase  → Chase
-attack → Attack
-flee   → Flee
-```
-
-Assign them to `NucleusAIStateMachineBridge`.
-
-The runtime flow becomes:
-
-```text
-context
-→ UtilityBrain
-→ winning option
-→ bridge
-→ StateMachine.change_state()
-```
-
-FSM transition rejection remains authoritative.
-
-## 11. Chase state
-
-A Chase state can remain small:
+Typical state:
 
 ```gdscript
 func enter(
@@ -268,95 +183,211 @@ func enter(
 
 func exit(_next: NucleusState) -> void:
 	follower.clear_target()
-
-
-func physics_update(_delta: float) -> void:
-	var velocity: Vector3 = follower.output_velocity
-
-	body.velocity.x = velocity.x
-	body.velocity.z = velocity.z
-	_apply_gravity()
-	body.move_and_slide()
 ```
 
-Perception, decisions, path following and movement remain separate.
+The shared motor keeps moving between AI decision ticks.
 
-## 12. Native avoidance
+## 7. Reuse targeting as perception
 
-Enable `NavigationAgent.avoidance_enabled` only for actors that need it.
-
-Follower sends desired velocity into the agent and exposes
-`velocity_computed` through `output_velocity` / `velocity_ready`.
-
-For large crowds, profile before enabling RVO for every NPC.
-
-## 13. Navigation links
-
-Listen to:
+Use the existing targeting pipeline:
 
 ```text
-follower.navigation_link_reached
+sensors
+→ filters
+→ scorers
+→ TargetingAgent.current
 ```
 
-for custom traversal such as:
+`NucleusAITargetContextProvider` can expose target information to Utility AI.
+
+## 8. Utility AI decides intention
+
+Create `NucleusAIUtilityOption` resources such as:
 
 ```text
-jump gap
-ladder
-vault
-door interaction
-teleport
-special animation
+idle
+patrol
+chase
+attack
+flee
 ```
 
-Do not call `get_next_path_position()` from the link signal handler. Follower
-already advances native navigation during physics processing.
+Use normalized considerations for target presence, distance, health, resources or
+game-specific context.
 
-## 14. Evaluation cadence
-
-Default:
+Utility AI should not call:
 
 ```text
-evaluation_interval = 0.25
+body.move_and_slide()
+AnimationTree.travel()
 ```
 
-is appropriate for many NPC decisions.
+directly.
 
-Use smaller intervals only where responsiveness demands it.
+## 9. Use the existing Utility → State bridge
 
-Important gameplay events can call:
+Map options through:
+
+```text
+NucleusAIStateBinding
+NucleusAIStateMachineBridge
+```
+
+Example:
+
+```text
+patrol → Patrol
+chase  → Chase
+attack → Attack
+flee   → Flee
+```
+
+The FSM remains authoritative for whether a transition is valid.
+
+## 10. Reuse GameplayActions
+
+If player and AI attacks follow the same rules, both should call the same
+`NucleusGameplayAction`.
+
+```text
+player input ─┐
+              ├→ Attack GameplayAction
+AI state ─────┘
+```
+
+Requirements, cooldown, cost and effects remain identical.
+
+## 11. Facing policy
+
+For normal movement:
+
+```text
+MovementFacing3D.mode = MOVEMENT
+```
+
+For lock-on/strafe combat:
 
 ```gdscript
-brain.request_evaluation()
+facing.set_facing_target(target_point)
 ```
 
-or a ContextProvider can emit `context_changed`.
+Now AI may move sideways while continuing to face its opponent.
 
-## 15. Persistent AI
+The directional AnimationTree reads local body velocity and naturally resolves
+forward/back/strafe clips.
 
-Persist durable state through the world-state module:
+## 12. Animation requires no AI-specific controller
+
+Use the same:
 
 ```text
-WorldEntity
-├── TransformState
-├── StateMachineState
-├── AttributesState
-└── InventoryState
+NucleusAnimationVelocityBinding3D
+AnimationTree
+OneShotController
+AnimationQualityController3D
 ```
 
-Do not save the NavigationAgent path.
+as any other character.
+
+Animation sees the physical result:
+
+```text
+CharacterBody3D.velocity
+```
+
+not the source that produced it.
+
+## 13. Jump and traversal
+
+Programmatic behavior can call:
+
+```gdscript
+motor.request_jump()
+```
+
+without manufacturing an input event.
+
+Navigation links remain game-semantic:
+
+```text
+jump
+vault
+door
+ladder
+teleport
+elevator
+```
+
+Listen to `navigation_link_reached` and dispatch the appropriate state/action.
+Nucleus does not guess link semantics.
+
+## 14. Avoidance
+
+When native avoidance is enabled, `NavigationMotionSource3D` consumes the
+follower's safe `output_velocity`.
+
+Avoidance has a runtime cost. Enable it only for agents that need local collision
+avoidance and profile large crowds.
+
+## 15. Scheduling and performance
+
+A useful separation is:
+
+```text
+UtilityBrain
+    2–5 Hz for many ordinary NPCs
+
+target/perception refresh
+    game-dependent, often staggered
+
+path repath
+    movement threshold + interval
+
+navigation steering
+    physics
+
+CharacterMotor3D
+    physics
+
+animation
+    Full / Reduced / Minimal presentation policy
+```
+
+The brain can think more slowly without making locomotion physically choppy.
+
+For many actors, assign `NucleusUpdateScheduler` to UtilityBrain so evaluations
+do not align on the same frame.
+
+## 16. Validate the character
+
+`Print AI Character Report` checks common wiring mistakes:
+
+```text
+motor not using navigation source
+follower using wrong NavigationAgent
+wrong follower origin
+navigation/motor speed mismatch
+facing wired to another motor
+animation velocity reading another body
+UtilityBrain/StateMachine without bridge
+bridge without authored bindings
+```
+
+It also reports performance notes such as active RVO or an unstaggered
+interval-driven UtilityBrain.
+
+## 17. Persistence and multiplayer
+
+Persist durable AI state, not native path internals.
 
 After load:
 
 ```text
-durable state restored
+durable gameplay state restored
 → UtilityBrain evaluates
-→ navigation intent rebuilt
+→ behavior state chooses goal
+→ navigation path rebuilt
 ```
 
-## 16. Multiplayer
-
-Normally run authoritative AI on the server.
-
-Replicate the actor state/results appropriate to the game instead of asking each
-client to independently make authoritative Utility AI decisions.
+For multiplayer, authoritative AI normally runs on the server/host and clients
+receive the game-specific replicated state.

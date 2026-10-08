@@ -1,6 +1,19 @@
 extends "res://tests/headless/test_case.gd"
 
 
+class FixedMotionSource3D:
+	extends NucleusPlanarMotionSource3D
+
+	var requested_velocity: Vector3 = Vector3.ZERO
+
+
+	func get_desired_velocity(
+		_body: CharacterBody3D,
+		_max_planar_speed: float,
+	) -> Vector3:
+		return requested_velocity
+
+
 func run() -> Dictionary:
 	_test_float_consideration()
 	_test_bool_consideration()
@@ -9,6 +22,10 @@ func run() -> Dictionary:
 	_test_brain_current_option_bonus()
 	_test_repath_policy()
 	_test_invalid_navigation_query_fallback()
+	_test_navigation_motion_source()
+	_test_character_motor_motion_source()
+	_test_movement_facing_modes()
+	_test_ai_character_setup_wiring()
 	return finish()
 
 
@@ -181,3 +198,179 @@ func _test_invalid_navigation_query_fallback() -> void:
 		),
 		"3D query should fail safely without a navigation map.",
 	)
+
+
+func _test_navigation_motion_source() -> void:
+	var body := CharacterBody3D.new()
+	var agent := NavigationAgent3D.new()
+	var follower := NucleusNavigationFollower3D.new()
+	var source := NucleusNavigationMotionSource3D.new()
+
+	body.add_child(agent)
+	body.add_child(follower)
+	body.add_child(source)
+
+	follower.agent = agent
+	follower.origin = body
+	follower.output_velocity = Vector3(8.0, 3.0, 0.0)
+	source.follower = follower
+
+	var velocity := source.get_desired_velocity(body, 4.0)
+
+	expect_float(
+		velocity.length(),
+		4.0,
+		"Navigation motion source should clamp to motor max planar speed.",
+	)
+	expect_float(
+		velocity.y,
+		0.0,
+		"Navigation motion source should remove vertical intent.",
+	)
+	expect_float(
+		follower.movement_speed,
+		4.0,
+		"Navigation motion source should synchronize follower speed.",
+	)
+	expect_float(
+		agent.max_speed,
+		4.0,
+		"Navigation motion source should synchronize native agent max speed.",
+	)
+
+	body.free()
+
+
+func _test_character_motor_motion_source() -> void:
+	var body := CharacterBody3D.new()
+	var source := FixedMotionSource3D.new()
+	var motor := NucleusCharacterMotor3D.new()
+
+	body.add_child(source)
+	body.add_child(motor)
+	motor.body = body
+	motor.motion_source = source
+	motor.speed = 5.0
+	motor.speed_multiplier = 0.5
+	motor.air_acceleration = 1000.0
+	motor.gravity_scale = 0.0
+	source.requested_velocity = Vector3(10.0, 0.0, 0.0)
+
+	expect_true(
+		attach_test_node(body),
+		"Motion-source motor test requires a live SceneTree.",
+	)
+
+	motor._physics_process(0.1)
+
+	expect_float(
+		motor.get_max_planar_speed(),
+		2.5,
+		"CharacterMotor3D should expose effective max planar speed.",
+	)
+	expect_float(
+		motor.desired_velocity.length(),
+		2.5,
+		"Motion-source intent should respect effective motor speed.",
+	)
+	expect_float(
+		NucleusMotionMath.planar_component_3d(
+			body.velocity,
+			body.up_direction,
+		).length(),
+		2.5,
+		"AI motion source should use the same CharacterMotor3D physics path.",
+	)
+
+	free_test_node(body)
+
+
+func _test_movement_facing_modes() -> void:
+	var body := CharacterBody3D.new()
+	var motor := NucleusCharacterMotor3D.new()
+	var visual := Node3D.new()
+	var target := Node3D.new()
+	var facing := NucleusMovementFacing3D.new()
+
+	body.add_child(motor)
+	body.add_child(visual)
+	body.add_child(facing)
+	motor.body = body
+	facing.motor = motor
+	facing.target = visual
+	target.global_position = Vector3(10.0, 0.0, 0.0)
+
+	facing.set_facing_target(target)
+
+	expect_true(
+		facing.get_desired_facing_direction().is_equal_approx(
+			Vector3.RIGHT
+		),
+		"Target-facing mode should resolve a planar target direction.",
+	)
+
+	facing.set_facing_direction(Vector3.BACK)
+	expect_true(
+		facing.get_desired_facing_direction().is_equal_approx(
+			Vector3.BACK
+		),
+		"Direction-facing mode should preserve explicit world direction.",
+	)
+
+	target.free()
+	body.free()
+
+
+func _test_ai_character_setup_wiring() -> void:
+	var actor := CharacterBody3D.new()
+	var agent := NavigationAgent3D.new()
+	var setup := NucleusAICharacterSetup3D.new()
+
+	actor.add_child(agent)
+	actor.add_child(setup)
+	setup.actor = actor
+	setup.navigation_agent = agent
+
+	expect_equal(
+		setup.wire_navigation_locomotion(),
+		OK,
+		"AI character setup should create and wire reusable locomotion plumbing.",
+	)
+	expect_true(
+		setup.motor != null,
+		"AI setup should create a CharacterMotor3D when requested.",
+	)
+	expect_true(
+		setup.navigation_follower != null,
+		"AI setup should create NavigationFollower3D when requested.",
+	)
+	expect_true(
+		setup.navigation_motion_source != null,
+		"AI setup should create NavigationMotionSource3D when requested.",
+	)
+	expect_true(
+		setup.motor.motion_source == setup.navigation_motion_source,
+		"AI setup should connect navigation intent to the shared motor.",
+	)
+	expect_true(
+		setup.navigation_motion_source.follower
+		== setup.navigation_follower,
+		"AI setup should wire its motion source to its follower.",
+	)
+	expect_true(
+		setup.navigation_follower.process_physics_priority
+		< setup.motor.process_physics_priority,
+		"AI setup should schedule navigation before physical locomotion.",
+	)
+
+	var report := setup.get_character_report()
+	var warnings: PackedStringArray = report.get(
+		"warnings",
+		PackedStringArray(),
+	)
+	expect_true(
+		warnings.is_empty(),
+		"Minimal navigation locomotion setup should validate cleanly.",
+	)
+
+	actor.free()

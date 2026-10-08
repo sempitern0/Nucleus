@@ -11,21 +11,144 @@ components/gameplay/camera
 Game-facing movement and camera behavior is scene-owned and split into small
 adapters around Godot-native character/camera nodes.
 
-## Input versus movement
+## One motor, several intent producers
 
-Control components translate semantic Nucleus/Godot input into motion intent.
-Movement components apply that intent to `CharacterBody2D` or
+`NucleusCharacterMotor3D` remains the physical movement owner for a normal
 `CharacterBody3D`.
 
+It can receive planar intent from either:
+
+```text
+NucleusMotionInput
+    player / local-seat semantic input
+
+NucleusPlanarMotionSource3D
+    AI / autopilot / replay / cutscene / proxy intent
+```
+
+When an enabled `motion_source` is assigned it has priority for planar movement.
+If that source is disabled, the motor falls back to `motion_input` when present.
+
+This lets different controllers reuse the same:
+
+```text
+acceleration / deceleration
+gravity
+jump implementation
+CharacterBody3D velocity
+move_and_slide()
+ground transitions
+animation velocity source
+```
+
+Do not create a separate AI motor when only the producer of movement intent
+changes.
+
+## Motion-source contract
+
+A `NucleusPlanarMotionSource3D` returns desired **world-space planar velocity**.
+
+Velocity is used instead of direction alone so a source can request:
+
+```text
+stop
+slow approach
+40% gait
+full-speed chase
+avoidance-corrected velocity
+```
+
+`CharacterMotor3D` clamps the request to:
+
+```text
+speed * speed_multiplier
+```
+
+and exposes that limit through:
+
+```gdscript
+motor.get_max_planar_speed()
+```
+
+Vertical movement remains owned by the motor/gameplay unless a distinct movement
+model is intentionally introduced.
+
+## Navigation integration
+
+The AI module provides:
+
+```text
+NucleusNavigationMotionSource3D
+```
+
+which adapts `NucleusNavigationFollower3D.output_velocity` into the common motor.
+
+The flow is:
+
+```text
+NavigationAgent3D
+        ↓
+NavigationFollower3D
+    path / avoidance intent
+        ↓
+NavigationMotionSource3D
+        ↓
+CharacterMotor3D
+        ↓
+CharacterBody3D
+```
+
+The adapter can synchronize follower/native-agent maximum speed to the motor's
+effective maximum so status effects or speed multipliers do not leave path
+steering and physical locomotion using different limits.
+
+## Input versus movement
+
+`NucleusMotionInput` translates semantic Nucleus/Godot input into player movement
+intent.
+
 Keep input collection separate from physical motion so AI, replay, local
-multiplayer, or game-specific controllers can provide intent without rewriting
-movement.
+multiplayer, scripted movement, or networking can provide intent without
+rewriting locomotion.
+
+Programmatic systems can still call:
+
+```gdscript
+motor.request_jump()
+```
+
+rather than manufacturing fake input events.
 
 ## Godot-native motion
 
 `CharacterBody2D`, `CharacterBody3D`, their `velocity`, and `move_and_slide()`
-remain the physical source of truth. Nucleus does not maintain a second motion
-model.
+remain the physical source of truth.
+
+Nucleus does not maintain a second motion simulation.
+
+## Facing
+
+`NucleusMovementFacing3D` rotates a dedicated visual pivot and supports:
+
+```text
+MOVEMENT
+    face CharacterMotor3D desired movement
+
+TARGET
+    keep looking at a moving Node3D target
+
+DIRECTION
+    face an explicit world-space direction
+```
+
+`MOVEMENT` preserves the original behavior and costs no extra polling beyond the
+motor movement signal.
+
+`TARGET` and `DIRECTION` update during physics processing because facing may need
+to change while the actor is stationary.
+
+This supports both player lock-on and AI combat strafing without adding a
+separate AI-facing implementation.
 
 ## Cameras
 
@@ -40,20 +163,33 @@ See `camera_game_feel.md` for the feedback contract.
 
 ## Animation integration
 
-Velocity adapters project `CharacterBody` motion into `AnimationTree`
-parameters. Movement components do not select clips directly.
+Velocity adapters project **actual `CharacterBody` motion** into `AnimationTree`
+parameters.
+
+This is intentionally controller-agnostic:
+
+```text
+player input ─┐
+AI navigation ├→ same motor → same body velocity → same AnimationTree
+autopilot  ───┘
+```
+
+Movement components do not select clips directly.
 
 A production 3D model remains a presentation child of the stable
-`CharacterBody3D` gameplay root. See `animation_integration.md` and the 3D
-character animation tutorial.
+`CharacterBody3D` gameplay root. See `animation_integration.md`.
 
 ## Multiplayer
 
-Local-player ownership belongs to the input layer. A movement component receives
-intent for its player; it should not inspect global last-used-device state as an
-ownership mechanism.
+Local-player ownership belongs to the input layer.
+
+For authoritative AI, run decision/navigation/movement on the authority and
+replicate the gameplay state/results required by the game. Do not make visual
+animation the network authority.
 
 ## Extension rule
 
-Add a movement model only when its physics policy differs materially. Add a
-controller/intent producer when only the source of movement input changes.
+Add a movement model only when its physics policy differs materially.
+
+Add a motion-source/controller adapter when only the source of desired movement
+changes.

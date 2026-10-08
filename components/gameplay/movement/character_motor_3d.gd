@@ -2,8 +2,9 @@ class_name NucleusCharacterMotor3D
 extends Node
 ## Ground/air locomotion for an existing CharacterBody3D.
 ##
-## The orientation source determines camera-relative or actor-relative movement.
-## Gravity comes from PhysicsBody3D.get_gravity(), preserving Area3D overrides.
+## Player-controlled actors may keep using NucleusMotionInput. AI/autopilot/
+## replay actors can provide world-space planar intent through
+## NucleusPlanarMotionSource3D without duplicating physical locomotion.
 
 signal movement_updated(
 	direction: Vector3,
@@ -15,6 +16,7 @@ signal left_ground
 
 @export var body: CharacterBody3D
 @export var motion_input: NucleusMotionInput
+@export var motion_source: NucleusPlanarMotionSource3D
 @export var orientation_source: Node3D
 
 @export_group("Planar movement")
@@ -85,28 +87,14 @@ func _exit_tree() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not enabled or body == null or motion_input == null:
+	if not enabled or body == null:
+		return
+
+	if motion_source == null and motion_input == null:
 		return
 
 	_update_ground_jump_state(delta)
-
-	var input_direction: Vector2 = motion_input.get_move_vector()
-	var source_basis: Basis = (
-		orientation_source.global_basis
-		if orientation_source
-		else body.global_basis
-	)
-
-	desired_direction = NucleusMotionMath.planar_direction_3d(
-		input_direction,
-		source_basis,
-		body.up_direction,
-	)
-	desired_velocity = (
-		desired_direction
-		* speed
-		* maxf(0.0, speed_multiplier)
-	)
+	_update_planar_intent()
 
 	_apply_planar_motion(delta)
 	_try_consume_jump()
@@ -136,6 +124,10 @@ func set_speed_multiplier(multiplier: float) -> void:
 	speed_multiplier = maxf(0.0, multiplier)
 
 
+func get_max_planar_speed() -> float:
+	return maxf(speed, 0.0) * maxf(speed_multiplier, 0.0)
+
+
 func get_ground_speed() -> float:
 	if body == null:
 		return 0.0
@@ -156,6 +148,66 @@ func stop_planar(immediate: bool = false) -> void:
 	body.velocity = NucleusMotionMath.vertical_component_3d(
 		body.velocity,
 		body.up_direction,
+	)
+
+
+func _update_planar_intent() -> void:
+	if motion_source != null and motion_source.enabled:
+		_update_motion_source_intent()
+		return
+
+	_update_input_intent()
+
+
+func _update_motion_source_intent() -> void:
+	var maximum_speed := get_max_planar_speed()
+	var requested := motion_source.get_desired_velocity(
+		body,
+		maximum_speed,
+	)
+
+	if not requested.is_finite():
+		requested = Vector3.ZERO
+
+	requested = NucleusMotionMath.planar_component_3d(
+		requested,
+		body.up_direction,
+	)
+
+	if maximum_speed <= 0.0:
+		requested = Vector3.ZERO
+	elif requested.length() > maximum_speed:
+		requested = requested.normalized() * maximum_speed
+
+	desired_velocity = requested
+	desired_direction = (
+		requested.normalized()
+		if not requested.is_zero_approx()
+		else Vector3.ZERO
+	)
+
+
+func _update_input_intent() -> void:
+	if motion_input == null:
+		desired_direction = Vector3.ZERO
+		desired_velocity = Vector3.ZERO
+		return
+
+	var input_direction: Vector2 = motion_input.get_move_vector()
+	var source_basis: Basis = (
+		orientation_source.global_basis
+		if orientation_source
+		else body.global_basis
+	)
+
+	desired_direction = NucleusMotionMath.planar_direction_3d(
+		input_direction,
+		source_basis,
+		body.up_direction,
+	)
+	desired_velocity = (
+		desired_direction
+		* get_max_planar_speed()
 	)
 
 
@@ -317,7 +369,7 @@ func _resolve_dependencies() -> void:
 	if motion_input == null:
 		motion_input = _find_motion_input()
 
-	if orientation_source == null:
+	if orientation_source == null and body != null:
 		orientation_source = body
 
 	if body == null:
@@ -326,9 +378,10 @@ func _resolve_dependencies() -> void:
 			&"CharacterMotor3D",
 		)
 
-	if motion_input == null:
+	if motion_source == null and motion_input == null:
 		NucleusLog.error(
-			"%s requires a NucleusMotionInput." % get_path(),
+			"%s requires MotionInput or PlanarMotionSource3D."
+			% get_path(),
 			&"CharacterMotor3D",
 		)
 

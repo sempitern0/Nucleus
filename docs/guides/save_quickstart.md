@@ -19,9 +19,9 @@ Register explicit participants:
 
 ```gdscript
 save_session.register_participant(
-    &"player",
-    player.capture_state,
-    player.restore_state,
+	&"player",
+	player.capture_state,
+	player.restore_state,
 )
 ```
 
@@ -54,6 +54,44 @@ autosave
 They are appropriate for small/medium snapshots and lifecycle boundaries that
 must complete immediately.
 
+## Continue / resume the newest snapshot
+
+When a Continue action should restore whichever successful snapshot is newest,
+use:
+
+```gdscript
+var result := save_session.load_latest()
+```
+
+By default Nucleus considers:
+
+```text
+autosave
+quicksave
+manual
+```
+
+but timestamp wins before kind preference. The kind list only breaks an exact
+timestamp tie.
+
+To restrict the eligible kinds:
+
+```gdscript
+var result := NucleusSave.load_latest(
+	"slot_1",
+	PackedInt32Array([
+		NucleusSaveTypes.Kind.MANUAL,
+		NucleusSaveTypes.Kind.AUTOSAVE,
+	]),
+)
+```
+
+New save documents store microsecond update timestamps so rapid manual/autosave
+sequences do not collapse into the same whole second. Older documents remain
+compatible through whole-second fallback.
+
+See [`../components/save_resume.md`](../components/save_resume.md).
+
 ## Large participant sets
 
 When capture itself causes a visible spike, create a bounded capture job:
@@ -62,8 +100,8 @@ When capture itself causes a visible spike, create a bounded capture job:
 var job := save_session.create_capture_job()
 
 while not job.is_completed():
-    job.step(8)
-    await get_tree().process_frame
+	job.step(8)
+	await get_tree().process_frame
 
 var payload := job.take_snapshot()
 ```

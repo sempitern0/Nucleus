@@ -24,9 +24,11 @@ rules.
 | Settings, input, rebinding and device hot-swap | [`guides/settings_input_quickstart.md`](guides/settings_input_quickstart.md) |
 | UI, focus, accessibility and presentation | [`guides/ui_quickstart.md`](guides/ui_quickstart.md) |
 | Audio, save and localization | [`guides/runtime_services_quickstart.md`](guides/runtime_services_quickstart.md) |
+| Continue/resume newest save | [`components/save_resume.md`](components/save_resume.md) |
 | Scene transitions and recovery | [`guides/scene_flow_quickstart.md`](guides/scene_flow_quickstart.md) |
 | Resource batches / loading presentation | [`guides/resource_loading_quickstart.md`](guides/resource_loading_quickstart.md) |
 | Gameplay foundation | [`guides/gameplay_foundation_quickstart.md`](guides/gameplay_foundation_quickstart.md) |
+| Safe spawn / teleport / exit placement | [`components/safe_placement_queries.md`](components/safe_placement_queries.md) |
 | Actions, attributes and status effects | [`guides/actions_attributes_status_quickstart.md`](guides/actions_attributes_status_quickstart.md) |
 | Pooling and targeting | [`guides/pooling_targeting_quickstart.md`](guides/pooling_targeting_quickstart.md) |
 
@@ -75,11 +77,13 @@ Useful focused contracts include:
 
 ```text
 components/world_time_environment.md
+components/world_scheduling_and_batched_fx.md
 components/world_surfaces.md
 components/world_buoyancy.md
 components/world_feedback.md
 components/world_decals.md
 components/gameplay_movement_camera.md
+components/safe_placement_queries.md
 components/animation_integration.md
 components/camera_game_feel.md
 components/ui_runtime_bindings.md

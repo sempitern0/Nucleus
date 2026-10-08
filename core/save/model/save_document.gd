@@ -11,6 +11,8 @@ var schema_version: int = 1
 
 var created_at_unix: int = 0
 var updated_at_unix: int = 0
+var created_at_unix_usec: int = 0
+var updated_at_unix_usec: int = 0
 
 var game_version: String = ""
 var engine_version: String = ""
@@ -30,6 +32,8 @@ func to_dictionary(include_integrity: bool = true) -> Dictionary:
 			"schema_version": schema_version,
 			"created_at_unix": created_at_unix,
 			"updated_at_unix": updated_at_unix,
+			"created_at_unix_usec": get_created_at_usec(),
+			"updated_at_unix_usec": get_updated_at_usec(),
 			"game_version": game_version,
 			"engine_version": engine_version,
 		},
@@ -43,6 +47,18 @@ func to_dictionary(include_integrity: bool = true) -> Dictionary:
 	return document
 
 
+func get_created_at_usec() -> int:
+	if created_at_unix_usec > 0:
+		return created_at_unix_usec
+	return maxi(created_at_unix, 0) * 1000000
+
+
+func get_updated_at_usec() -> int:
+	if updated_at_unix_usec > 0:
+		return updated_at_unix_usec
+	return maxi(updated_at_unix, 0) * 1000000
+
+
 static func from_dictionary(data: Dictionary) -> NucleusSaveDocument:
 	if not data.has("nucleus"):
 		return null
@@ -51,10 +67,8 @@ static func from_dictionary(data: Dictionary) -> NucleusSaveDocument:
 
 	if typeof(nucleus_data) != TYPE_DICTIONARY:
 		return null
-
 	if str(nucleus_data.get("magic", "")) != MAGIC:
 		return null
-
 	if int(nucleus_data.get("container_version", 0)) != CONTAINER_VERSION:
 		return null
 
@@ -70,6 +84,18 @@ static func from_dictionary(data: Dictionary) -> NucleusSaveDocument:
 	document.updated_at_unix = int(
 		nucleus_data.get("updated_at_unix", 0)
 	)
+	document.created_at_unix_usec = int(
+		nucleus_data.get(
+			"created_at_unix_usec",
+			document.created_at_unix * 1000000,
+		)
+	)
+	document.updated_at_unix_usec = int(
+		nucleus_data.get(
+			"updated_at_unix_usec",
+			document.updated_at_unix * 1000000,
+		)
+	)
 	document.game_version = str(nucleus_data.get("game_version", ""))
 	document.engine_version = str(nucleus_data.get("engine_version", ""))
 
@@ -79,15 +105,12 @@ static func from_dictionary(data: Dictionary) -> NucleusSaveDocument:
 
 	if typeof(metadata_value) != TYPE_DICTIONARY:
 		return null
-
 	if typeof(payload_value) != TYPE_DICTIONARY:
 		return null
-
 	if typeof(integrity_value) != TYPE_DICTIONARY:
 		return null
 
 	document.metadata = metadata_value.duplicate(true)
 	document.payload = payload_value.duplicate(true)
 	document.integrity = integrity_value.duplicate(true)
-
 	return document

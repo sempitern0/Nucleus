@@ -6,6 +6,7 @@ func run() -> Dictionary:
 	_test_clock_state_restore()
 	_test_day_period_classifier()
 	_test_daylight_profile_and_driver()
+	_test_deterministic_schedule()
 	return finish()
 
 
@@ -198,3 +199,61 @@ func _test_daylight_profile_and_driver() -> void:
 	sun.free()
 	world_environment.free()
 	clock.free()
+
+
+func _test_deterministic_schedule() -> void:
+	var schedule := NucleusDeterministicSchedule.new()
+	schedule.seed = 4242
+	schedule.segment_duration_seconds = 21600.0
+	schedule.transition_duration_seconds = 1800.0
+
+	expect_equal(
+		schedule.get_segment_index(0.0),
+		0,
+		"Schedule starts in segment zero.",
+	)
+	expect_equal(
+		schedule.get_previous_segment_index(0.0),
+		-1,
+		"Schedule exposes the deterministic segment before the epoch.",
+	)
+	expect_equal(
+		schedule.get_segment_index(21600.0),
+		1,
+		"Schedule advances at the exact segment boundary.",
+	)
+	expect_float(
+		schedule.get_transition_alpha(21600.0),
+		0.0,
+		"Segment boundary starts a transition from previous to current state.",
+	)
+	expect_float(
+		schedule.get_transition_alpha(23400.0),
+		1.0,
+		"Transition reaches the current segment state at configured duration.",
+	)
+
+	var first_seed := schedule.get_segment_seed(4, 2)
+	expect_equal(
+		first_seed,
+		schedule.get_segment_seed(4, 2),
+		"Segment seeds must be deterministic for the same stream.",
+	)
+	expect_true(
+		first_seed != schedule.get_segment_seed(5, 2),
+		"Different segments should derive different deterministic seeds.",
+	)
+
+	var rng_a := schedule.create_rng(8, 1)
+	var rng_b := schedule.create_rng(8, 1)
+	expect_equal(
+		rng_a.randi(),
+		rng_b.randi(),
+		"Schedule-created RNG streams should replay deterministically.",
+	)
+
+	schedule.transition_duration_seconds = 30000.0
+	expect_true(
+		not schedule.get_validation_errors().is_empty(),
+		"Schedule validation should reject transitions longer than a segment.",
+	)

@@ -138,6 +138,56 @@ func load_latest_autosave(slot_id: String) -> NucleusSaveResult:
 	return _finish_load(result, false)
 
 
+## Loads the newest successful candidate across the requested save kinds.
+##
+## Empty [param kinds] uses autosave, quicksave, then manual as the
+## exact-timestamp tie-break order. Timestamp always wins before kind order.
+func load_latest(
+	slot_id: String,
+	kinds: PackedInt32Array = PackedInt32Array(),
+) -> NucleusSaveResult:
+	if not _initialized:
+		return _unconfigured_result()
+
+	var order := NucleusSaveResumePolicy.normalize_kind_order(kinds)
+
+	if order.is_empty():
+		var invalid_result := NucleusSaveResult.new()
+		invalid_result.error = ERR_INVALID_PARAMETER
+		return _finish_load(invalid_result, false)
+
+	var candidates: Array[NucleusSaveResult] = []
+	var fallback_error: NucleusSaveResult
+
+	for kind: int in order:
+		var candidate := _load_raw_kind(slot_id, kind)
+		candidates.append(candidate)
+
+		if (
+			not candidate.succeeded()
+			and candidate.error != ERR_FILE_NOT_FOUND
+			and fallback_error == null
+		):
+			fallback_error = candidate
+
+	var selected := NucleusSaveResumePolicy.choose_latest(
+		candidates,
+		order,
+	)
+
+	if selected == null:
+		if fallback_error == null:
+			fallback_error = NucleusSaveResult.new()
+			fallback_error.error = ERR_FILE_NOT_FOUND
+
+		return _finish_load(fallback_error, false)
+
+	var rewrite_if_migrated := (
+		selected.document.kind != NucleusSaveTypes.Kind.AUTOSAVE
+	)
+	return _finish_load(selected, rewrite_if_migrated)
+
+
 func list_slots() -> PackedStringArray:
 	if not _initialized:
 		return PackedStringArray()
@@ -205,7 +255,7 @@ func _save(
 		invalid_metadata_result.error = metadata_error
 		return _emit_save_result(invalid_metadata_result)
 
-	var created_at_unix: int = _resolve_creation_timestamp(
+	var created_at_usec: int = _resolve_creation_timestamp_usec(
 		normalized_slot,
 		kind,
 	)
@@ -214,7 +264,7 @@ func _save(
 		kind,
 		payload,
 		metadata,
-		created_at_unix,
+		created_at_usec,
 	)
 
 	var result: NucleusSaveResult
@@ -301,20 +351,25 @@ func _create_document(
 	kind: int,
 	payload: Dictionary,
 	metadata: Dictionary,
-	created_at_unix: int = 0,
+	created_at_usec: int = 0,
 ) -> NucleusSaveDocument:
-	var now: int = int(Time.get_unix_time_from_system())
+	var now_usec := int(Time.get_unix_time_from_system() * 1000000.0)
+	var now := int(now_usec / 1000000)
 	var document := NucleusSaveDocument.new()
 
 	document.slot_id = slot_id
 	document.kind = kind
 	document.schema_version = profile.schema_version
-	document.created_at_unix = (
-		created_at_unix
-		if created_at_unix > 0
-		else now
+	document.created_at_unix_usec = (
+		created_at_usec
+		if created_at_usec > 0
+		else now_usec
+	)
+	document.created_at_unix = int(
+		document.created_at_unix_usec / 1000000
 	)
 	document.updated_at_unix = now
+	document.updated_at_unix_usec = now_usec
 	document.game_version = str(
 		ProjectSettings.get_setting(
 			"application/config/version",
@@ -330,7 +385,7 @@ func _create_document(
 	return document
 
 
-func _resolve_creation_timestamp(
+func _resolve_creation_timestamp_usec(
 	slot_id: String,
 	kind: int,
 ) -> int:
@@ -351,9 +406,28 @@ func _resolve_creation_timestamp(
 		and existing_result.succeeded()
 		and existing_result.document
 	):
-		return existing_result.document.created_at_unix
+		return existing_result.document.get_created_at_usec()
 
 	return 0
+
+
+func _load_raw_kind(
+	slot_id: String,
+	kind: int,
+) -> NucleusSaveResult:
+	match kind:
+		NucleusSaveTypes.Kind.MANUAL:
+			return _repository.load_manual(slot_id)
+
+		NucleusSaveTypes.Kind.QUICKSAVE:
+			return _repository.load_quick(slot_id)
+
+		NucleusSaveTypes.Kind.AUTOSAVE:
+			return _repository.load_latest_autosave(slot_id)
+
+	var invalid_result := NucleusSaveResult.new()
+	invalid_result.error = ERR_INVALID_PARAMETER
+	return invalid_result
 
 
 func _emit_save_result(

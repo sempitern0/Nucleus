@@ -52,10 +52,6 @@ func _exit_tree() -> void:
 		_autosave_timer.stop()
 
 
-## Registers one explicit save participant.
-##
-## [param capture] must return a save-safe Variant. [param restore] receives the
-## participant's saved Variant when a snapshot is applied.
 func register_participant(
 	participant_id: StringName,
 	capture: Callable,
@@ -151,7 +147,6 @@ func autosave(force: bool = false) -> NucleusSaveResult:
 	return result
 
 
-## Captures and saves a manual snapshot while bounding participant capture work.
 func save_manual_incremental(
 	participants_per_frame: int = 8,
 	format: int = -1,
@@ -170,7 +165,6 @@ func save_manual_incremental(
 	return result
 
 
-## Captures and saves a quick snapshot while bounding participant capture work.
 func save_quick_incremental(
 	participants_per_frame: int = 8,
 	format: int = -1,
@@ -189,8 +183,6 @@ func save_quick_incremental(
 	return result
 
 
-## Incremental autosave is opt-in. Lifecycle-triggered autosaves remain
-## synchronous so application pause/quit cannot abandon a partially captured job.
 func autosave_incremental(
 	force: bool = false,
 	participants_per_frame: int = 8,
@@ -260,6 +252,21 @@ func load_latest_autosave() -> NucleusSaveResult:
 	return result
 
 
+func load_latest(
+	kinds: PackedInt32Array = PackedInt32Array(),
+) -> NucleusSaveResult:
+	var result: NucleusSaveResult = NucleusSave.load_latest(
+		slot_id,
+		kinds,
+	)
+
+	if result.succeeded():
+		apply_snapshot(result.document.payload)
+
+	snapshot_loaded.emit(result)
+	return result
+
+
 func capture_snapshot() -> Dictionary:
 	var snapshot: Dictionary = {}
 
@@ -275,12 +282,10 @@ func capture_snapshot() -> Dictionary:
 	return snapshot
 
 
-## Creates a stable, step-driven capture job for custom frame budgeting.
 func create_capture_job() -> NucleusSaveCaptureJob:
 	return NucleusSaveCaptureJob.new(_participants)
 
 
-## Convenience coroutine that captures a bounded participant batch per frame.
 func capture_snapshot_incremental(
 	participants_per_frame: int = 8,
 ) -> Dictionary:

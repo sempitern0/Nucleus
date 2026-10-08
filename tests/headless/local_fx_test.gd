@@ -7,6 +7,7 @@ func run() -> Dictionary:
 	_test_volume_follow_axes()
 	_test_volume_intensity_and_quality()
 	_test_gpu_particles_binding()
+	_test_transient_surface_batch()
 	return finish()
 
 
@@ -193,3 +194,59 @@ func _test_gpu_particles_binding() -> void:
 	binding.free()
 	particles.free()
 	volume.free()
+
+
+func _test_transient_surface_batch() -> void:
+	var batch := NucleusTransientSurfaceBatch3D.new()
+	batch.capacity = 2
+
+	expect_true(
+		batch.emit_surface(
+			Vector3.ZERO,
+			Vector3.UP,
+			Vector2.ONE,
+			1.0,
+		),
+		"Transient surface batch should accept a valid effect.",
+	)
+	expect_true(
+		batch.emit_surface(
+			Vector3.RIGHT,
+			Vector3.UP,
+			Vector2.ONE,
+			1.0,
+		),
+		"Transient surface batch should fill remaining capacity.",
+	)
+	expect_true(
+		batch.emit_surface(
+			Vector3.LEFT,
+			Vector3.UP,
+			Vector2.ONE,
+			1.0,
+		),
+		"Transient surface batch should recycle when capacity is full.",
+	)
+	expect_equal(
+		batch.get_active_count(),
+		2,
+		"Transient surface batch must remain bounded by capacity.",
+	)
+
+	batch.advance(1.1)
+	expect_equal(
+		batch.get_active_count(),
+		0,
+		"Expired transient effects should leave the batch.",
+	)
+	expect_false(
+		batch.emit_surface(
+			Vector3.ZERO,
+			Vector3.ZERO,
+			Vector2.ONE,
+			1.0,
+		),
+		"Transient surface batch should reject a zero surface normal.",
+	)
+
+	batch.free()

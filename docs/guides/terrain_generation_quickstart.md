@@ -3,14 +3,16 @@
 Use `modules/terrain` when the project needs fast generated 3D heightfield
 terrain without adopting a manual terrain-painting workflow.
 
-Technical contract:
+Technical contracts:
 
-[`../modules/terrain_generation.md`](../modules/terrain_generation.md)
+- [`../modules/terrain_generation.md`](../modules/terrain_generation.md)
+- [`../modules/terrain_heightmap_materials.md`](../modules/terrain_heightmap_materials.md)
 
 Focused tutorials:
 
 - [`tutorials/terrain_preview_and_presets.md`](tutorials/terrain_preview_and_presets.md)
 - [`tutorials/procedural_terrain_3d.md`](tutorials/procedural_terrain_3d.md)
+- [`tutorials/terrain_heightmap_materials_3d.md`](tutorials/terrain_heightmap_materials_3d.md)
 - [`tutorials/terrain_streaming_runtime.md`](tutorials/terrain_streaming_runtime.md)
 - [`tutorials/terrain_debugging.md`](tutorials/terrain_debugging.md)
 
@@ -150,7 +152,31 @@ edge_floor_noise
 
 to separate coastline shape from submerged-floor variation.
 
-## 7. Add multiple terrain textures
+## 7. Scale imported heightmaps to the terrain budget
+
+When physical terrain sizes vary significantly, use:
+
+```text
+NucleusTerrainResolutionPolicy
+NucleusTerrainHeightmapProcessor
+```
+
+Typical flow:
+
+```text
+physical size
+→ visual/collision resolution
+→ prefilter source relief to representable frequency
+→ TerrainProfile
+```
+
+Do not infer mesh density from source image dimensions.
+
+Detailed guide:
+
+[`terrain_heightmap_materials_quickstart.md`](terrain_heightmap_materials_quickstart.md)
+
+## 8. Add multiple terrain textures
 
 Create a `NucleusTerrainMaterialProfile` and up to four
 `NucleusTerrainTextureLayer` resources.
@@ -159,6 +185,15 @@ Reference material:
 
 ```text
 res://examples/terrain/materials/terrain_height_layers.tres
+```
+
+Each layer can use the original albedo/tint/scalar PBR contract plus optional:
+
+```text
+normal
+normal_strength
+roughness_texture
+roughness_texture_strength
 ```
 
 If the final result appears to use only one texture/color, switch to:
@@ -170,7 +205,17 @@ debug_view = Layer weights
 Magenta means no configured layer covers that point. Distinct layer colors mean
 the rules work and the remaining problem is in texture/tint/projection setup.
 
-## 8. Stream terrain at runtime
+## 9. Budget terrain material detail
+
+`NucleusTerrainMaterialProfile` can fade normal/roughness texture detail with
+camera distance and expose `MINIMAL / REDUCED / FULL` material quality.
+
+The default Full path preserves the previous authored projection behavior.
+
+Generated built-in materials are reusable through the profile's bounded material
+cache when requests are equivalent.
+
+## 10. Stream terrain at runtime
 
 Run:
 
@@ -187,7 +232,7 @@ Detailed guide:
 
 [`tutorials/terrain_streaming_runtime.md`](tutorials/terrain_streaming_runtime.md)
 
-## 9. Query terrain without a raycast
+## 11. Query terrain without a raycast
 
 For static `NucleusTerrainGenerator3D` layouts, add:
 
@@ -235,8 +280,11 @@ Start here on weak hardware:
 ```text
 visual resolution 48–96
 collision resolution 24–40
+resolution chosen from physical size
+heightmap prefiltered to geometry sample budget
 LOD 1–3 levels
 Top projection
+distance-faded PBR detail
 terrain shadows disabled while tuning
 one streamed patch per update
 ```

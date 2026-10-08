@@ -20,8 +20,9 @@ Quickstart → Tutorial → Technical contract
 9. [`scene_flow.md`](scene_flow.md) — observable scene transitions.
 10. [`resource_loading.md`](resource_loading.md) — load plans, progress and first-use warmup.
 11. Choose a movement path: [`platformer_2d.md`](platformer_2d.md) or [`third_person_3d.md`](third_person_3d.md).
-12. Add [`character_animation_3d.md`](character_animation_3d.md) for imported 3D rigs.
-13. Continue into gameplay actions, components and optional modules as required.
+12. Use [`animation_pipeline_3d.md`](animation_pipeline_3d.md) to import a rig and build the first AnimationTree.
+13. Continue with [`character_animation_3d.md`](character_animation_3d.md) for advanced character animation.
+14. Continue into gameplay actions, components and optional modules as required.
 
 ## By area
 
@@ -39,7 +40,8 @@ Quickstart → Tutorial → Technical contract
 | Resource Loading | [`resource_loading.md`](resource_loading.md) |
 | 2D movement | [`platformer_2d.md`](platformer_2d.md) |
 | 3D movement | [`third_person_3d.md`](third_person_3d.md) |
-| 3D animation | [`character_animation_3d.md`](character_animation_3d.md) |
+| 3D animation setup | [`animation_pipeline_3d.md`](animation_pipeline_3d.md) |
+| 3D animation advanced | [`character_animation_3d.md`](character_animation_3d.md) |
 | Terrain preview | [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md) |
 | Procedural terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) |
 | Terrain streaming | [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md) |

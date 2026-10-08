@@ -2,26 +2,26 @@
 
 Target engine: Godot 4.7.x.
 
-Nucleus does not replace Godot's animation or skeleton systems.
-
-Godot remains authoritative for:
+Nucleus uses Godot's native animation stack. It does not replace:
 
 ```text
 AnimationPlayer / AnimationLibrary
-AnimationTree and animation graph authoring
+AnimationTree
+AnimationNodeStateMachine / BlendSpace
 Skeleton3D
 BoneMap / SkeletonProfile retargeting
-SkeletonModifier3D
-IKModifier3D and native IK solvers
+SkeletonModifier3D / native IK
 BoneAttachment3D
 PhysicalBoneSimulator3D / PhysicalBone3D
-root motion extraction
+root-motion extraction
 ```
 
-Nucleus only supplies small adapters where gameplay systems repeatedly need to
-feed or observe those native systems.
+The Nucleus layer removes repetitive setup and connects gameplay state to those
+native systems.
 
-## Components
+## Public components
+
+Runtime adapters:
 
 ```text
 NucleusStateAnimationMapping
@@ -34,320 +34,278 @@ NucleusAnimationEventRelay
 NucleusRagdollController3D
 ```
 
-## Recommended 3D ownership
+3D setup helpers:
 
-Keep gameplay collision/movement independent from imported visual assets.
+```text
+NucleusAnimationStarterProfile3D
+NucleusAnimationRigInspector3D
+NucleusAnimationTreeBuilder3D
+NucleusCharacterAnimationSetup3D
+```
 
-A reusable character layout is:
+## Recommended ownership
+
+Keep gameplay collision/movement separate from imported presentation:
 
 ```text
 Player : CharacterBody3D
 ├── CollisionShape3D
 ├── MotionInput
 ├── Motor
-├── Gameplay state/actions
+├── gameplay state/actions
 ├── VisualRoot : Node3D
 │   └── ImportedCharacter
 │       ├── Skeleton3D
-│       │   ├── native SkeletonModifier3D / IK nodes
-│       │   └── PhysicalBoneSimulator3D
 │       ├── meshes
 │       └── AnimationPlayer
 ├── AnimationTree
 ├── AnimationVelocity3D
 ├── AnimationStateBinding
 ├── AnimationEvents
+├── CharacterAnimationSetup3D
 └── RagdollController3D
 ```
 
-The `CharacterBody3D` is the gameplay body. The imported character is visual
-content. Replacing a model should not require rewriting movement, combat, input,
-or camera code.
+`CharacterBody3D` remains the gameplay body. Replacing the imported visual should
+not rewrite movement, camera, combat, save, or network code.
 
-## Imported humanoids and retargeting
+## Import and retargeting remain native
 
-For humanoids, use Godot's Advanced Import Settings and native retargeting
-pipeline before adding custom code.
-
-Typical workflow:
+For humanoids:
 
 ```text
-import model / animation source
-→ select Skeleton3D in Advanced Import Settings
+import GLB/glTF/FBX
+→ Advanced Import Settings
+→ select Skeleton3D
 → assign BoneMap
 → use SkeletonProfileHumanoid when appropriate
-→ verify automatic mapping
-→ fix incorrect/missing mappings
-→ normalize/rest-fix only when the source requires it
-→ import reusable animations as AnimationLibrary where appropriate
+→ verify mappings and rest pose
+→ apply Rest Fixer options only when needed
+→ reimport
 ```
 
-Matching bone names alone is not sufficient. Bone rest transforms matter too.
-Godot's importer owns the normalization/retargeting step.
+Nucleus deliberately does not automate BoneMap creation or retargeting. Those
+operations depend on source rig semantics and Godot's importer is the correct
+authority.
 
-Prefer GLB/glTF when the asset pipeline supports it. FBX remains useful for
-providers that primarily distribute FBX, but Nucleus does not add a separate
-conversion pipeline.
+Prefer a wrapper/inherited scene around imported content so reimport does not
+erase project-owned `AnimationTree`, IK, attachments, or gameplay adapters.
 
-## Animation sources
+## Starter profile
 
-Nucleus does not special-case animation vendors. A source is compatible when it
-can be imported into Godot and mapped to the target skeleton.
-
-Common development sources include:
+`NucleusAnimationStarterProfile3D` names conventional clip roles:
 
 ```text
-Mixamo
-KayKit Character Animations
-Mesh2Motion
-custom Blender/Maya rigs
-marketplace animation libraries
+idle
+walk
+run
+jump      optional
+fall      optional
+land      optional
 ```
 
-Provider-specific licensing remains the developer's responsibility.
+and stores walk/run speed thresholds plus default crossfade time.
 
-## FSM to AnimationTree
+`Suggest Common Clips` performs conservative name matching against the linked
+`AnimationPlayer`. It fills only blank fields by default.
 
-`NucleusAnimationTreeStateBinding` observes:
+Examples it can recognize include keys containing:
 
 ```text
-NucleusStateMachine.state_changed
+Idle
+Walk
+Run / Jog / Sprint
+Jump / Takeoff
+Fall / Airborne
+Land / Landing
 ```
 
-and gets native state-machine playback from:
+The original animation keys are preserved. The helper does not rename, duplicate,
+trim, loop, or mutate imported clips.
 
-```gdscript
-animation_tree.get("parameters/playback")
-```
+Always review suggestions before treating them as final art semantics.
 
-It then calls:
+## Rig inspection
 
-```gdscript
-AnimationNodeStateMachinePlayback.travel()
-```
-
-Mappings remain explicit Resources:
+`NucleusAnimationRigInspector3D` can resolve the first `Skeleton3D` and
+`AnimationPlayer` below a visual root and report:
 
 ```text
-Nucleus state id
-→ AnimationTree state name
+skeleton count
+bone count
+AnimationPlayer count
+animation keys
+profile validation warnings
 ```
 
-When `use_state_id_as_fallback` is enabled, identical names require no mapping
-Resource.
+Multiple skeletons/players are reported as ambiguous instead of silently
+pretending the first one is always correct.
 
-This keeps the gameplay FSM independent from the visual graph.
+## Setup assistant
 
-## Locomotion parameters
+Add `NucleusCharacterAnimationSetup3D` near the character root.
 
-`NucleusAnimationVelocityBinding3D` reads `CharacterBody3D.velocity` and can
-write:
+It exposes Inspector buttons:
 
 ```text
-speed: float
-blend direction: Vector2
-grounded: bool
-vertical speed: float
-moving: bool
+Auto Resolve Rig
+Suggest Common Clips
+Build Starter Tree
+Print Rig Report
 ```
 
-All parameter paths are optional.
+The setup helper can create a missing `AnimationTree` and
+`NucleusAnimationVelocityBinding3D`.
 
-The adapter can transform velocity through an `orientation_source`, allowing a
-camera-relative motor to drive an actor-relative BlendSpace without duplicating
-movement logic.
+It does not create a gameplay state machine automatically.
 
-Use in-place clips by default when the `CharacterBody3D` motor is authoritative
-for movement.
+That boundary is intentional: gameplay states are product rules, while the
+starter animation graph is presentation scaffolding.
 
-## Root motion
+## Generated starter tree
 
-Godot's `AnimationTree` can expose root-motion position, rotation, and scale.
-Nucleus does not automatically apply those deltas because root-motion ownership
-is a gameplay decision.
-
-Choose one source of translation for a character:
+`NucleusAnimationTreeBuilder3D` creates this native graph:
 
 ```text
-motor-authoritative movement
-    CharacterBody velocity/motor moves the body
-    animation is mostly in-place
-
-root-motion-authoritative movement
-    AnimationTree root motion drives CharacterBody movement
-    game code owns collision/reconciliation policy
+AnimationNodeStateMachine
+├── Locomotion : AnimationNodeBlendSpace1D
+│   ├── Idle @ 0
+│   ├── Walk @ profile.walk_speed
+│   └── Run  @ profile.run_speed
+├── Jump     optional
+├── Fall     optional
+└── Land     optional
 ```
 
-Do not let a motor and root-motion clip both author the same translation without
-an explicit combination policy.
+The BlendSpace uses Godot 4.7's `SYNC_MODE_INDEPENDENT`.
 
-## GameplayAction integration
+Configured states receive direct travel transitions so
+`AnimationNodeStateMachinePlayback.travel()` can move between them without the
+builder inventing automatic gameplay conditions.
 
-Two Action effects integrate with AnimationTree.
+The generated graph is normal Godot data. Open the AnimationTree editor and
+continue authoring it manually.
 
-`NucleusAnimationTreeStateEffect` requests a state-machine transition.
+By default the builder refuses to replace an existing `tree_root`. Enable
+`replace_existing_tree` explicitly when replacement is intentional.
 
-`NucleusAnimationTreeOneShotEffect` writes:
+## Parameter wiring
+
+The starter builder standardizes:
 
 ```text
-AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
+playback
+    parameters/playback
+
+locomotion speed
+    parameters/Locomotion/blend_position
 ```
 
-to an exported AnimationTree parameter.
+When the setup helper creates/configures
+`NucleusAnimationVelocityBinding3D`, it points `speed_parameter` at the standard
+locomotion path.
 
-OneShots are suitable for overlays such as:
+The game can still configure directional blend, grounded, vertical speed, moving,
+or any custom parameter manually.
+
+## Gameplay FSM integration
+
+`NucleusAnimationTreeStateBinding` observes `NucleusStateMachine.state_changed`
+and calls native state-machine `travel()`.
+
+Use `NucleusStateAnimationMapping` when gameplay state IDs and visual state names
+differ.
+
+Example:
 
 ```text
-attack
-reload
-interact
-flinch
-gesture
+gameplay state      animation state
+idle                Locomotion
+move                Locomotion
+jump                Jump
+fall                Fall
+land                Land
 ```
 
-GameplayAction remains the gameplay authority. Animation does not grant damage,
-spend resources, or complete an interaction merely because a clip played.
+The builder does not force these gameplay IDs.
+
+## OneShots and action overlays
+
+For attack/reload/interact/flinch layers, extend the native graph with
+`AnimationNodeOneShot` and use `NucleusAnimationTreeOneShotEffect` from a
+GameplayAction.
+
+Gameplay remains authoritative. Animation presentation does not grant damage,
+spend resources, or decide whether an action is valid.
 
 ## Animation events
 
-`NucleusAnimationEventRelay` is a local endpoint for AnimationPlayer method
-tracks.
+`NucleusAnimationEventRelay` is a local method-track endpoint:
 
 ```text
 AnimationPlayer method track
-        ↓
-AnimationEventRelay.emit_event("attack_hit")
-        ↓
-local signal
-        ↓
-gameplay consumer
+→ AnimationEventRelay.emit_event("attack_hit")
+→ local signal
+→ game-owned consumer
 ```
 
-This keeps imported/reusable animation assets from calling a game-specific
-weapon or actor script directly.
+This keeps reusable clips from hardcoding paths into weapon or actor scripts.
 
-## Skeleton modifiers and IK in Godot 4.7
+## Root motion
 
-Godot 4.7 has a richer native `SkeletonModifier3D` stack. Modifiers execute
-after animation playback, so procedural corrections can layer over authored
-animation.
+For normal `NucleusCharacterMotor3D` locomotion, prefer in-place clips.
 
-Useful native choices include:
+If root motion becomes authoritative, read native `AnimationTree` root-motion
+deltas and apply them through game-owned collision/movement policy.
+
+Do not allow the normal motor and root motion to author the same translation
+without an explicit combination rule.
+
+## IK and skeleton modifiers
+
+Use Godot 4.7 native modifiers directly:
 
 ```text
 LookAtModifier3D
-    head/eyes/turret style tracking with angle limits
-
 AimModifier3D
-    simple bone-to-reference aiming
-
 TwoBoneIK3D
-    deterministic arm/leg chains with a pole target
-
 CCDIK3D
-    iterative rotation-based chains, useful with joint limits
-
 FABRIK3D
-    accurate position tracking for relatively simple chains
-
 JacobianIK3D
-    smoother biological multi-joint motion with slower convergence
-
 SplineIK3D
-    tails, tentacles, ropes, spines, or other path-driven chains
-
-CopyTransformModifier3D / ConvertTransformModifier3D
-    bone constraints and transform transfer
-
-ModifierBoneTarget3D
-    modifier-cycle target sourced from another bone
+CopyTransformModifier3D
+ConvertTransformModifier3D
 ```
 
-Keep these nodes under the target `Skeleton3D` and author them in the Godot
-editor. Nucleus should not mirror their settings in another Resource layer.
+Nucleus does not mirror their settings.
 
-The order of SkeletonModifier3D children matters when later modifiers depend on
-poses produced by earlier modifiers.
+## Attachments and ragdoll
 
-## Attachments
+Use `BoneAttachment3D` for visual equipment sockets.
 
-Use native `BoneAttachment3D` for objects that should follow a bone:
-
-```text
-weapons
-hand props
-helmets
-backpacks
-VFX anchors
-camera/head anchors
-```
-
-Do not add a Nucleus socket system when `BoneAttachment3D` already owns the
-problem.
-
-## Ragdoll
-
-Godot's recommended ragdoll structure is:
-
-```text
-Skeleton3D
-└── PhysicalBoneSimulator3D
-    ├── PhysicalBone3D
-    ├── PhysicalBone3D
-    └── ...
-```
-
-Create and tune the physical skeleton in the editor. Remove unnecessary tiny
-bones and adjust collision shapes/joint limits there.
-
-`NucleusRagdollController3D` only coordinates common runtime transitions:
-
-```text
-start full-body simulation
-start partial simulation for named bones
-validate requested skeleton bone names
-optionally disable AnimationTree for full ragdoll
-restore the previous AnimationTree active state on stop
-set PhysicalBoneSimulator3D.influence
-```
-
-For partial ragdoll, keep `AnimationTree` active and use the simulator's native
-`influence` to blend animation with physics.
-
-The game still owns what ragdoll means for gameplay. For example, death code may
-also disable movement, input, hit reactions, navigation, or network authority.
-Those decisions do not belong in the generic animation component.
+Use native `PhysicalBoneSimulator3D` / `PhysicalBone3D` authoring for ragdoll.
+`NucleusRagdollController3D` only coordinates runtime start/stop, partial bone
+selection, influence, and optional AnimationTree disabling.
 
 ## Networking
 
-Do not replicate every skeleton bone by default.
-
-For ordinary online characters, replicate authoritative gameplay state and let
-each client run the same AnimationTree/IK presentation locally.
-
-Examples:
+Replicate gameplay intent/state, not every bone by default:
 
 ```text
-replicate velocity / movement state
-→ local locomotion graph
-
-replicate action/state change
-→ local OneShot / state travel
-
-replicate death/ragdoll transition
-→ local ragdoll start
+velocity / movement state
+action/state transitions
+death / ragdoll transition
 ```
 
-Bone-level replication is a specialized requirement and should be introduced
-only when the game proves it needs it.
+Clients normally run AnimationTree/IK presentation locally.
 
 ## What Nucleus deliberately does not own
 
 ```text
-automatic AnimationTree graph generation
-vendor-specific importers
-bone-map databases
-animation retargeting algorithms
+vendor-specific import pipelines
+automatic BoneMap databases
+retargeting algorithms
+arbitrary production AnimationTree generation
 motion matching
 combo authoring
 root-motion gameplay policy
@@ -357,6 +315,5 @@ physical-skeleton authoring
 network bone replication
 ```
 
-Use Godot's native tools first. Add another Nucleus abstraction only when a real
-project exposes repeated cross-game glue that Godot itself does not already
-solve.
+The starter builder automates a conventional scaffold only. Godot remains the
+authoring environment for the final animation graph.

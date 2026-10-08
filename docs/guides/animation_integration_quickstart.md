@@ -1,7 +1,6 @@
 # Animation Integration — 3D Quickstart
 
-Use this when a prototype `CharacterBody3D` is ready to receive a real animated
-model.
+Use this when a working `CharacterBody3D` needs a real animated model.
 
 Technical contract:
 
@@ -9,180 +8,183 @@ Technical contract:
 docs/components/animation_integration.md
 ```
 
-Full workflow:
+Detailed assisted workflow:
+
+```text
+docs/guides/tutorials/animation_pipeline_3d.md
+```
+
+Advanced production topics:
 
 ```text
 docs/guides/tutorials/character_animation_3d.md
 ```
 
-## 1. Keep the gameplay body stable
-
-Do not replace the root `CharacterBody3D` with the imported model.
+## 1. Keep gameplay and presentation separate
 
 Prefer:
 
 ```text
 Player : CharacterBody3D
 ├── CollisionShape3D
-├── gameplay components
+├── MotionInput
+├── Motor
 ├── VisualRoot : Node3D
 │   └── ImportedCharacter
+├── CharacterAnimationSetup3D
 ├── AnimationTree
 ├── AnimationVelocity3D
-├── AnimationStateBinding
 └── AnimationEvents
 ```
 
-The model is presentation. Collision/movement/gameplay remain on the stable
-player scene.
+Do not replace the gameplay root with the imported model.
 
-## 2. Import and retarget in Godot
+## 2. Import and retarget natively
 
 For a humanoid:
 
-1. Import the character/animation asset.
+1. Import GLB/glTF/FBX.
 2. Open **Advanced Import Settings**.
-3. Select the imported `Skeleton3D`.
-4. Create a `BoneMap`.
-5. Assign `SkeletonProfileHumanoid` when the rig is humanoid.
-6. Verify every important mapping instead of trusting auto-map blindly.
-7. Use Rest Fixer/track normalization only when the source requires it.
+3. Select `Skeleton3D`.
+4. Assign a `BoneMap`.
+5. Use `SkeletonProfileHumanoid` when appropriate.
+6. Verify important bones and rest pose.
+7. Enable Rest Fixer/normalization options only when needed.
 8. Reimport.
 
-For reusable animation-only assets, import them as an `AnimationLibrary` when
-that fits the project.
+Keep project-owned animation setup in a wrapper/inherited scene.
 
-## 3. Build the AnimationTree natively
+## 3. Add the Nucleus setup assistant
 
-A practical starter graph is:
+Add:
+
+```text
+NucleusCharacterAnimationSetup3D
+```
+
+Assign `visual_root` to the imported presentation branch when the character scene
+contains more than one possible rig.
+
+Then use:
+
+```text
+Auto Resolve Rig
+Suggest Common Clips
+Print Rig Report
+```
+
+Review the suggested `NucleusAnimationStarterProfile3D`.
+
+At minimum configure:
+
+```text
+Idle
+Walk
+Run
+walk_speed
+run_speed
+```
+
+Jump/Fall/Land are optional.
+
+## 4. Build the starter AnimationTree
+
+Press:
+
+```text
+Build Starter Tree
+```
+
+The helper can create the missing `AnimationTree` and velocity binding.
+
+Generated native graph:
 
 ```text
 StateMachine
-├── Locomotion
-│   └── BlendSpace1D or BlendSpace2D
-├── Air
-└── Death
-
-OneShot overlays
-├── Attack
-├── Interact
-└── HitReact
+├── Locomotion : BlendSpace1D
+│   ├── Idle
+│   ├── Walk
+│   └── Run
+├── Jump
+├── Fall
+└── Land
 ```
 
-Nucleus does not generate this graph.
+Only configured air clips are added.
 
-## 4. Drive locomotion from CharacterBody3D
+The builder refuses to overwrite an existing graph unless
+`replace_existing_tree` is enabled explicitly.
 
-Add `NucleusAnimationVelocityBinding3D`.
+## 5. Continue authoring in Godot
 
-Typical parameters:
+Open the generated `AnimationTree` normally.
+
+Typical next additions:
 
 ```text
-speed_parameter
-    parameters/Locomotion/speed
+BlendSpace2D directional locomotion
+Attack OneShot
+Reload OneShot
+HitReact
+Death
+upper-body layers
+aim/look modifiers
+```
 
-blend_parameter
+The generated graph is scaffolding, not a locked Nucleus format.
+
+## 6. Drive locomotion
+
+The setup helper configures:
+
+```text
+NucleusAnimationVelocityBinding3D.speed_parameter
     parameters/Locomotion/blend_position
-
-grounded_parameter
-    parameters/conditions/grounded
-
-vertical_speed_parameter
-    parameters/conditions/vertical_speed
 ```
 
-Assign the same `CharacterBody3D` that owns gameplay movement.
+This feeds real `CharacterBody3D.velocity` magnitude into the starter locomotion
+BlendSpace.
 
-## 5. Drive high-level states
+Add other parameter paths manually when needed.
 
-Add `NucleusAnimationTreeStateBinding` when a `NucleusStateMachine` should drive
-an AnimationTree state machine.
+## 7. Drive high-level states
 
-If state IDs and animation state names differ, create
-`NucleusStateAnimationMapping` Resources instead of renaming gameplay states to
-fit art assets.
+If gameplay already uses `NucleusStateMachine`, add
+`NucleusAnimationTreeStateBinding`.
 
-## 6. Use OneShots for discrete overlays
+Map gameplay IDs to visual states explicitly when names differ.
 
-Use `NucleusAnimationTreeOneShotEffect` inside a GameplayAction for clips such
-as attack, reload, interact, or flinch.
+## 8. Use OneShots for actions
 
-The Action performs gameplay logic; the OneShot performs presentation.
+Use native `AnimationNodeOneShot` branches and
+`NucleusAnimationTreeOneShotEffect` for attacks, reloads, interaction, flinch,
+gestures, and similar overlays.
 
-## 7. Use native SkeletonModifier3D/IK
+## 9. Use native IK/attachments/ragdoll
 
-Under `Skeleton3D`, add the native modifier that fits the job:
+Use:
 
 ```text
-TwoBoneIK3D      arm/leg placement
-LookAtModifier3D head look
-AimModifier3D    simple aiming
-CCDIK3D          constrained chain
-FABRIK3D         accurate simple chain
-JacobianIK3D     smoother biological chain
-SplineIK3D       tails/spines/tentacles
+SkeletonModifier3D / native IK
+BoneAttachment3D
+PhysicalBoneSimulator3D
+NucleusRagdollController3D
 ```
 
-Animate or script each modifier's native `influence` when blending the effect in
-or out.
+Do not create duplicate Nucleus abstractions for problems Godot already owns.
 
-## 8. Attach equipment natively
+## 10. Validate
 
-Use `BoneAttachment3D` for weapons and props.
-
-Keep equipment gameplay ownership outside the skeleton; the attachment only
-solves visual following.
-
-## 9. Add ragdoll
-
-Use the Skeleton menu in the 3D editor to create/tune a physical skeleton, then
-keep the generated `PhysicalBone3D` nodes under `PhysicalBoneSimulator3D`.
-
-Add `NucleusRagdollController3D` and assign the simulator.
-
-```gdscript
-ragdoll.start_full_ragdoll()
-```
-
-Partial ragdoll:
-
-```gdscript
-var arm_bones: Array[StringName] = [
-    &"LeftUpperArm",
-    &"LeftLowerArm",
-    &"LeftHand",
-]
-ragdoll.start_partial_ragdoll(arm_bones)
-ragdoll.set_ragdoll_influence(0.6)
-```
-
-Stop:
-
-```gdscript
-ragdoll.stop_ragdoll()
-```
-
-Disable movement/input separately when the game's rules require it.
-
-## 10. Choose in-place or root motion explicitly
-
-If `NucleusCharacterMotor3D` owns translation, prefer in-place locomotion clips.
-
-If the game uses root motion, read it from `AnimationTree` and make game-owned
-code apply it to the `CharacterBody3D` with collision. Do not simultaneously let
-the normal motor and root-motion clip author the same translation.
-
-## 11. Validate the replacement
-
-Before deleting prototype geometry, verify:
+Before deleting prototype visuals, verify:
 
 ```text
-idle/walk/run blend correctly
-jump/fall/land transition correctly
-actions fire without changing gameplay authority
-retargeted limbs do not twist at rest
-feet/hips scale correctly
-IK can blend to zero cleanly
-attachments follow expected bones
-ragdoll starts/stops without losing the gameplay root
+rig imports without twisted rest pose
+suggested clips are semantically correct
+idle/walk/run thresholds match motor speeds
+air states travel correctly
+AnimationTree remains editable
+OneShots do not own gameplay authority
+IK influence returns cleanly to zero
+attachments follow intended bones
+ragdoll does not fight gameplay collision
 ```

@@ -15,6 +15,11 @@ signal unload_requested(
 	region_id: StringName,
 	request_token: int,
 )
+signal request_cancelled(
+	region_id: StringName,
+	request_token: int,
+	operation: int,
+)
 signal region_loaded(region_id: StringName)
 signal region_unloaded(region_id: StringName)
 signal request_failed(
@@ -205,6 +210,43 @@ func mark_unloaded(
 	_resident_order.erase(region_id)
 	_set_state(region_id, RegionState.UNLOADED)
 	region_unloaded.emit(region_id)
+	return OK
+
+
+func cancel_request(
+	region_id: StringName,
+	request_token: int,
+) -> Error:
+	var state := get_region_state(region_id)
+	var operation: int
+
+	match state:
+		RegionState.LOADING:
+			operation = Operation.LOAD
+		RegionState.UNLOADING:
+			operation = Operation.UNLOAD
+		_:
+			return ERR_UNAVAILABLE
+
+	if not _matches_request(
+		region_id,
+		request_token,
+		state,
+	):
+		return ERR_UNAVAILABLE
+
+	_clear_request_token(region_id)
+
+	if operation == Operation.LOAD:
+		_set_state(region_id, RegionState.UNLOADED)
+	else:
+		_set_state(region_id, RegionState.LOADED)
+
+	request_cancelled.emit(
+		region_id,
+		request_token,
+		operation,
+	)
 	return OK
 
 

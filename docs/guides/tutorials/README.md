@@ -26,7 +26,8 @@ Quickstart → Tutorial → Technical contract
 15. Build [`ai_character_3d.md`](ai_character_3d.md) when the same 3D locomotion stack should be AI-controlled.
 16. Use [`material_texture_optimization_3d.md`](material_texture_optimization_3d.md) to establish scalable rendering quality.
 17. Use [`terrain_heightmap_materials_3d.md`](terrain_heightmap_materials_3d.md) for scalable terrain relief/PBR.
-18. Continue into gameplay actions, components and optional modules as required.
+18. Use [`world_stream_materialization_budgeting.md`](world_stream_materialization_budgeting.md) for bounded region/island construction.
+19. Continue into gameplay actions, components and optional modules as required.
 
 ## By area
 
@@ -53,6 +54,7 @@ Quickstart → Tutorial → Technical contract
 | Procedural terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) |
 | Terrain relief/PBR | [`terrain_heightmap_materials_3d.md`](terrain_heightmap_materials_3d.md) |
 | Terrain streaming | [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md) |
+| World materialization budgets | [`world_stream_materialization_budgeting.md`](world_stream_materialization_budgeting.md) |
 | Gameplay actions | [`gameplay_actions.md`](gameplay_actions.md) |
 | Common components | [`components_first_steps.md`](components_first_steps.md) |
 | Local multiplayer | [`local_multiplayer.md`](local_multiplayer.md) |

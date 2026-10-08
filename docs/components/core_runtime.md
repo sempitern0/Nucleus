@@ -91,10 +91,36 @@ Any Viewport may be supplied, including a dedicated high-resolution
 
 ## Diagnostics
 
-`NucleusLog` is the stable logging facade. `NucleusFileLogger` integrates with
-Godot's logger API when file capture is installed.
+`NucleusLog` is the stable logging facade.
 
-Logging is diagnostic infrastructure, not an event system.
+Its basic severity methods stay aligned with Godot:
+
+```text
+debug
+info
+warning → push_warning
+error → push_error
+```
+
+Warnings/errors cannot be hidden by the Nucleus minimum-level filter.
+
+`NucleusLogFormatter` provides bounded deterministic formatting for development
+snapshots. `NucleusDebugTable` formats bounded plain-text tables.
+
+Optional call-site prefixes are a debug convenience and are disabled by default.
+
+`NucleusFileLogger` integrates with Godot's native `Logger` API when file capture
+is installed. It remains thread-safe, non-recursive and plain text. Runtime log
+files include process identity so multiple local processes can be distinguished.
+
+Logging is diagnostic infrastructure, not an event system, telemetry backend or
+service locator.
+
+Detailed contract:
+
+```text
+docs/components/diagnostics.md
+```
 
 ## Utilities
 
@@ -122,6 +148,9 @@ and SceneTree-facing infrastructure as main-thread code. Pure value helpers may
 be used wherever the Godot API they call is thread-safe.
 
 Rendering capture is main-thread/render-frame work.
+
+`NucleusFileLogger` is the exception explicitly designed for Godot Logger
+callbacks that may arrive across threads.
 
 ## Extension rule
 

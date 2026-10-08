@@ -24,21 +24,28 @@ func _init(log_directory: String = "") -> void:
 		else NucleusPaths.logs_directory()
 	)
 
-	var directory_error: Error = DirAccess.make_dir_recursive_absolute(_log_directory)
+	var directory_error: Error = DirAccess.make_dir_recursive_absolute(
+		_log_directory
+	)
 
 	if directory_error not in [OK, ERR_ALREADY_EXISTS]:
 		return
 
 	_prune_old_logs()
 
-	var log_path: String = _log_directory.path_join(_create_log_file_name())
+	var log_path: String = _log_directory.path_join(
+		_create_log_file_name()
+	)
 	_file = FileAccess.open(log_path, FileAccess.WRITE)
 
 	if _file:
 		_write_header()
 
 
-func _log_message(message: String, is_error: bool) -> void:
+func _log_message(
+	message: String,
+	is_error: bool,
+) -> void:
 	if not is_ready():
 		return
 
@@ -74,7 +81,13 @@ func _log_error(
 		message_parts.append(code)
 
 	if not file.is_empty():
-		message_parts.append("%s:%d @ %s()" % [file, line, function])
+		message_parts.append(
+			"%s:%d @ %s()" % [
+				file,
+				line,
+				function,
+			]
+		)
 
 	for backtrace: ScriptBacktrace in script_backtraces:
 		message_parts.append(str(backtrace))
@@ -84,12 +97,19 @@ func _log_error(
 		"\n".join(message_parts),
 	)
 
-	_enqueue(formatted_message, error_type != ERROR_TYPE_WARNING)
+	_enqueue(
+		formatted_message,
+		error_type != ERROR_TYPE_WARNING,
+	)
 
 
 ## Returns whether the logger has a writable backing file.
 func is_ready() -> bool:
-	return not _is_closed and _file != null and _file.is_open()
+	return (
+		not _is_closed
+		and _file != null
+		and _file.is_open()
+	)
 
 
 ## Writes all queued log lines to disk.
@@ -117,7 +137,10 @@ func close() -> void:
 	_mutex.unlock()
 
 
-func _enqueue(message: String, flush_immediately: bool = false) -> void:
+func _enqueue(
+	message: String,
+	flush_immediately: bool = false,
+) -> void:
 	_mutex.lock()
 
 	if not is_ready():
@@ -126,7 +149,10 @@ func _enqueue(message: String, flush_immediately: bool = false) -> void:
 
 	_buffer.append(message)
 
-	if flush_immediately or _buffer.size() >= MAX_BUFFERED_LINES:
+	if (
+		flush_immediately
+		or _buffer.size() >= MAX_BUFFERED_LINES
+	):
 		_flush_locked()
 
 	_mutex.unlock()
@@ -146,10 +172,16 @@ func _flush_locked() -> void:
 
 func _write_header() -> void:
 	var project_name: String = str(
-		ProjectSettings.get_setting("application/config/name", "Unnamed Project")
+		ProjectSettings.get_setting(
+			"application/config/name",
+			"Unnamed Project",
+		)
 	)
 	var project_version: String = str(
-		ProjectSettings.get_setting("application/config/version", "")
+		ProjectSettings.get_setting(
+			"application/config/version",
+			"",
+		)
 	)
 	var engine_version: Dictionary = Engine.get_version_info()
 
@@ -159,9 +191,16 @@ func _write_header() -> void:
 	if not project_version.is_empty():
 		_file.store_line("# Version: %s" % project_version)
 
-	_file.store_line("# Godot: %s" % engine_version.get("string", "unknown"))
+	_file.store_line(
+		"# Godot: %s"
+		% engine_version.get("string", "unknown")
+	)
 	_file.store_line("# Platform: %s" % OS.get_name())
-	_file.store_line("# Started: %s" % Time.get_datetime_string_from_system())
+	_file.store_line("# Process ID: %d" % OS.get_process_id())
+	_file.store_line(
+		"# Started: %s"
+		% Time.get_datetime_string_from_system()
+	)
 	_file.store_line("")
 	_file.flush()
 
@@ -170,11 +209,15 @@ func _create_log_file_name() -> String:
 	var datetime: String = Time.get_datetime_string_from_system()
 	datetime = datetime.replace(":", "-").replace("T", "_")
 
-	var unique_suffix: int = int(Time.get_unix_time_from_system() * 1000.0)
+	var process_id: int = OS.get_process_id()
+	var unique_suffix: int = int(
+		Time.get_unix_time_from_system() * 1000.0
+	)
 
-	return "%s%s_%d%s" % [
+	return "%s%s_pid-%d_%d%s" % [
 		LOG_FILE_PREFIX,
 		datetime,
+		process_id,
 		unique_suffix,
 		LOG_FILE_EXTENSION,
 	]
@@ -190,8 +233,8 @@ func _prune_old_logs() -> void:
 
 	for file_name: String in directory.get_files():
 		if (
-				file_name.begins_with(LOG_FILE_PREFIX)
-				and file_name.ends_with(LOG_FILE_EXTENSION)
+			file_name.begins_with(LOG_FILE_PREFIX)
+			and file_name.ends_with(LOG_FILE_EXTENSION)
 		):
 			log_files.append(file_name)
 
@@ -202,7 +245,10 @@ func _prune_old_logs() -> void:
 		directory.remove(oldest_file)
 
 
-func _format_message(severity: String, message: String) -> String:
+func _format_message(
+	severity: String,
+	message: String,
+) -> String:
 	return "[%s] [%s] %s" % [
 		Time.get_datetime_string_from_system(),
 		severity,

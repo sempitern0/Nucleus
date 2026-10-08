@@ -8,6 +8,10 @@ func run() -> Dictionary:
 	_test_rig_inspector()
 	_test_starter_tree_builder()
 	_test_setup_creates_tree_and_velocity_binding()
+	_test_directional_profile_and_upgrade()
+	_test_one_shot_slot_paths()
+	_test_animation_event_binding()
+	_test_animation_quality_controller()
 	return finish()
 
 
@@ -107,7 +111,7 @@ func _test_rig_inspector() -> void:
 	)
 	expect_equal(
 		animations.size(),
-		6,
+		15,
 		"Rig inspector should expose available animation keys.",
 	)
 
@@ -168,7 +172,7 @@ func _test_starter_tree_builder() -> void:
 	expect_equal(
 		tree.anim_player,
 		tree.get_path_to(player),
-		"Builder should wire AnimationTree to the imported AnimationPlayer.",
+		"Builder should wire AnimationTree to imported AnimationPlayer.",
 	)
 	expect_equal(
 		NucleusAnimationTreeBuilder3D.build_starter_tree(
@@ -217,10 +221,211 @@ func _test_setup_creates_tree_and_velocity_binding() -> void:
 	expect_equal(
 		setup.velocity_binding.speed_parameter,
 		NucleusAnimationTreeBuilder3D.SPEED_PARAMETER,
-		"Setup helper should wire the standard locomotion speed parameter.",
+		"Setup helper should wire standard locomotion speed parameter.",
 	)
 
 	free_test_node(body)
+
+
+func _test_directional_profile_and_upgrade() -> void:
+	var root := Node3D.new()
+	var player := _build_animation_player()
+	var tree := AnimationTree.new()
+	var binding := NucleusAnimationVelocityBinding3D.new()
+	root.add_child(player)
+	root.add_child(tree)
+	root.add_child(binding)
+
+	expect_true(
+		attach_test_node(root),
+		"Directional builder test requires a live SceneTree.",
+	)
+
+	expect_equal(
+		NucleusAnimationTreeBuilder3D.build_starter_tree(
+			tree,
+			player,
+			_configured_profile(),
+		),
+		OK,
+		"Directional upgrade requires a valid starter state machine.",
+	)
+
+	var profile := _directional_profile()
+
+	expect_equal(
+		NucleusAnimationTreeBuilder3D.upgrade_to_directional_locomotion(
+			tree,
+			player,
+			profile,
+		),
+		OK,
+		"Directional profile should replace only the Locomotion state.",
+	)
+
+	var state_machine := tree.tree_root as AnimationNodeStateMachine
+	var locomotion := (
+		state_machine.get_node(
+			NucleusAnimationTreeBuilder3D.LOCOMOTION_STATE
+		)
+		as AnimationNodeBlendSpace2D
+	)
+	expect_true(
+		locomotion != null,
+		"Directional upgrade should create BlendSpace2D locomotion.",
+	)
+	expect_equal(
+		locomotion.get_blend_point_count(),
+		9,
+		"Directional profile should include cardinals, idle and diagonals.",
+	)
+	expect_true(
+		state_machine.has_node(NucleusAnimationTreeBuilder3D.JUMP_STATE),
+		"Directional upgrade should preserve existing air states.",
+	)
+
+	expect_equal(
+		NucleusAnimationTreeBuilder3D.configure_directional_velocity_binding(
+			binding,
+			tree,
+			profile,
+		),
+		OK,
+		"Directional builder should configure velocity transport.",
+	)
+	expect_equal(
+		binding.blend_parameter,
+		NucleusAnimationTreeBuilder3D.DIRECTION_PARAMETER,
+		"Directional velocity should target Locomotion blend_position.",
+	)
+	expect_float(
+		binding.blend_magnitude_reference,
+		profile.reference_speed,
+		"Directional velocity should preserve normalized speed magnitude.",
+	)
+
+	free_test_node(root)
+
+
+func _test_one_shot_slot_paths() -> void:
+	var slot := NucleusAnimationOneShotSlot.new()
+	slot.slot_id = &"attack"
+	slot.node_name = &"UpperBodyAttack"
+
+	expect_equal(
+		slot.get_request_parameter(),
+		&"parameters/UpperBodyAttack/request",
+		"One-shot slot should derive request parameter from native node name.",
+	)
+	expect_equal(
+		slot.get_active_parameter(),
+		&"parameters/UpperBodyAttack/active",
+		"One-shot slot should derive active parameter from native node name.",
+	)
+	expect_true(
+		slot.get_validation_errors().is_empty(),
+		"A semantic one-shot slot should validate with slot and node names.",
+	)
+
+	var controller := NucleusAnimationOneShotController.new()
+	controller.animation_tree = AnimationTree.new()
+	expect_equal(
+		controller.fire(&"missing"),
+		ERR_DOES_NOT_EXIST,
+		"One-shot controller should reject unknown semantic slots.",
+	)
+	controller.animation_tree.free()
+	controller.free()
+
+
+func _test_animation_event_binding() -> void:
+	var root := Node.new()
+	var relay := NucleusAnimationEventRelay.new()
+	var binding := NucleusAnimationEventBinding.new()
+	root.add_child(relay)
+	root.add_child(binding)
+	binding.relay = relay
+	binding.event_id = &"footstep"
+
+	var payloads: Array[Variant] = []
+	binding.triggered.connect(
+		func(payload: Variant) -> void:
+			payloads.append(payload)
+	)
+
+	expect_true(
+		attach_test_node(root),
+		"Animation event binding test requires a live SceneTree.",
+	)
+
+	relay.emit_event(&"other", 1)
+	relay.emit_event(&"footstep", 2)
+
+	expect_equal(
+		payloads.size(),
+		1,
+		"Event binding should forward only its configured event id.",
+	)
+	expect_equal(
+		int(payloads[0]),
+		2,
+		"Event binding should preserve the event payload.",
+	)
+
+	free_test_node(root)
+
+
+func _test_animation_quality_controller() -> void:
+	var root := Node3D.new()
+	var tree := AnimationTree.new()
+	var modifier := LookAtModifier3D.new()
+	var controller := NucleusAnimationQualityController3D.new()
+	var profile := NucleusAnimationQualityProfile3D.new()
+
+	root.add_child(tree)
+	root.add_child(modifier)
+	root.add_child(controller)
+	controller.animation_tree = tree
+	controller.quality_profile = profile
+	controller.allow_pose_throttling = true
+	controller.full_only_modifiers = [modifier]
+
+	expect_true(
+		attach_test_node(root),
+		"Animation quality test requires a live SceneTree.",
+	)
+
+	controller.set_quality(
+		NucleusAnimationQualityProfile3D.Quality.REDUCED
+	)
+	controller.apply_now()
+
+	expect_false(
+		modifier.active,
+		"Reduced animation quality should disable full-only modifiers.",
+	)
+	expect_equal(
+		tree.callback_mode_process,
+		AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL,
+		"Reduced quality may use bounded manual pose evaluation.",
+	)
+
+	controller.set_quality(
+		NucleusAnimationQualityProfile3D.Quality.FULL
+	)
+	controller.apply_now()
+
+	expect_true(
+		modifier.active,
+		"Full animation quality should restore authored modifier state.",
+	)
+	expect_true(
+		tree.callback_mode_process
+		!= AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL,
+		"Full quality should restore native AnimationTree update mode.",
+	)
+
+	free_test_node(root)
 
 
 func _configured_profile() -> NucleusAnimationStarterProfile3D:
@@ -236,6 +441,21 @@ func _configured_profile() -> NucleusAnimationStarterProfile3D:
 	return profile
 
 
+func _directional_profile() -> NucleusDirectionalAnimationProfile3D:
+	var profile := NucleusDirectionalAnimationProfile3D.new()
+	profile.idle_animation = &"Humanoid_Idle"
+	profile.forward_animation = &"Strafe_Forward"
+	profile.backward_animation = &"Strafe_Backward"
+	profile.left_animation = &"Strafe_Left"
+	profile.right_animation = &"Strafe_Right"
+	profile.forward_left_animation = &"Strafe_Forward_Left"
+	profile.forward_right_animation = &"Strafe_Forward_Right"
+	profile.backward_left_animation = &"Strafe_Backward_Left"
+	profile.backward_right_animation = &"Strafe_Backward_Right"
+	profile.reference_speed = 5.0
+	return profile
+
+
 func _build_animation_player() -> AnimationPlayer:
 	var player := AnimationPlayer.new()
 	var library := AnimationLibrary.new()
@@ -247,6 +467,15 @@ func _build_animation_player() -> AnimationPlayer:
 		&"Humanoid_Jump",
 		&"Humanoid_Fall",
 		&"Humanoid_Land",
+		&"Strafe_Forward",
+		&"Strafe_Backward",
+		&"Strafe_Left",
+		&"Strafe_Right",
+		&"Strafe_Forward_Left",
+		&"Strafe_Forward_Right",
+		&"Strafe_Backward_Left",
+		&"Strafe_Backward_Right",
+		&"Attack",
 	]:
 		var animation := Animation.new()
 		animation.length = 1.0

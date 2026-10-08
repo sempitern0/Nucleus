@@ -1,190 +1,144 @@
 # Animation Integration — 3D Quickstart
 
-Use this when a working `CharacterBody3D` needs a real animated model.
+Use this after a working `CharacterBody3D` is ready for production animation.
 
-Technical contract:
-
-```text
-docs/components/animation_integration.md
-```
-
-Detailed assisted workflow:
+Read in this order:
 
 ```text
-docs/guides/tutorials/animation_pipeline_3d.md
+animation_pipeline_3d.md
+animation_directional_layers_quality_3d.md
+character_animation_3d.md
 ```
 
-Advanced production topics:
+## Baseline setup
 
-```text
-docs/guides/tutorials/character_animation_3d.md
-```
-
-## 1. Keep gameplay and presentation separate
-
-Prefer:
+Keep gameplay and art separate:
 
 ```text
 Player : CharacterBody3D
-├── CollisionShape3D
-├── MotionInput
-├── Motor
-├── VisualRoot : Node3D
-│   └── ImportedCharacter
+├── gameplay collision/movement
+├── VisualRoot
+│   └── imported rig
 ├── CharacterAnimationSetup3D
 ├── AnimationTree
 ├── AnimationVelocity3D
 └── AnimationEvents
 ```
 
-Do not replace the gameplay root with the imported model.
+Import/retarget the rig with Godot's native Advanced Import Settings.
 
-## 2. Import and retarget natively
-
-For a humanoid:
-
-1. Import GLB/glTF/FBX.
-2. Open **Advanced Import Settings**.
-3. Select `Skeleton3D`.
-4. Assign a `BoneMap`.
-5. Use `SkeletonProfileHumanoid` when appropriate.
-6. Verify important bones and rest pose.
-7. Enable Rest Fixer/normalization options only when needed.
-8. Reimport.
-
-Keep project-owned animation setup in a wrapper/inherited scene.
-
-## 3. Add the Nucleus setup assistant
-
-Add:
-
-```text
-NucleusCharacterAnimationSetup3D
-```
-
-Assign `visual_root` to the imported presentation branch when the character scene
-contains more than one possible rig.
-
-Then use:
+Then use the setup assistant:
 
 ```text
 Auto Resolve Rig
 Suggest Common Clips
-Print Rig Report
-```
-
-Review the suggested `NucleusAnimationStarterProfile3D`.
-
-At minimum configure:
-
-```text
-Idle
-Walk
-Run
-walk_speed
-run_speed
-```
-
-Jump/Fall/Land are optional.
-
-## 4. Build the starter AnimationTree
-
-Press:
-
-```text
 Build Starter Tree
 ```
 
-The helper can create the missing `AnimationTree` and velocity binding.
+This creates an editable native Idle/Walk/Run starter graph with optional
+Jump/Fall/Land states.
 
-Generated native graph:
+## Upgrade to directional locomotion
 
-```text
-StateMachine
-├── Locomotion : BlendSpace1D
-│   ├── Idle
-│   ├── Walk
-│   └── Run
-├── Jump
-├── Fall
-└── Land
-```
+For strafe, lock-on, shooter or multidirectional movement:
 
-Only configured air clips are added.
+1. Add/configure `NucleusDirectionalAnimationProfile3D`.
+2. Set `reference_speed` to the intended full gait speed.
+3. Use `Suggest Directional Clips` as a starting point.
+4. Review all assignments.
+5. Press `Upgrade Locomotion To Directional`.
 
-The builder refuses to overwrite an existing graph unless
-`replace_existing_tree` is enabled explicitly.
+The helper replaces only the `Locomotion` state with `BlendSpace2D`.
 
-## 5. Continue authoring in Godot
+It preserves the rest of the state machine.
 
-Open the generated `AnimationTree` normally.
+## Add action layers natively
 
-Typical next additions:
+Create native `AnimationNodeOneShot` nodes for:
 
 ```text
-BlendSpace2D directional locomotion
-Attack OneShot
-Reload OneShot
-HitReact
-Death
-upper-body layers
-aim/look modifiers
+attack
+reload
+interact
+hit react
+gesture
+tool use
 ```
 
-The generated graph is scaffolding, not a locked Nucleus format.
+Author torso/bone filters in Godot.
 
-## 6. Drive locomotion
+Use `NucleusAnimationOneShotController` with semantic
+`NucleusAnimationOneShotSlot` resources so gameplay calls:
 
-The setup helper configures:
-
-```text
-NucleusAnimationVelocityBinding3D.speed_parameter
-    parameters/Locomotion/blend_position
+```gdscript
+one_shots.fire(&"attack")
 ```
 
-This feeds real `CharacterBody3D.velocity` magnitude into the starter locomotion
-BlendSpace.
+instead of hardcoding AnimationTree parameter paths.
 
-Add other parameter paths manually when needed.
-
-## 7. Drive high-level states
-
-If gameplay already uses `NucleusStateMachine`, add
-`NucleusAnimationTreeStateBinding`.
-
-Map gameplay IDs to visual states explicitly when names differ.
-
-## 8. Use OneShots for actions
-
-Use native `AnimationNodeOneShot` branches and
-`NucleusAnimationTreeOneShotEffect` for attacks, reloads, interaction, flinch,
-gestures, and similar overlays.
-
-## 9. Use native IK/attachments/ragdoll
+## Bind animation events without boilerplate
 
 Use:
 
 ```text
-SkeletonModifier3D / native IK
-BoneAttachment3D
-PhysicalBoneSimulator3D
-NucleusRagdollController3D
+NucleusAnimationEventRelay
+    ↓
+NucleusAnimationEventBinding(event_id)
+    ↓
+triggered(payload)
 ```
 
-Do not create duplicate Nucleus abstractions for problems Godot already owns.
+This is useful for footsteps, cosmetic impacts, sounds and local presentation.
 
-## 10. Validate
+Keep gameplay-critical authority independent from quality-dependent animation
+evaluation.
 
-Before deleting prototype visuals, verify:
+## Add low-end quality policy
+
+Add `NucleusAnimationQualityController3D`.
+
+Register optional `SkeletonModifier3D` nodes as:
 
 ```text
-rig imports without twisted rest pose
-suggested clips are semantically correct
-idle/walk/run thresholds match motor speeds
-air states travel correctly
-AnimationTree remains editable
-OneShots do not own gameplay authority
-IK influence returns cleanly to zero
-attachments follow intended bones
-ragdoll does not fight gameplay collision
+full_only_modifiers
+reduced_or_full_modifiers
 ```
+
+Use a `NucleusAnimationQualityProfile3D` for pose update rates.
+
+Recommended starting point:
+
+```text
+Full
+    native update rate
+
+Reduced
+    30 Hz for eligible NPC presentation
+
+Minimal
+    15 Hz for distant/cosmetic actors
+```
+
+`allow_pose_throttling` is false by default. Enable it only for actors where
+delayed animation callbacks cannot change gameplay correctness.
+
+## Quality principle
+
+On weak PCs, degrade expensive presentation before gameplay:
+
+```text
+disable optional IK/modifiers
+→ lower non-critical pose update rate
+→ mesh/render LOD and visibility policy
+→ preserve movement/input/simulation
+```
+
+Do not turn the local player into a 15 Hz gameplay object merely to improve FPS.
+
+## Continue
+
+- `animation_pipeline_3d.md` — import → first graph.
+- `animation_directional_layers_quality_3d.md` — directional movement, OneShots,
+  event bindings and low-end quality.
+- `character_animation_3d.md` — IK, attachments, ragdoll and deeper production
+  workflows.

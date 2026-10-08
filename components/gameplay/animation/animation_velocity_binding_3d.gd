@@ -16,6 +16,10 @@ extends Node
 @export_group("Values")
 @export var use_local_velocity: bool = true
 @export var normalize_blend_direction: bool = true
+## When > 0, writes direction with speed magnitude normalized to this reference.
+## This takes precedence over normalize_blend_direction.
+@export_range(0.0, 100000.0, 0.01, "or_greater")
+var blend_magnitude_reference: float = 0.0
 @export_range(0.0, 100000.0, 0.01, "or_greater")
 var moving_threshold: float = 0.05
 
@@ -54,7 +58,12 @@ func _process(_delta: float) -> void:
 		velocity.z,
 	).length()
 
-	if normalize_blend_direction and not horizontal.is_zero_approx():
+	if blend_magnitude_reference > 0.0:
+		horizontal /= blend_magnitude_reference
+
+		if horizontal.length_squared() > 1.0:
+			horizontal = horizontal.normalized()
+	elif normalize_blend_direction and not horizontal.is_zero_approx():
 		horizontal = horizontal.normalized()
 
 	if speed_parameter != &"":

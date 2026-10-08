@@ -3,8 +3,7 @@ class_name NucleusCharacterAnimationSetup3D
 extends Node
 ## Editor-oriented bootstrap helper for imported 3D character animation.
 ##
-## The helper resolves native Godot animation nodes and can build one conventional
-## starter graph. The generated AnimationTree remains fully editable afterwards.
+## Generated AnimationTree data remains normal editable Godot content.
 
 @export_group("Imported visual")
 @export var visual_root: Node
@@ -22,6 +21,9 @@ extends Node
 @export var create_velocity_binding_if_missing: bool = true
 @export var replace_existing_tree: bool = false
 
+@export_group("Directional locomotion")
+@export var directional_profile: NucleusDirectionalAnimationProfile3D
+
 @export_tool_button("Auto Resolve Rig")
 var resolve_rig_action: Callable = auto_resolve
 
@@ -30,6 +32,12 @@ var suggest_clips_action: Callable = suggest_common_clips
 
 @export_tool_button("Build Starter Tree")
 var build_tree_action: Callable = build_starter_tree
+
+@export_tool_button("Suggest Directional Clips")
+var suggest_directional_action: Callable = suggest_directional_clips
+
+@export_tool_button("Upgrade Locomotion To Directional")
+var upgrade_directional_action: Callable = upgrade_directional_locomotion
 
 @export_tool_button("Print Rig Report")
 var print_report_action: Callable = print_rig_report
@@ -66,6 +74,15 @@ func _get_configuration_warnings() -> PackedStringArray:
 		warnings.append(
 			"No starter profile assigned. Suggest Common Clips can create one."
 		)
+
+	if (
+		directional_profile != null
+		and animation_player != null
+	):
+		for error: String in directional_profile.get_validation_errors(
+			animation_player
+		):
+			warnings.append("Directional profile: %s" % error)
 
 	return warnings
 
@@ -133,6 +150,24 @@ func suggest_common_clips() -> int:
 	return changed
 
 
+func suggest_directional_clips() -> int:
+	auto_resolve()
+
+	if animation_player == null:
+		return 0
+
+	if directional_profile == null:
+		directional_profile = NucleusDirectionalAnimationProfile3D.new()
+
+	var changed := directional_profile.suggest_common_clips(
+		animation_player
+	)
+
+	notify_property_list_changed()
+	update_configuration_warnings()
+	return changed
+
+
 func build_starter_tree() -> Error:
 	auto_resolve()
 
@@ -184,6 +219,50 @@ func build_starter_tree() -> Error:
 	return OK
 
 
+func upgrade_directional_locomotion() -> Error:
+	auto_resolve()
+
+	if (
+		animation_tree == null
+		or animation_player == null
+	):
+		return ERR_UNCONFIGURED
+
+	if directional_profile == null:
+		directional_profile = NucleusDirectionalAnimationProfile3D.new()
+
+	directional_profile.suggest_common_clips(animation_player)
+
+	var error := (
+		NucleusAnimationTreeBuilder3D.upgrade_to_directional_locomotion(
+			animation_tree,
+			animation_player,
+			directional_profile,
+		)
+	)
+
+	if error != OK:
+		update_configuration_warnings()
+		return error
+
+	if (
+		velocity_binding == null
+		and create_velocity_binding_if_missing
+	):
+		velocity_binding = _create_velocity_binding()
+
+	if velocity_binding != null:
+		NucleusAnimationTreeBuilder3D.configure_directional_velocity_binding(
+			velocity_binding,
+			animation_tree,
+			directional_profile,
+		)
+
+	notify_property_list_changed()
+	update_configuration_warnings()
+	return OK
+
+
 func get_rig_report() -> Dictionary:
 	var report := NucleusAnimationRigInspector3D.inspect(
 		_get_visual_scope(),
@@ -193,6 +272,7 @@ func get_rig_report() -> Dictionary:
 	report["velocity_binding"] = velocity_binding
 	report["state_binding"] = state_binding
 	report["starter_profile"] = starter_profile
+	report["directional_profile"] = directional_profile
 	return report
 
 

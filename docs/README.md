@@ -77,6 +77,7 @@ Useful focused contracts include:
 
 ```text
 components/world_time_environment.md
+components/celestial_environment.md
 components/world_scheduling_and_batched_fx.md
 components/world_surfaces.md
 components/world_buoyancy.md
@@ -88,6 +89,12 @@ components/animation_integration.md
 components/camera_game_feel.md
 components/ui_runtime_bindings.md
 components/resource_loading.md
+```
+
+Quickstarts:
+
+```text
+guides/celestial_environment_quickstart.md
 ```
 
 ## Documentation layers

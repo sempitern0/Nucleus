@@ -57,6 +57,8 @@ owns its entry point and opts into only the systems it needs.
 5. Run the validation sequence before substantial game-specific changes.
 
 The complete documentation map is [`docs/README.md`](docs/README.md).
+Hands-on build-along guides are indexed at
+[`docs/guides/tutorials/README.md`](docs/guides/tutorials/README.md).
 
 ## Core runtime
 

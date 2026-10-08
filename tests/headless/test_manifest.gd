@@ -38,6 +38,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/terrain_material_quality_test.gd"),
 	preload("res://tests/headless/terrain_materialization_test.gd"),
 	preload("res://tests/headless/world_clock_test.gd"),
+	preload("res://tests/headless/celestial_environment_test.gd"),
 	preload("res://tests/headless/surface_semantics_test.gd"),
 	preload("res://tests/headless/local_fx_test.gd"),
 	preload("res://tests/headless/world_stamp_buffer_test.gd"),

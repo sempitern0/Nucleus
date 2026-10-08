@@ -31,6 +31,7 @@ rules.
 | Safe spawn / teleport / exit placement | [`components/safe_placement_queries.md`](components/safe_placement_queries.md) |
 | Actions, attributes and status effects | [`guides/actions_attributes_status_quickstart.md`](guides/actions_attributes_status_quickstart.md) |
 | Pooling and targeting | [`guides/pooling_targeting_quickstart.md`](guides/pooling_targeting_quickstart.md) |
+| Humanoid ragdoll authoring | [`guides/ragdoll_authoring_quickstart.md`](guides/ragdoll_authoring_quickstart.md) |
 
 ## Performance and runtime efficiency
 
@@ -88,6 +89,7 @@ components/world_decals.md
 components/gameplay_movement_camera.md
 components/safe_placement_queries.md
 components/animation_integration.md
+components/ragdoll_authoring_3d.md
 components/camera_game_feel.md
 components/ui_runtime_bindings.md
 components/resource_loading.md
@@ -99,6 +101,7 @@ Quickstarts:
 guides/celestial_environment_quickstart.md
 guides/rendering_quality_quickstart.md
 guides/lighting_shadows_quickstart.md
+guides/ragdoll_authoring_quickstart.md
 ```
 
 ## Documentation layers

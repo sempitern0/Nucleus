@@ -22,13 +22,14 @@ Quickstart → Tutorial → Technical contract
 11. Choose a movement path: [`platformer_2d.md`](platformer_2d.md) or [`third_person_3d.md`](third_person_3d.md).
 12. Use [`animation_pipeline_3d.md`](animation_pipeline_3d.md) to import a rig and build the first AnimationTree.
 13. Add [`animation_directional_layers_quality_3d.md`](animation_directional_layers_quality_3d.md) for advanced locomotion/layers/quality.
-14. Continue with [`character_animation_3d.md`](character_animation_3d.md) for IK, attachments and ragdoll.
-15. Build [`ai_character_3d.md`](ai_character_3d.md) when the same 3D locomotion stack should be AI-controlled.
-16. Use [`material_texture_optimization_3d.md`](material_texture_optimization_3d.md) to establish scalable rendering quality.
-17. Add [`lighting_shadows_3d.md`](lighting_shadows_3d.md) for scalable native 3D lights and shadows.
-18. Use [`terrain_heightmap_materials_3d.md`](terrain_heightmap_materials_3d.md) for scalable terrain relief/PBR.
-19. Use [`world_stream_materialization_budgeting.md`](world_stream_materialization_budgeting.md) for bounded region/island construction.
-20. Continue into gameplay actions, components and optional modules as required.
+14. Continue with [`character_animation_3d.md`](character_animation_3d.md) for IK, attachments and ragdoll runtime.
+15. Use [`ragdoll_authoring_3d.md`](ragdoll_authoring_3d.md) to generate and tune a native humanoid physical skeleton.
+16. Build [`ai_character_3d.md`](ai_character_3d.md) when the same 3D locomotion stack should be AI-controlled.
+17. Use [`material_texture_optimization_3d.md`](material_texture_optimization_3d.md) to establish scalable rendering quality.
+18. Add [`lighting_shadows_3d.md`](lighting_shadows_3d.md) for scalable native 3D lights and shadows.
+19. Use [`terrain_heightmap_materials_3d.md`](terrain_heightmap_materials_3d.md) for scalable terrain relief/PBR.
+20. Use [`world_stream_materialization_budgeting.md`](world_stream_materialization_budgeting.md) for bounded region/island construction.
+21. Continue into gameplay actions, components and optional modules as required.
 
 ## By area
 
@@ -49,6 +50,7 @@ Quickstart → Tutorial → Technical contract
 | 3D animation setup | [`animation_pipeline_3d.md`](animation_pipeline_3d.md) |
 | Directional/layered animation | [`animation_directional_layers_quality_3d.md`](animation_directional_layers_quality_3d.md) |
 | 3D animation advanced | [`character_animation_3d.md`](character_animation_3d.md) |
+| Humanoid ragdoll authoring | [`ragdoll_authoring_3d.md`](ragdoll_authoring_3d.md) |
 | 3D AI character | [`ai_character_3d.md`](ai_character_3d.md) |
 | Texture/material optimization | [`material_texture_optimization_3d.md`](material_texture_optimization_3d.md) |
 | 3D lighting/shadows | [`lighting_shadows_3d.md`](lighting_shadows_3d.md) |

@@ -34,6 +34,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/mobile_input_test.gd"),
 	preload("res://tests/headless/configuration_warnings_test.gd"),
 	preload("res://tests/headless/animation_integration_test.gd"),
+	preload("res://tests/headless/ragdoll_authoring_test.gd"),
 	preload("res://tests/headless/scene_flow_test.gd"),
 	preload("res://tests/headless/terrain_generation_test.gd"),
 	preload("res://tests/headless/terrain_material_quality_test.gd"),

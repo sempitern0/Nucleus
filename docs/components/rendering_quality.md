@@ -3,15 +3,16 @@
 Target engine: Godot 4.7.x.
 
 Nucleus does not replace Godot's texture importer, materials, shaders, mesh LOD,
-visibility ranges, or renderer.
+visibility ranges, lights, shadow renderer, or rendering method.
 
-This layer covers four recurring integration problems:
+This layer covers recurring integration problems around:
 
 ```text
 texture import settings that deserve review
 duplicated ShaderMaterial variants
 per-instance scalar/vector material variation
 runtime material / geometry presentation tiers
+native Light3D / shadow quality tiers
 ```
 
 ## Public types
@@ -22,6 +23,7 @@ Development / diagnostics:
 NucleusTextureBudgetProfile
 NucleusTextureAudit
 NucleusRenderAudit
+NucleusLightingAudit3D
 ```
 
 Runtime presentation:
@@ -32,6 +34,16 @@ NucleusMaterialQualityProfile3D
 NucleusMaterialQualityController3D
 NucleusGeometryQualityProfile3D
 NucleusGeometryQualityController3D
+NucleusLightQualityProfile3D
+NucleusLightQualityController3D
+NucleusViewportShadowQualityProfile3D
+NucleusViewportShadowQualityController3D
+```
+
+Dedicated lighting contract:
+
+```text
+docs/components/lighting_shadows_3d.md
 ```
 
 ## Texture audit
@@ -203,7 +215,7 @@ FULL
     → authored production material
 
 REDUCED
-    cheaper shader/material
+    reduced-cost material
 
 MINIMAL
     very cheap shader/material
@@ -270,6 +282,109 @@ A zero visibility cap preserves the authored range.
 If the authored range is unlimited and a tier supplies a cap, the cap becomes the
 runtime end distance.
 
+## Light quality
+
+`NucleusLightQualityProfile3D` and
+`NucleusLightQualityController3D` operate directly on native `Light3D`.
+
+They can reduce technical lighting cost using:
+
+```text
+native local-light distance fade
+local shadow cutoff
+shadow blur
+source-size softness
+volumetric-fog contribution
+projector removal
+Omni dual-paraboloid/cubemap mode
+Directional orthogonal/2-split/4-split mode
+Directional shadow distance
+Directional angular-distance PCSS
+split blending
+```
+
+The controller does not change:
+
+```text
+energy
+color
+transform
+range
+masks
+bake mode
+```
+
+Full restores authored technical state.
+
+`shadow_enabled` ownership is opt-in because another system may already own it.
+
+For example:
+
+```text
+NucleusDaylightDriver3D
+    owns Sun shadow_enabled
+
+NucleusLightQualityController3D
+    owns Sun shadow mode/range/softness
+```
+
+See:
+
+```text
+docs/components/lighting_shadows_3d.md
+```
+
+## Viewport positional shadow quality
+
+Omni/Spot lights share a native Viewport shadow atlas.
+
+`NucleusViewportShadowQualityProfile3D` and its controller expose quality tiers
+for:
+
+```text
+atlas size
+16-bit depth option
+four quadrant subdivisions
+```
+
+Full restores the authored Viewport state.
+
+A Minimal profile may intentionally set atlas size to zero when a shipping mode
+does not require positional real-time shadows.
+
+The game remains responsible for deciding whether that visual tradeoff is
+acceptable.
+
+## Lighting audit
+
+`NucleusLightingAudit3D` complements `NucleusRenderAudit`.
+
+`NucleusRenderAudit` asks primarily about:
+
+```text
+geometry
+materials
+shadow casters
+transparency
+```
+
+`NucleusLightingAudit3D` asks about:
+
+```text
+shadowed local lights
+distance fade
+shadow cutoff
+Omni shadow mode
+AreaLight3D pressure
+soft-shadow features
+projectors
+Directional shadow splits/range/PCSS
+renderer capability mismatch
+Viewport positional atlas state
+```
+
+Both audits are non-mutating investigation tools.
+
 ## Transparency audit
 
 `NucleusRenderAudit` reports scenes with many known transparent mesh instances.
@@ -315,6 +430,25 @@ surface semantics
 material-specific resources
 ```
 
+## Complete native shadow budget
+
+Treat shadow performance as the composition of:
+
+```text
+GeometryQuality
+    which objects cast
+
+LightQuality
+    how expensive each shadow request is
+
+ViewportShadowQuality
+    how much shared Omni/Spot atlas budget exists
+```
+
+This is deliberately not a custom renderer.
+
+Godot remains authoritative for light clustering/culling and shadow rendering.
+
 ## Low-end strategy
 
 A low-quality product mode can compose:
@@ -329,7 +463,19 @@ MaterialQuality
 GeometryQuality
     earlier native LOD
     shorter visibility
-    fewer shadows
+    fewer shadow casters
+
+LightQuality
+    earlier local-light fade
+    earlier shadow cutoff
+    cheaper Omni/Directional shadow modes
+    less softness
+    less volumetric-fog contribution
+
+ViewportShadowQuality
+    smaller positional shadow atlas
+    more aggressively subdivided atlas
+    optional positional shadows disabled
 
 AnimationQuality
     fewer optional modifiers
@@ -337,7 +483,6 @@ AnimationQuality
 
 Rendering settings
     render scale
-    shadow atlas/settings
     antialiasing
     renderer-specific features
 ```
@@ -352,10 +497,13 @@ The correct loop remains:
 ```text
 representative workload
 → NucleusPerformanceSampler / Godot profiler
-→ structural audit
+→ render + lighting structural audits
 → one bounded quality/import change
 → repeat the same workload
 → compare
 ```
 
-An audit finding is evidence to inspect, not proof that the asset is wrong.
+Measure CPU and GPU separately.
+
+An audit finding is evidence to inspect, not proof that the asset or light is
+wrong.

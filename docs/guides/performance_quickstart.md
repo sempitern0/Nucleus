@@ -39,8 +39,8 @@ deep investigation.
 
 ```gdscript
 performance_sampler.mark_trace(
-    &"combat_wave_started",
-    {"enemy_count": enemies.size()},
+	&"combat_wave_started",
+	{"enemy_count": enemies.size()},
 )
 ```
 
@@ -67,12 +67,19 @@ Typical mapping:
 | pool creation hitches | incremental pool prewarm |
 | Utility AI evaluates in bursts | scheduler-backed AI staggering |
 | rendering budget pressure | `NucleusRenderAudit` + native profiler |
+| light/shadow budget pressure | `NucleusLightingAudit3D` + native profiler |
 | physics pressure | `NucleusPhysicsAudit` + native profiler |
 | first-use PackedScene hitch | `NucleusWarmupSequence` |
 | first-use GPU pipeline hitch | game-authored rendered warmup after evidence |
 | one-shot audio saturation | voice priorities |
 | bursty UI writes | `NucleusUIRefreshCoalescer` |
 | large participant capture spike | incremental save capture |
+
+For lighting findings, continue with:
+
+```text
+docs/guides/lighting_shadows_quickstart.md
+```
 
 Continue with [`runtime_optimization_quickstart.md`](runtime_optimization_quickstart.md)
 only after the measurement identifies one of these shapes.

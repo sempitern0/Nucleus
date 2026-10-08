@@ -78,6 +78,8 @@ Useful focused contracts include:
 ```text
 components/world_time_environment.md
 components/celestial_environment.md
+components/rendering_quality.md
+components/lighting_shadows_3d.md
 components/world_scheduling_and_batched_fx.md
 components/world_surfaces.md
 components/world_buoyancy.md
@@ -95,6 +97,8 @@ Quickstarts:
 
 ```text
 guides/celestial_environment_quickstart.md
+guides/rendering_quality_quickstart.md
+guides/lighting_shadows_quickstart.md
 ```
 
 ## Documentation layers

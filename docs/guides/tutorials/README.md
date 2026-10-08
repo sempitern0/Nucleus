@@ -25,9 +25,10 @@ Quickstart → Tutorial → Technical contract
 14. Continue with [`character_animation_3d.md`](character_animation_3d.md) for IK, attachments and ragdoll.
 15. Build [`ai_character_3d.md`](ai_character_3d.md) when the same 3D locomotion stack should be AI-controlled.
 16. Use [`material_texture_optimization_3d.md`](material_texture_optimization_3d.md) to establish scalable rendering quality.
-17. Use [`terrain_heightmap_materials_3d.md`](terrain_heightmap_materials_3d.md) for scalable terrain relief/PBR.
-18. Use [`world_stream_materialization_budgeting.md`](world_stream_materialization_budgeting.md) for bounded region/island construction.
-19. Continue into gameplay actions, components and optional modules as required.
+17. Add [`lighting_shadows_3d.md`](lighting_shadows_3d.md) for scalable native 3D lights and shadows.
+18. Use [`terrain_heightmap_materials_3d.md`](terrain_heightmap_materials_3d.md) for scalable terrain relief/PBR.
+19. Use [`world_stream_materialization_budgeting.md`](world_stream_materialization_budgeting.md) for bounded region/island construction.
+20. Continue into gameplay actions, components and optional modules as required.
 
 ## By area
 
@@ -50,6 +51,7 @@ Quickstart → Tutorial → Technical contract
 | 3D animation advanced | [`character_animation_3d.md`](character_animation_3d.md) |
 | 3D AI character | [`ai_character_3d.md`](ai_character_3d.md) |
 | Texture/material optimization | [`material_texture_optimization_3d.md`](material_texture_optimization_3d.md) |
+| 3D lighting/shadows | [`lighting_shadows_3d.md`](lighting_shadows_3d.md) |
 | Terrain preview | [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md) |
 | Procedural terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) |
 | Terrain relief/PBR | [`terrain_heightmap_materials_3d.md`](terrain_heightmap_materials_3d.md) |

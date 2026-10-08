@@ -1,21 +1,10 @@
 # Foundation Quickstart
 
-This page is the five-minute orientation.
+This is the shortest orientation for a new Nucleus project.
 
-For a build-along introduction to the default services, follow:
+## 1. Know what the template owns
 
-[`tutorials/core_services.md`](tutorials/core_services.md)
-
-## 1. Open the template
-
-Use Godot 4.7.x and import the repository root containing `project.godot`.
-
-The baseline does not force a game main scene. Create your project's own main
-scene when starting a game.
-
-## 2. Understand the default Autoloads
-
-The template already configures:
+The baseline Autoloads are:
 
 ```text
 NucleusApp
@@ -26,62 +15,76 @@ NucleusSave
 NucleusSceneFlow
 ```
 
-Do not duplicate these services inside each scene.
+They exist because their lifetime genuinely crosses scene changes. Do not create
+scene-local duplicates of these services.
 
-EventBus and NetworkHandler are optional and are intentionally absent from the
-default Autoload list.
+Optional systems such as networking, AI, inventory, terrain, development tools
+and performance diagnostics remain opt-in.
 
-## 3. Build gameplay by composition
+## 2. Keep Godot authoritative
 
-Add only the components a scene needs.
-
-For example:
-
-```text
-Player
-├── Health (NucleusValuePool)
-│   └── Regenerator (optional)
-├── DamageReceiver
-├── StateMachine
-├── ActionSet
-└── TargetingAgent
-```
-
-Exact node placement depends on the feature contracts and your game.
-
-For concrete recipes, see:
-
-[`tutorials/components_first_steps.md`](tutorials/components_first_steps.md)
-
-## 4. Prefer native Godot nodes
-
-Keep using native:
+Continue using native:
 
 ```text
-CharacterBody2D/3D
+SceneTree / Node
+CharacterBody2D/3D / RigidBody2D/3D
 Camera2D/3D
 Area2D/3D
-AnimationTree
-Control
-InputMap
+AnimationPlayer / AnimationTree
+NavigationAgent2D/3D
+Control / Container / Theme
+Input / InputMap
+ResourceLoader
 TranslationServer
 ```
 
-Nucleus components adapt and compose these APIs.
+Nucleus supplies small reusable boundaries around repeated production wiring. It
+does not recreate those engine systems.
 
-## 5. Check the Scene dock warnings
+## 3. Compose gameplay locally
 
-Some editor-facing components emit native Godot configuration warnings. Resolve
-red/yellow scene configuration indicators before relying on runtime
-auto-discovery.
+A player might contain:
 
-## 6. Validate the baseline
+```text
+Player
+├── MotionInput
+├── movement/camera
+├── Health : NucleusValuePool
+├── DamageReceiver
+├── StateMachine
+├── ActionSet
+└── Interaction / Targeting when needed
+```
 
-Run the commands in `validation_ci_quickstart.md` before making Nucleus changes
-part of another project template.
+Add only the components the scene requires. Prefer direct references and local
+signals over global event plumbing when ownership is already clear.
 
-## Next tutorial
+## 4. Keep game policy in the game
 
-If you are unsure what to build next:
+Examples of game-owned policy:
 
-[`tutorials/README.md`](tutorials/README.md)
+```text
+combat formulas and balance
+survival rules
+world/island distribution
+missions and progression
+art direction and palettes
+provider/store decisions
+multiplayer authority model
+quality presets
+```
+
+A reusable Nucleus primitive may support these systems without owning their
+product decisions.
+
+## 5. Validate before building on top
+
+Run the baseline sequence in [`validation_ci_quickstart.md`](validation_ci_quickstart.md).
+A known-green starting point makes later regressions attributable.
+
+## Read next
+
+- Settings/input/options: [`settings_input_quickstart.md`](settings_input_quickstart.md)
+- UI/accessibility: [`ui_quickstart.md`](ui_quickstart.md)
+- Runtime efficiency: [`runtime_optimization_quickstart.md`](runtime_optimization_quickstart.md)
+- Hands-on path: [`tutorials/README.md`](tutorials/README.md)

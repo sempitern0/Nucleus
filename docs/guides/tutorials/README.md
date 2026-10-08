@@ -1,126 +1,54 @@
-# Hands-on Nucleus tutorials
+# Hands-on Nucleus Tutorials
 
-Tutorials build concrete features in the Godot editor. Use them after a quickstart
-when you want scene trees, Inspector wiring, and minimal game-owned code.
-
-The recommended documentation flow is:
+Tutorials build one concrete integration in the Godot editor. The preferred
+reading order is:
 
 ```text
-Quickstart
-    ownership and minimum setup
-        ↓
-Tutorial
-    build one complete example
-        ↓
-Technical contract
-    lifetime, API, limits, extension points
+Quickstart → Tutorial → Technical contract
 ```
 
 ## Recommended learning path
 
-1. [`core_services.md`](core_services.md) — default services and ownership.
-2. [`bindings.md`](bindings.md) — settings/input UI and rebinding.
+1. [`core_services.md`](core_services.md) — baseline services and ownership.
+2. [`bindings.md`](bindings.md) — settings, accessibility preferences, prompts and rebinding.
 3. [`graphics_settings.md`](graphics_settings.md) — runtime graphics policy.
-4. [`performance_profiling.md`](performance_profiling.md) — budgets and profiling.
-5. [`localization.md`](localization.md) — languages and persisted choice.
-6. [`audio.md`](audio.md) — cues, buses, and persistent volume.
-7. [`save_system.md`](save_system.md) — scene-owned participant state.
-8. [`scene_flow.md`](scene_flow.md) — observable scene transitions.
-9. [`resource_loading.md`](resource_loading.md) — bootstrap/runtime loading UI.
-10. [`ui_polish.md`](ui_polish.md) — transitions, interaction states and HUD feedback.
-11. Choose a movement path:
-    - [`platformer_2d.md`](platformer_2d.md)
-    - [`third_person_3d.md`](third_person_3d.md)
-12. For a 3D character, continue with
-    [`character_animation_3d.md`](character_animation_3d.md).
-13. For generated 3D worlds:
-    - [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md)
-    - [`procedural_terrain_3d.md`](procedural_terrain_3d.md)
-    - [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md)
-    - [`terrain_debugging.md`](terrain_debugging.md)
-14. [`gameplay_actions.md`](gameplay_actions.md) — actions/costs/effects.
-15. [`components_first_steps.md`](components_first_steps.md) — common components.
-16. [`local_multiplayer.md`](local_multiplayer.md) — hot-swap + couch seats.
-17. [`modules_first_steps.md`](modules_first_steps.md) — optional module survey.
-18. [`networking.md`](networking.md) — localhost to authoritative deployment path.
-19. [`../online_replication_quickstart.md`](../online_replication_quickstart.md) —
-    authoritative gameplay replication.
-20. [`content_packs.md`](content_packs.md) — signed DLC + data-only mod.
-21. [`mobile.md`](mobile.md) — touch, haptics, orientation, lifecycle.
+4. [`ui_polish.md`](ui_polish.md) — presentation, focus/glyph feedback and accessibility-safe motion.
+5. [`performance_profiling.md`](performance_profiling.md) — measure a real workload.
+6. [`runtime_optimization.md`](runtime_optimization.md) — apply bounded runtime interventions.
+7. [`audio.md`](audio.md) — cues, buses and volume.
+8. [`save_system.md`](save_system.md) — participant state and incremental capture.
+9. [`scene_flow.md`](scene_flow.md) — observable scene transitions.
+10. [`resource_loading.md`](resource_loading.md) — load plans, progress and first-use warmup.
+11. Choose a movement path: [`platformer_2d.md`](platformer_2d.md) or [`third_person_3d.md`](third_person_3d.md).
+12. Add [`character_animation_3d.md`](character_animation_3d.md) for imported 3D rigs.
+13. Continue into gameplay actions, components and optional modules as required.
 
-## Tutorials by area
+## By area
 
-| Area | Tutorial | You build |
-| --- | --- | --- |
-| Core | [`core_services.md`](core_services.md) | game shell using default services |
-| Settings/Input | [`bindings.md`](bindings.md) | options + prompts + rebinding |
-| Graphics | [`graphics_settings.md`](graphics_settings.md) | runtime graphics policy |
-| Performance | [`performance_profiling.md`](performance_profiling.md) | budgets + diagnostics |
-| Localization | [`localization.md`](localization.md) | two-language menu |
-| Audio | [`audio.md`](audio.md) | cues, buses, and persistent volume |
-| Save | [`save_system.md`](save_system.md) | participant save/load |
-| Scene Flow | [`scene_flow.md`](scene_flow.md) | loading overlay |
-| Resource Loading | [`resource_loading.md`](resource_loading.md) | bootstrap + runtime preload UI |
-| UI Polish | [`ui_polish.md`](ui_polish.md) | transitions + interaction + progress feedback |
-| 2D Movement | [`platformer_2d.md`](platformer_2d.md) | platform controller |
-| 3D Movement | [`third_person_3d.md`](third_person_3d.md) | body + orbit camera |
-| 3D Animation | [`character_animation_3d.md`](character_animation_3d.md) | imported rig + retargeting + IK + ragdoll |
-| Terrain Preview | [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md) | presets + cheap editor previews |
-| Procedural Terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) | bounded island chain |
-| Terrain Streaming | [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md) | runtime moving chunk window |
-| Terrain Debugging | [`terrain_debugging.md`](terrain_debugging.md) | bands + weights + wireframe + live stats |
-| Gameplay Actions | [`gameplay_actions.md`](gameplay_actions.md) | action/cost/cooldown/effect |
-| Components | [`components_first_steps.md`](components_first_steps.md) | common composition |
-| Local Input | [`local_multiplayer.md`](local_multiplayer.md) | hot-swap + couch seats |
-| Modules | [`modules_first_steps.md`](modules_first_steps.md) | optional module survey |
-| Networking | [`networking.md`](networking.md) | host/join through dedicated server |
-| Content Packs | [`content_packs.md`](content_packs.md) | signed DLC + data-only mod |
-| Mobile | [`mobile.md`](mobile.md) | touch controls for existing gameplay |
+| Area | Tutorial |
+| --- | --- |
+| Core | [`core_services.md`](core_services.md) |
+| Settings / Input | [`bindings.md`](bindings.md) |
+| Graphics | [`graphics_settings.md`](graphics_settings.md) |
+| UI / Accessibility | [`ui_polish.md`](ui_polish.md) |
+| Performance | [`performance_profiling.md`](performance_profiling.md) |
+| Runtime optimization | [`runtime_optimization.md`](runtime_optimization.md) |
+| Audio | [`audio.md`](audio.md) |
+| Save | [`save_system.md`](save_system.md) |
+| Scene Flow | [`scene_flow.md`](scene_flow.md) |
+| Resource Loading | [`resource_loading.md`](resource_loading.md) |
+| 2D movement | [`platformer_2d.md`](platformer_2d.md) |
+| 3D movement | [`third_person_3d.md`](third_person_3d.md) |
+| 3D animation | [`character_animation_3d.md`](character_animation_3d.md) |
+| Terrain preview | [`terrain_preview_and_presets.md`](terrain_preview_and_presets.md) |
+| Procedural terrain | [`procedural_terrain_3d.md`](procedural_terrain_3d.md) |
+| Terrain streaming | [`terrain_streaming_runtime.md`](terrain_streaming_runtime.md) |
+| Gameplay actions | [`gameplay_actions.md`](gameplay_actions.md) |
+| Common components | [`components_first_steps.md`](components_first_steps.md) |
+| Local multiplayer | [`local_multiplayer.md`](local_multiplayer.md) |
+| Networking | [`networking.md`](networking.md) |
+| Content packs | [`content_packs.md`](content_packs.md) |
+| Mobile | [`mobile.md`](mobile.md) |
 
-## Learning paths by game type
-
-### 3D action/survival
-
-```text
-project_configuration
-→ core_services
-→ bindings
-→ ui_polish
-→ third_person_3d
-→ character_animation_3d
-→ terrain_preview_and_presets when the world is generated
-→ terrain_debugging while tuning shape/material/performance
-→ gameplay_actions
-→ inventory / loot / world state as needed
-→ networking when online play is actually required
-```
-
-### Online/co-op
-
-Build the local gameplay first, then:
-
-```text
-performance_profiling
-→ networking
-→ online_replication_quickstart
-→ multiplayer_deployment_quickstart
-→ platform_services_quickstart when provider integration is needed
-```
-
-Connection transport does not decide gameplay authority.
-
-## Tutorial contract
-
-A tutorial should answer:
-
-1. What are we building?
-2. Which Nodes/Resources are added?
-3. Which Inspector properties matter?
-4. What game-owned code is required?
-5. What should happen when it works?
-6. What remains game-specific?
-7. What are the common mistakes?
-8. Which technical contract is authoritative?
-
-Tutorials use public `Nucleus*` APIs and native Godot APIs. They do not teach
-underscore-prefixed helpers as supported integration points.
+Tutorials use public `Nucleus*` APIs and native Godot APIs. Underscore-prefixed
+helpers are implementation details, not integration contracts.

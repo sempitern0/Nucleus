@@ -1,7 +1,7 @@
-# Tutorial: run terrain streaming at runtime
+# Tutorial: Run Linear Terrain Streaming at Runtime
 
-This tutorial demonstrates `NucleusTerrainStreamer3D` as a moving linear terrain
-window.
+This tutorial demonstrates `NucleusTerrainStreamer3D` as a **moving linear chunk
+window**. It is not a general infinite-world manager.
 
 Runnable reference scene:
 
@@ -9,39 +9,7 @@ Runnable reference scene:
 res://examples/terrain/terrain_streaming.tscn
 ```
 
-Run it with **F6**.
-
-## What the example does
-
-The scene contains:
-
-```text
-TerrainStreamingExample
-├── TerrainStream : NucleusTerrainStreamer3D
-├── TrackedTarget
-│   ├── Marker
-│   └── Camera3D
-├── Sun
-└── StreamingHUD
-```
-
-The orange marker moves automatically along +Z.
-
-The streamer keeps a bounded range of chunks around that marker.
-
-The HUD reports:
-
-```text
-current chunk
-loaded chunk indices
-loaded count
-pending build count
-world Z
-```
-
-## 1. Build the same ownership in your game
-
-A production scene normally looks like:
+## Ownership
 
 ```text
 World
@@ -49,166 +17,38 @@ World
 └── TerrainStream : NucleusTerrainStreamer3D
 ```
 
-Assign:
+Assign the tracked node and streaming axis. The streamer remains scene-owned.
 
-```text
-tracked_node = Player
-axis = Z
-```
+## Start conservatively
 
-The streamer is scene-owned. It is not an Autoload.
+A representative first test can use a modest patch resolution, lower collision
+resolution, a small LOD count, a few chunks ahead/behind and one new chunk per
+update. If traversal outruns generation, reduce per-patch work or increase lead
+distance before simply increasing build admission per update.
 
-## 2. Choose a patch profile
+## Lifecycle and continuity
 
-For a first runtime test, use:
+The public API exposes loaded/unloaded chunk events plus center/loaded/pending
+queries for game coordination and development UI. Gameplay should not reach into
+private chunk dictionaries.
 
-```text
-res://modules/terrain/presets/gentle_hills.tres
-```
+Adjacent patches sample the same world-position noise field; `patch_gap = 0`
+keeps contiguous ground.
 
-Then duplicate it into your project and tune it.
+## Teleports
 
-A streaming patch should usually be cheaper than a one-off hero landscape.
+A large center change removes chunks outside the new window and queues missing
+chunks nearest-first. If a destination must be fully ready before arrival, the
+game owns the loading/teleport presentation rather than expecting the streamer to
+freeze scene flow automatically.
 
-Start around:
+## When not to use it
 
-```text
-size = 200–320 m
-resolution = 48–64
-collision_resolution = 24–32
-lod_levels = 2
-```
+Choose another world ownership model for omnidirectional open worlds, clipmaps,
+persistent per-chunk edits, large streamed ecosystems or a bounded world that is
+simpler to materialize as a finite layout.
 
-## 3. Configure the active window
+## Validate
 
-Example:
-
-```text
-chunks_behind = 1
-chunks_ahead = 3
-update_interval = 0.15–0.30
-max_new_chunks_per_update = 1
-```
-
-This means the streamer does not attempt to build the complete window in one
-frame.
-
-If traversal speed is high enough to outrun generation, first increase the
-window or reduce per-patch cost. Raising `max_new_chunks_per_update` can move the
-spike rather than solve it.
-
-## 4. Observe chunk lifecycle
-
-The streamer exposes:
-
-```gdscript
-chunk_loaded(index: int, chunk: Node3D)
-chunk_unloaded(index: int)
-
-get_center_chunk_index()
-get_loaded_chunk_count()
-get_loaded_chunk_indices()
-get_pending_chunk_count()
-```
-
-These are intended for development UI, telemetry, streaming coordination, or
-project-specific systems that need to know when terrain becomes available.
-
-Gameplay should not reach into the streamer's private chunk dictionary.
-
-## 5. Understand continuity
-
-Noise sampling uses patch world positions.
-
-Adjacent chunks therefore sample the same noise field instead of restarting the
-noise at each patch.
-
-Keep:
-
-```text
-patch_gap = 0
-```
-
-for contiguous ground.
-
-A non-zero gap is an explicit layout choice and will expose holes.
-
-## 6. Understand what happens near the camera
-
-The terrain `ArrayMesh` carries reduced index buffers as LODs.
-
-Farther patches can render fewer triangles. As the camera approaches, Godot
-returns to denser index buffers and ultimately the base mesh.
-
-Therefore a rise in GPU work close to the terrain is expected.
-
-On a low-end integrated GPU, profile these separately:
-
-```text
-terrain resolution
-number of visible chunks
-terrain shadows
-Top versus Triplanar projection
-number/size of active texture layers
-```
-
-Do not assume the mesh is the bottleneck until the material and shadows are
-checked too.
-
-## 7. Collision policy
-
-The default profile uses `HeightMapShape3D`.
-
-For a streamed route, collision normally needs to exist only inside the active
-window.
-
-Keep collision resolution lower than visual resolution unless gameplay requires
-small terrain features to affect movement.
-
-## 8. Fast movement and teleports
-
-A teleport can change the center chunk by many indices at once.
-
-The streamer will:
-
-```text
-remove chunks outside the new window
-queue missing chunks in the new window
-sort pending chunks nearest-first
-build up to max_new_chunks_per_update each update
-```
-
-If the player must never see an empty landing area after teleporting, the game
-should coordinate the teleport/loading presentation. The terrain streamer does
-not block scene flow or freeze the player automatically.
-
-## 9. When not to use the linear streamer
-
-Do not use this component as a general infinite-world solution.
-
-Use another ownership model when the game needs:
-
-```text
-omnidirectional open-world streaming
-kilometres of clipmap terrain
-persistent per-chunk authored edits
-streamed foliage/object ecosystems
-terrain deformation persistence
-```
-
-For a bounded Nautica archipelago, generating an `ISLANDS` layout once is often
-simpler than streaming a linear window.
-
-## Validation checklist
-
-Run `terrain_streaming.tscn` and verify:
-
-```text
-the orange marker moves along +Z
-new chunks appear ahead
-old chunks disappear behind
-HUD indices advance
-loaded count remains bounded
-pending count returns toward zero
-there are no visible seams when patch_gap = 0
-```
+Run the example and verify the loaded count stays bounded, pending work settles,
+chunks advance with the tracked target and contiguous patches do not show seams.

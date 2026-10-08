@@ -5,8 +5,8 @@
 <h1 align="center">Nucleus</h1>
 
 <p align="center">
-  A production-oriented Godot project foundation with stable core services,
-  composable gameplay systems, optional production modules, and CI.
+  A production-oriented Godot project foundation: small core services,
+  composable gameplay systems, optional production modules, and executable validation.
 </p>
 
 <p align="center">
@@ -16,48 +16,47 @@
   <img alt="Godot 4.7.2" src="https://img.shields.io/badge/Godot-4.7.2-478CBF?logo=godot-engine&logoColor=white">
   <img alt="Project template" src="https://img.shields.io/badge/type-project%20template-6D5DFB">
   <img alt="Pre-1.0" src="https://img.shields.io/badge/status-pre--1.0-EA9A3A">
-  <a href="LICENSE">
-    <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-2EA44F">
-  </a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-2EA44F"></a>
 </p>
 
-Nucleus is a reusable Godot 4.7 project foundation. It provides application
-infrastructure and cross-genre building blocks while leaving game rules, content,
-art direction, balance, backend policy, and product decisions to the consuming
-project.
+Nucleus is a reusable **Godot 4.7 project template** for starting production games
+with common infrastructure already separated into explicit ownership boundaries.
+It is not an addon framework and it does not replace Godot's scene tree, physics,
+rendering, animation, resources, multiplayer, navigation, or UI systems.
 
-It is a **project template**, not an addon framework. Godot remains the source of
-truth for scenes, physics, animation, rendering, multiplayer, resources, and UI.
-Nucleus adds policy only where a reusable ownership boundary is useful.
+The intended relationship is:
 
-## Status
+```text
+Godot native systems
+        ↓
+small Nucleus service/component contracts
+        ↓
+game-owned rules, content, art and product policy
+```
+
+## Current baseline
 
 | Contract | Current state |
 | --- | --- |
 | Template version | [`VERSION`](VERSION) |
 | Reference engine | Godot `4.7.2-stable` |
-| API stability | Pre-1.0; public contracts may still evolve |
-| Runtime validation | Native headless tests + smoke scene |
-| Export validation | Linux, Windows, Web smoke exports |
+| API stability | Pre-1.0; intentional public changes may still occur |
+| Core validation | static audits + headless tests + smoke scenes |
+| Export validation | Linux, Windows and Web smoke exports |
 | License | [MIT](LICENSE) |
 
-The template intentionally has **no main game scene**. A game owns its entry
-point and opts into the systems it needs.
+The template intentionally ships without a game main scene. The consuming project
+owns its entry point and opts into only the systems it needs.
 
-## Start here
+## Start in five minutes
 
-| You want to... | Read |
-| --- | --- |
-| Create a project from Nucleus | [Installation](docs/guides/installation.md) |
-| Understand the baseline | [Foundation quickstart](docs/guides/foundation_quickstart.md) |
-| Learn by building | [Tutorial index](docs/guides/tutorials/README.md) |
-| Find a system from a game problem | [Real-game patterns](docs/guides/real_game_patterns.md) |
-| Configure renderer/project defaults | [Project configuration](docs/guides/project_configuration.md) |
-| Diagnose integration problems | [Troubleshooting](docs/guides/troubleshooting.md) |
-| Run validation and CI | [Validation and CI](docs/guides/validation_ci_quickstart.md) |
-| Package a Nucleus release | [Releasing](docs/guides/releasing.md) |
+1. Read [Installation](docs/guides/installation.md).
+2. Open [Foundation Quickstart](docs/guides/foundation_quickstart.md).
+3. Create your game's main scene under a game-owned directory.
+4. Keep the six baseline Autoloads unless you intentionally redesign their contracts.
+5. Run the validation sequence before substantial game-specific changes.
 
-The full documentation index is [`docs/README.md`](docs/README.md).
+The complete documentation map is [`docs/README.md`](docs/README.md).
 
 ## Core runtime
 
@@ -72,153 +71,128 @@ NucleusSave
 NucleusSceneFlow
 ```
 
-| Area | Guide / contract |
-| --- | --- |
-| Lifecycle, logging, paths, platform helpers | [Core runtime](docs/components/core_runtime.md) |
-| Settings, input, rebinding, local devices | [Settings and input](docs/components/settings_and_input.md) |
-| Audio, save, scene flow, localization | [Runtime services](docs/guides/runtime_services_quickstart.md) |
-| UI, focus, responsive layout, accessibility | [UI quickstart](docs/guides/ui_quickstart.md) |
-
-Optional modules are not promoted to Autoloads merely for convenience.
-
-## Gameplay composition
+These services own cross-scene concerns only. Gameplay, UI composition, world
+simulation and optional production tooling remain scene-owned by default.
 
 | Need | Start here |
 | --- | --- |
-| Health/resources, damage, interaction, timers, state | [Gameplay foundation](docs/guides/gameplay_foundation_quickstart.md) |
+| Lifecycle, paths, logging, platform helpers | [Core runtime](docs/components/core_runtime.md) |
+| Settings, input, rebinding, hot-swap | [Settings and input](docs/guides/settings_input_quickstart.md) |
+| Audio, save, localization, scene flow | [Runtime services](docs/guides/runtime_services_quickstart.md) |
+| Resource batches and loading UI | [Resource loading](docs/guides/resource_loading_quickstart.md) |
+| UI, focus and accessibility | [UI and accessibility](docs/guides/ui_quickstart.md) |
+
+## Gameplay composition
+
+Nucleus favors small Nodes and Resources over inheritance-heavy base classes.
+Typical gameplay is assembled from independent owners:
+
+```text
+Player
+├── MotionInput
+├── movement/camera components
+├── ValuePool / attributes
+├── DamageReceiver
+├── GameplayAction set
+├── StateMachine
+└── interaction / targeting as needed
+```
+
+| Need | Start here |
+| --- | --- |
+| Health/resources, damage, interaction, timing, state | [Gameplay foundation](docs/guides/gameplay_foundation_quickstart.md) |
 | Actions, attributes, modifiers, status effects | [Actions / attributes / status](docs/guides/actions_attributes_status_quickstart.md) |
-| 2D/3D movement and camera | [Movement / camera contract](docs/components/gameplay_movement_camera.md) |
-| Third-person controller | [3D controller tutorial](docs/guides/tutorials/third_person_3d.md) |
-| Procedural terrain / islands | [Terrain generation](docs/guides/terrain_generation_quickstart.md) |
-| Pooling, spawning, targeting | [Pooling / targeting](docs/guides/pooling_targeting_quickstart.md) |
+| Movement and camera | [Movement / camera](docs/components/gameplay_movement_camera.md) |
+| Pooling, spawning and targeting | [Pooling / targeting](docs/guides/pooling_targeting_quickstart.md) |
 | Camera feedback and game feel | [Camera / game feel](docs/guides/camera_game_feel_quickstart.md) |
-| World decals | [Smart decals](docs/guides/smart_decals_quickstart.md) |
+| AnimationTree integration | [Animation integration](docs/guides/animation_integration_quickstart.md) |
 
-Composition is preferred over inheritance. Scene-owned components communicate
-through explicit references and local signals unless a broader lifetime is
-actually required.
+## Accessibility and input comfort
 
-## 3D animation and character rigs
+The baseline includes controller hot-swap, source-aware prompts/glyphs, rebinding,
+reduced motion, screen-flash intensity, UI-scale intent, high-contrast intent,
+look sensitivity, separate gamepad movement/look deadzones, and a reusable
+hold/toggle activation helper.
 
-Nucleus does not replace Godot's animation stack. `AnimationPlayer`,
-`AnimationTree`, `Skeleton3D`, `SkeletonModifier3D`, IK modifiers,
-`PhysicalBoneSimulator3D`, `BoneAttachment3D`, and the importer remain native.
-
-Nucleus provides small adapters for common gameplay integration:
-
-```text
-state machine → AnimationTree state machine
-CharacterBody velocity → locomotion parameters
-GameplayAction → AnimationTree state / OneShot
-AnimationPlayer method tracks → local animation events
-PhysicalBoneSimulator3D → reusable ragdoll lifecycle
-```
-
-Use these documents when moving from prototype geometry to a production rig:
-
-- [Animation integration contract](docs/components/animation_integration.md)
-- [Animation integration quickstart](docs/guides/animation_integration_quickstart.md)
-- [3D character animation tutorial](docs/guides/tutorials/character_animation_3d.md)
-
-The tutorial covers imported humanoids and reusable animation sets from common
-pipelines such as Mixamo, KayKit, and Mesh2Motion, including Godot retargeting,
-AnimationTree locomotion, SkeletonModifier3D/IK, attachments, and ragdoll.
-
-## Procedural terrain
-
-The optional terrain module is aimed at fast heightfield generation rather than
-manual sculpting/painting.
-
-It composes native Godot terrain-friendly primitives:
-
-```text
-FastNoiseLite / heightmaps / grayscale images
-ArrayMesh with index LODs
-HeightMapShape3D collision
-ShaderMaterial
-scene-owned generator and streamer nodes
-```
-
-It supports complete patches, chunk grids, linear strips/streaming, and
-seed-deterministic island layouts. Editor preview uses the same sampler at a
-reduced resolution before final mesh/collision generation.
+Nucleus stores neutral preferences and exposes adapters. The game remains the owner
+of Theme, subtitle styling, contrast palette, action semantics and assist balance.
 
 Start with:
 
-- [Terrain generation quickstart](docs/guides/terrain_generation_quickstart.md)
-- [Procedural terrain tutorial](docs/guides/tutorials/procedural_terrain_3d.md)
-- [Terrain module contract](docs/modules/terrain_generation.md)
+- [Settings and Input Quickstart](docs/guides/settings_input_quickstart.md)
+- [UI and Accessibility Quickstart](docs/guides/ui_quickstart.md)
+- [Accessibility Preferences contract](docs/components/accessibility_preferences.md)
 
-Use a dedicated terrain editor such as Terrain3D or TerraBrush instead when
-manual painting/sculpting, terrain holes, or very large clipmap worlds are the
-primary requirement.
+## Runtime efficiency
+
+Nucleus includes opt-in tools for reducing frame spikes without introducing a
+global optimization manager:
+
+```text
+performance sampling and regression reports
+staggered low-frequency scheduling
+activity gating
+incremental pool prewarming
+Utility AI staggering
+render / physics audits
+first-use PackedScene warmup
+audio one-shot voice budgeting
+UI refresh coalescing
+incremental save capture
+```
+
+These tools do not automatically change renderer, physics, AI or content policy.
+Measure a representative workload, apply one bounded intervention, then compare.
+
+Start with:
+
+- [Performance Quickstart](docs/guides/performance_quickstart.md)
+- [Runtime Optimization Quickstart](docs/guides/runtime_optimization_quickstart.md)
+- [Runtime Optimization tutorial](docs/guides/tutorials/runtime_optimization.md)
 
 ## Optional production modules
 
+Optional modules are present in the template but are not promoted to baseline
+Autoloads simply for convenience.
+
 | Capability | Documentation |
 | --- | --- |
-| Performance budgets, diagnostics, traces | [Performance](docs/guides/performance_quickstart.md) |
-| Procedural terrain generation | [Terrain](docs/guides/terrain_generation_quickstart.md) |
-| Development command palette and validation | [Development tools](docs/modules/development_tools.md) |
-| Networking bootstrap | [Networking](docs/guides/networking_quickstart.md) |
-| Authoritative online replication | [Online replication](docs/guides/online_replication_quickstart.md) |
-| Dedicated multiplayer deployment | [Multiplayer deployment](docs/guides/multiplayer_deployment_quickstart.md) |
+| Performance diagnostics | [Performance](docs/guides/performance_quickstart.md) |
+| Development command palette | [Development tools](docs/guides/development_tools_quickstart.md) |
+| Networking bootstrap / LAN | [Networking](docs/guides/networking_quickstart.md) |
+| Authoritative replication | [Online replication](docs/guides/online_replication_quickstart.md) |
 | Inventory and equipment | [Inventory / equipment](docs/guides/inventory_equipment_quickstart.md) |
-| Probability and loot | [Loot](docs/guides/loot_quickstart.md) |
+| Deterministic loot | [Loot](docs/guides/loot_quickstart.md) |
 | Persistent world state | [Persistent world](docs/guides/persistent_world_quickstart.md) |
 | Utility AI and navigation | [AI / navigation](docs/guides/ai_navigation_quickstart.md) |
-| Platform/store provider boundary | [Platform services](docs/guides/platform_services_quickstart.md) |
-| Signed DLC and data-only community mods | [Content packs](docs/guides/content_packs_quickstart.md) |
-| Touch, haptics, orientation, permissions | [Mobile](docs/guides/mobile_quickstart.md) |
+| Platform/store boundary | [Platform services](docs/guides/platform_services_quickstart.md) |
+| Signed DLC and data-only mods | [Content packs](docs/guides/content_packs_quickstart.md) |
+| Touch/mobile integration | [Mobile](docs/guides/mobile_quickstart.md) |
+| Procedural heightfield terrain | [Terrain](docs/guides/terrain_generation_quickstart.md) |
 
-## Development tools
+The terrain module owns reusable heightfield generation primitives and layouts.
+Biome policy, island/world distribution for a specific game, objectives, content
+placement, art direction and progression remain game-owned.
 
-The optional development shell provides a searchable command palette, typed
-command arguments, bounded history, validation commands, and scene-object
-inspection/manipulation intended for local development builds.
+## Documentation model
 
-Start with:
-
-- [Development Tools quickstart](docs/guides/development_tools_quickstart.md)
-- [Custom command tutorial](docs/guides/custom_development_commands_tutorial.md)
-- [Scene object console](docs/guides/scene_object_console_quickstart.md)
-- [Development validation](docs/guides/development_validation_quickstart.md)
-
-The command registry is an explicit allowlist. It is not an `eval` console,
-remote administration surface, or arbitrary method/property executor.
-
-## Multiplayer
-
-Nucleus separates transport bootstrap from gameplay authority:
+Use the shortest layer that answers the question:
 
 ```text
-NetworkHandler
-    peer lifecycle / ENet / WebSocket
-
-Godot MultiplayerAPI
-    RPC / MultiplayerSpawner / MultiplayerSynchronizer
-
-Nucleus replication helpers
-    client intent admission / rate limits / transform interpolation
-
-Game server
-    authentication / semantic validation / authoritative gameplay
+README / docs index
+    orientation
+        ↓
+*_quickstart.md
+    ownership + minimum setup
+        ↓
+guides/tutorials/
+    build one concrete integration
+        ↓
+components/ or modules/
+    public contract, limits and extension rules
 ```
 
-Recommended reading order:
-
-1. [Networking quickstart](docs/guides/networking_quickstart.md)
-2. [Networking tutorial](docs/guides/tutorials/networking.md)
-3. [Online replication](docs/guides/online_replication_quickstart.md)
-4. [Multiplayer deployment](docs/guides/multiplayer_deployment_quickstart.md)
-
-## Secure extensible content
-
-Trusted executable content and untrusted community data use different paths.
-Official packs are verified before mounting; community mods remain data-only and
-are never passed through Godot's executable resource-pack loading path.
-
-See [Content Packs](docs/modules/content_packs.md).
+For game-shaped examples, use [Real-game patterns](docs/guides/real_game_patterns.md).
 
 ## Validation
 
@@ -230,7 +204,7 @@ python3 scripts/ci/documentation_audit.py
 python3 scripts/ci/productization_audit.py
 ```
 
-Godot validation:
+Authoritative Godot validation:
 
 ```bash
 godot --headless --path . --import
@@ -238,27 +212,25 @@ godot --headless --path . res://tests/headless/test_runner.tscn
 godot --headless --path . res://tests/smoke/smoke_main.tscn
 ```
 
-The headless suite runs as a project scene so the normal Autoload contract is
-available while its manifest and transitive scripts compile.
+Run the resource-loading smoke scene when `core/loading` changes. See
+[Validation and CI](docs/guides/validation_ci_quickstart.md) for the complete gate.
 
-CI also smoke-exports Linux, Windows, and Web.
-
-## Compatibility and public API
+## Compatibility and API policy
 
 - [Godot compatibility](docs/policies/godot_compatibility.md)
 - [API stability](docs/policies/api_stability.md)
 - [Versioning](docs/policies/versioning.md)
 - [Deprecation](docs/policies/deprecation.md)
 
-Pin the Nucleus version or source commit used by a consuming game. Before 1.0,
-public APIs can still change intentionally between minor versions.
+Pin the Nucleus release, tag or source commit used by a consuming game. Vendoring
+and selective upgrades are intentional.
 
 ## Contributing
 
-Read [`AGENTS.md`](AGENTS.md) before modifying reusable contracts. The core rules
-are Godot-native first, explicit ownership, scene ownership by default,
-composition over inheritance, and no hidden dependencies between optional
-modules.
+Read [`AGENTS.md`](AGENTS.md) before modifying reusable contracts. The recurring
+rules are: Godot-native first, explicit ownership, scene ownership by default,
+composition over inheritance, no hidden dependencies between optional modules,
+and executable evidence for reusable behavior.
 
 ## License
 

@@ -25,7 +25,8 @@
       "docs/components/gameplay_foundation.md"
     ],
     "components/gameplay/control": [
-      "docs/components/gameplay_movement_camera.md"
+      "docs/components/gameplay_movement_camera.md",
+      "docs/components/accessibility_preferences.md"
     ],
     "components/gameplay/decals": [
       "docs/components/world_decals.md"
@@ -37,13 +38,15 @@
       "docs/components/gameplay_foundation.md"
     ],
     "components/gameplay/lifecycle": [
-      "docs/components/gameplay_foundation.md"
+      "docs/components/gameplay_foundation.md",
+      "docs/components/runtime_optimization.md"
     ],
     "components/gameplay/movement": [
       "docs/components/gameplay_movement_camera.md"
     ],
     "components/gameplay/pooling": [
-      "docs/components/gameplay_pooling_targeting.md"
+      "docs/components/gameplay_pooling_targeting.md",
+      "docs/components/runtime_optimization.md"
     ],
     "components/gameplay/resources": [
       "docs/components/gameplay_foundation.md"
@@ -58,13 +61,17 @@
       "docs/components/gameplay_pooling_targeting.md"
     ],
     "components/gameplay/timing": [
-      "docs/components/gameplay_foundation.md"
+      "docs/components/gameplay_foundation.md",
+      "docs/components/runtime_optimization.md"
     ],
     "components/ui/accessibility": [
-      "docs/components/ui_and_accessibility.md"
+      "docs/components/ui_and_accessibility.md",
+      "docs/components/accessibility_preferences.md"
     ],
     "components/ui/data": [
-      "docs/components/ui_and_accessibility.md"
+      "docs/components/ui_and_accessibility.md",
+      "docs/components/ui_runtime_bindings.md",
+      "docs/components/runtime_optimization.md"
     ],
     "components/ui/effects": [
       "docs/components/ui_and_accessibility.md"
@@ -100,7 +107,8 @@
       "docs/components/ui_and_accessibility.md"
     ],
     "components/ui/presentation": [
-      "docs/components/ui_and_accessibility.md"
+      "docs/components/ui_and_accessibility.md",
+      "docs/components/ui_runtime_bindings.md"
     ],
     "components/ui/text": [
       "docs/components/ui_and_accessibility.md"
@@ -136,22 +144,26 @@
       "docs/components/world_time_environment.md"
     ],
     "core/accessibility": [
-      "docs/components/ui_and_accessibility.md"
+      "docs/components/ui_and_accessibility.md",
+      "docs/components/accessibility_preferences.md"
     ],
     "core/application": [
       "docs/components/core_runtime.md"
     ],
     "core/audio": [
-      "docs/components/audio_save_scene_localization.md"
+      "docs/components/audio_save_scene_localization.md",
+      "docs/components/runtime_optimization.md"
     ],
     "core/diagnostics": [
       "docs/components/core_runtime.md"
     ],
     "core/input": [
-      "docs/components/settings_and_input.md"
+      "docs/components/settings_and_input.md",
+      "docs/components/accessibility_preferences.md"
     ],
     "core/loading": [
-      "docs/components/resource_loading.md"
+      "docs/components/resource_loading.md",
+      "docs/components/runtime_optimization.md"
     ],
     "core/localization": [
       "docs/components/audio_save_scene_localization.md"
@@ -160,13 +172,15 @@
       "docs/components/core_runtime.md"
     ],
     "core/save": [
-      "docs/components/audio_save_scene_localization.md"
+      "docs/components/audio_save_scene_localization.md",
+      "docs/components/runtime_optimization.md"
     ],
     "core/scene_flow": [
       "docs/components/audio_save_scene_localization.md"
     ],
     "core/settings": [
-      "docs/components/settings_and_input.md"
+      "docs/components/settings_and_input.md",
+      "docs/components/accessibility_preferences.md"
     ],
     "core/utils": [
       "docs/components/core_runtime.md"
@@ -175,7 +189,8 @@
       "docs/components/core_runtime.md"
     ],
     "modules/ai": [
-      "docs/modules/ai_navigation.md"
+      "docs/modules/ai_navigation.md",
+      "docs/components/runtime_optimization.md"
     ],
     "modules/content_packs": [
       "docs/modules/content_packs.md"
@@ -200,7 +215,8 @@
       "docs/modules/online_replication.md"
     ],
     "modules/performance": [
-      "docs/modules/performance.md"
+      "docs/modules/performance.md",
+      "docs/components/runtime_optimization.md"
     ],
     "modules/platform_services": [
       "docs/modules/platform_services.md"

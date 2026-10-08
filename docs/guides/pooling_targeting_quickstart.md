@@ -1,51 +1,53 @@
 # Pooling and Targeting Quickstart
 
-## Pooling
+## Object pooling
 
-Place one `NucleusObjectPool` for one reusable scene/type in the owning gameplay
-scene. Use the matching spawner when placement matters.
+Place one `NucleusObjectPool` per reusable scene/type in the owning gameplay
+scope. Do not add a global pool registry solely for access convenience.
 
-Expected lifecycle:
+Lifecycle:
 
 ```text
-acquire/reserve
+reserve
 → set transform/context
 → activate
 → use
 → release/reset
 ```
 
-Do not introduce a global PoolManager just to access unrelated pools.
+For small capacities, synchronous `prewarm()` is fine. For large capacities:
+
+```gdscript
+await pool.prewarm_incremental(200, 8)
+```
+
+or configure `auto_prewarm_instances_per_frame`. This spreads instantiation cost
+without changing pool ownership.
+
+Pool only when repeated create/free churn is measured or clearly expected; rare
+objects are often simpler as normal scenes.
 
 ## Targeting
 
-Add a `NucleusTargetingAgent` to the actor/system that owns selection.
-
-For area sensing:
+`NucleusTargetingAgent` owns candidates, current selection and lock state. Sensors
+own discovery sources; filters own validity; scorers own ranking.
 
 ```text
-TargetingAgent
-└── Sensor (Area2D or Area3D + NucleusTargetAreaSensor*)
-    └── CollisionShape*
+Area2D/3D sensor
+→ source-owned candidate registry
+→ filters
+→ scorers
+→ current target
 ```
 
-Assign the agent explicitly when the hierarchy contains more than one plausible
-agent. Add filters for validity and scorers for ranking.
+Do not perform another physics query inside every action when the targeting owner
+already has the required selection.
 
-## Editor warnings
+## Performance composition
 
-Area sensors warn when:
+Target rescoring or expensive awareness that tolerates bounded latency can use
+`NucleusUpdateScheduler`. Per-frame aiming/movement and correctness-critical hit
+logic should not.
 
-- neither bodies nor areas are enabled;
-- no enabled collision shape exists;
-- `agent` is empty and runtime resolution may be ambiguous.
-
-These are design-time diagnostics. They do not replace runtime guards.
-
-## Integrations
-
-Use existing target requirement/context integrations for actions instead of
-running a second physics query inside every action.
-
-When spawning pooled projectiles, pass target/action context during the
-reserve/configure/activate phase.
+Large inactive actor subtrees may compose `NucleusActivityGate` when the game has
+an explicit relevance policy.

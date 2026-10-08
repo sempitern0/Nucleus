@@ -2,205 +2,149 @@
 
 ## Scope
 
-This contract covers reusable frame-cost controls outside terrain and world
-streaming:
+This is the canonical Nucleus contract for general runtime-efficiency tools
+outside terrain and world streaming.
 
 ```text
 components/gameplay/timing
 components/gameplay/lifecycle
 components/gameplay/pooling
 modules/ai integration
+modules/performance audits
+core/loading warmup
+core/audio one-shot budgeting
+components/ui/data refresh coalescing
+core/save capture budgeting
 ```
 
-The goal is not to create an OptimizationManager. Godot remains authoritative
-for frame processing, physics, rendering, navigation and profiling. Nucleus adds
-small scene-owned tools that reduce repeated production wiring around cadence,
-activity and allocation spikes.
+No `OptimizationManager` or optimization Autoload exists. Godot remains
+authoritative for frame scheduling, rendering, physics, navigation, resources and
+profiling.
 
-## Staggered update scheduler
+## Staggered update scheduling
 
-`NucleusUpdateScheduler` is for work that does not need to run every rendered or
-physics frame.
+`NucleusUpdateScheduler` is scene-owned and intended only for approximate-cadence
+work such as Utility AI decisions, awareness checks, target rescoring, ambient
+simulation and low-frequency diagnostics.
 
-Typical examples:
+Tasks declare interval, optional phase and priority. Negative phase uses automatic
+staggering. The scheduler caps callbacks per frame and may enforce a wall-clock
+admission budget.
 
-```text
-utility-AI decisions
-target rescoring
-expensive awareness checks
-secondary HUD refreshes
-ambient simulation
-low-frequency diagnostics
-```
+A delayed task executes once and schedules its next run from the current clock;
+missed intervals are not replayed. Therefore it must not own fixed-step gameplay,
+input, movement integration, hit resolution or frame-exact animation events.
 
-Register a callback with:
-
-```gdscript
-var token := scheduler.register_task(
-    _refresh_awareness,
-    0.25,
-)
-```
-
-The callback receives elapsed seconds since its previous execution.
-
-A negative phase selects automatic staggering. Registration order is distributed
-across the interval so systems created in the same frame do not all wake on the
-same later frame.
-
-The scheduler enforces:
-
-```text
-max_callbacks_per_frame
-frame_budget_usec
-```
-
-These are admission budgets, not profiler substitutes. A callback that already
-started is never interrupted.
-
-### No catch-up spiral
-
-If a task was delayed, the scheduler executes it once and schedules the next run
-from the current clock. It deliberately does not replay every missed interval.
-
-That policy favors frame pacing over simulation catch-up and is therefore only
-appropriate for work whose cadence is approximate. Fixed-step gameplay,
-movement integration, authoritative timers and deterministic simulation should
-continue using their normal physics/gameplay owner.
-
-### Inspector adapter
-
-`NucleusScheduledUpdate` exposes one scheduler task as a scene component and
-emits:
-
-```text
-tick(elapsed)
-```
-
-Use an explicit scheduler reference or parent it below a scheduler ancestor.
+`NucleusScheduledUpdate` exposes one task as an Inspector-friendly `tick(elapsed)`
+component.
 
 ## Activity gating
 
-`NucleusActivityGate` applies an explicit active/inactive state to a scene-owned
-target. The game decides when the target is relevant.
+`NucleusActivityGate` applies an explicit active/inactive state to a project-owned
+target. It does not infer camera distance, combat state or network relevance.
 
-The gate can optionally manage:
+Process mode is managed by default. Visibility, particle emission and rigid-body
+sleep are opt-in. The component captures authored baseline state and restores it
+on reactivation.
 
-```text
-root process_mode
-root visibility
-particle emission
-RigidBody sleeping
-```
+## Incremental object-pool prewarm
 
-Only process mode is enabled by default. Visibility, particles and physics sleep
-are opt-in because they can change presentation or gameplay behavior.
+`NucleusObjectPool.prewarm()` remains synchronous. For larger capacities use
+`prewarm_incremental(target_total, instances_per_frame)` or the matching
+auto-prewarm export.
 
-The gate snapshots authored state once and restores it on reactivation.
-`recapture_baseline()` is available after an intentional runtime reconfiguration.
-It refuses to capture while inactive so disabled state cannot accidentally
-become the new baseline.
-
-Nucleus deliberately does not infer distance, camera visibility, combat state or
-network relevance. Those are consuming-game policies that call:
-
-```gdscript
-gate.set_active(relevant)
-```
-
-A child using `PROCESS_MODE_ALWAYS` can remain active when an ancestor is
-disabled. Such exceptional children should be gated explicitly when required.
-
-## Incremental pool prewarming
-
-`NucleusObjectPool.prewarm()` remains synchronous for compatibility.
-
-For large capacities use:
-
-```gdscript
-await pool.prewarm_incremental(200, 8)
-```
-
-This creates at most eight instances per rendered frame until the requested
-capacity is reached.
-
-For scene-authored automatic prewarming:
-
-```text
-auto_prewarm = true
-prewarm_count = 200
-auto_prewarm_instances_per_frame = 8
-```
-
-Zero `auto_prewarm_instances_per_frame` preserves the previous synchronous
-behavior.
-
-`prewarm_progress(created_count, total_count, target_total)` lets loading UI or
-development tooling observe warmup without polling.
-
-Incremental prewarming reduces scene-instantiation spikes; it does not make
-instantiation free. Measure representative PackedScenes and choose a batch size
-that preserves the product frame target.
+`prewarm_progress` exposes loading progress without polling. Pooling is still
+optional: do not pool rare objects merely because the API exists.
 
 ## Utility AI scheduling
 
-`NucleusAIUtilityBrain` can now consume an optional `NucleusUpdateScheduler`.
-When all of the following are true:
+`NucleusAIUtilityBrain` may use a `NucleusUpdateScheduler`. With scheduler +
+positive evaluation interval, automatic evaluation leaves per-physics polling and
+uses the scheduled cadence. Auto phase prevents many simultaneously spawned
+brains from aligning future decisions.
+
+Context-change requests can make the task eligible for the next dispatch. Without
+a scheduler, existing physics-driven behavior remains available.
+
+## Render audit
+
+`NucleusRenderAudit.inspect(root)` returns `NucleusPerformanceDiagnostic` findings
+for structural candidates such as large repeated mesh/material groups, broad
+shadow casting and missing visibility-range ends.
+
+A finding is not an instruction to mutate the scene. Confirm rendering pressure
+with the sampler/native tooling before changing MultiMesh, LOD, visibility or
+shadow policy.
+
+## Physics audit
+
+`NucleusPhysicsAudit.inspect(root)` reports broad candidates such as many awake
+rigid bodies, disabled sleeping, widespread contact monitoring and actively
+monitoring Areas.
+
+It never changes collision masks, sleep, monitoring, physics tick rate or Jolt
+configuration.
+
+## First-use warmup
+
+`NucleusWarmupPlan` contains `NucleusWarmupEntry` resources and is executed by a
+scene-owned `NucleusWarmupSequence` with bounded instances per rendered frame.
+
+Modes:
 
 ```text
-active
-automatic_evaluation
-update_scheduler assigned
-evaluation_interval > 0
+INSTANTIATE_ONLY
+ENTER_TREE_INACTIVE
 ```
 
-the brain disables its fallback physics polling and registers one scheduled
-evaluation task.
+The second mode executes normal tree/ready lifecycle and is therefore safe only
+for explicitly warmup-compatible scenes.
 
-`evaluation_phase = -1` uses automatic staggering, so many brains entering the
-scene together are distributed across their decision interval.
+Hidden instantiation cannot guarantee GPU pipeline compilation. A renderer-first
+hitch may require a project-authored rendered warmup after profiler/pipeline
+evidence identifies that cause.
 
-Context-provider changes still call `request_evaluation()`. With a scheduler,
-that request makes the task eligible for the next scheduler dispatch rather than
-waiting for the normal interval.
+## Audio voice budgeting
 
-If no scheduler is assigned, existing physics-driven behavior is preserved.
-An `evaluation_interval` of zero also keeps the old per-physics-frame path.
+The shared non-positional one-shot pool accepts integer voice priorities.
+`NucleusAudioCue.voice_priority` carries authored policy. At capacity, the pool
+chooses the oldest voice among the lowest active priority; a lower-priority new
+request is rejected rather than stealing a more important voice.
 
-## Recommended composition
+Default priority `0` preserves equal-priority oldest-first behavior. Positional
+2D/3D audio remains scene-owned.
 
-A common NPC hierarchy can remain explicit:
+## UI refresh coalescing
+
+`NucleusUIRefreshCoalescer` collapses several same-frame invalidations into one
+deferred `refresh_due`. `flush_now()` provides an explicit immediate path.
+
+Do not coalesce focus, confirmation or modal ownership when one-frame latency
+changes correctness. `NucleusUIResourceLoadBinding` exposes optional progress
+coalescing for noisy loading updates.
+
+## Save capture budgeting
+
+`NucleusSaveCaptureJob` snapshots the participant callback set and captures a
+bounded number of participants per step. `capture_snapshot_incremental()` and the
+incremental save helpers yield between batches.
+
+Participant capture remains on the main thread because callbacks may read Nodes.
+Application pause/quit autosaves remain synchronous because another frame is not
+guaranteed.
+
+## Measurement contract
+
+Use `NucleusPerformanceSampler` and native Godot profilers to establish evidence.
+The preferred loop is:
 
 ```text
-World
-├── UpdateScheduler
-└── NPC
-    ├── ActivityGate
-    ├── UtilityBrain -> UpdateScheduler
-    ├── Targeting
-    └── Movement
+repeatable workload
+→ capture baseline
+→ identify subsystem pressure
+→ apply one bounded primitive
+→ repeat same workload
+→ compare report
 ```
 
-The gate decides whether the NPC subtree should remain active. The scheduler
-spreads expensive low-frequency decisions. Per-frame movement remains under the
-normal movement/physics owner.
-
-## Performance boundaries
-
-Do not move work into the scheduler merely because it is expensive.
-
-Good candidates are tasks that tolerate bounded latency. Poor candidates are:
-
-```text
-player input
-camera motion
-CharacterBody movement
-physics integration
-hit resolution
-network authority deadlines
-frame-exact animation/gameplay events
-```
-
-Use `NucleusPerformanceSampler` and Godot's Profiler to verify that staggering or
-gating improves the real workload. Architecture alone is not performance
-evidence.
+Architecture alone is never a performance result.

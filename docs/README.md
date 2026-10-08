@@ -1,126 +1,118 @@
 # Nucleus Documentation
 
-Nucleus documentation is organized by task and ownership. Start from the
-smallest document that answers the current problem, then move to the technical
-contract when you need lifetime, extension points, or limitations.
+Nucleus documentation is organized by **task first** and **technical ownership
+second**. Start with a quickstart; use a tutorial when you want a complete example;
+open the component/module contract when you need API guarantees, limits or extension
+rules.
 
-## Find what you need
+## Start here
 
 | Goal | Read |
 | --- | --- |
-| Start a new project | `guides/installation.md` |
-| Understand the baseline | `guides/foundation_quickstart.md` |
-| Learn by building | `guides/tutorials/README.md` |
-| Match a game problem to a subsystem | `guides/real_game_patterns.md` |
-| Configure project/rendering defaults | `guides/project_configuration.md` |
-| Configure settings, input, and rebinding | `guides/settings_input_quickstart.md` |
-| Use audio, save, and localization | `guides/runtime_services_quickstart.md` |
-| Build scene transitions and recovery | `guides/scene_flow_quickstart.md` |
-| Preload resources with custom progress UI | `guides/resource_loading_quickstart.md` |
-| Build common gameplay composition | `guides/gameplay_foundation_quickstart.md` |
-| Use actions, attributes, status effects | `guides/actions_attributes_status_quickstart.md` |
-| Build movement/camera | `components/gameplay_movement_camera.md` |
-| Add world time/daylight/localized FX | `components/world_time_environment.md` |
-| Classify or analytically sample world surfaces | `components/world_surfaces.md` |
-| Add multi-point rigid-body buoyancy | `components/world_buoyancy.md` |
-| Add bounded world-space visual history | `components/world_feedback.md` |
-| Replace prototype geometry with an animated 3D rig | `guides/tutorials/character_animation_3d.md` |
-| Wire AnimationTree/Nucleus adapters | `guides/animation_integration_quickstart.md` |
-| Generate procedural 3D terrain / islands | `guides/terrain_generation_quickstart.md` |
-| Add pooling and targeting | `guides/pooling_targeting_quickstart.md` |
-| Add camera feedback/game feel | `guides/camera_game_feel_quickstart.md` |
-| Add inventory/equipment | `guides/inventory_equipment_quickstart.md` |
-| Add deterministic loot | `guides/loot_quickstart.md` |
-| Persist world state | `guides/persistent_world_quickstart.md` |
-| Add Utility AI/navigation | `guides/ai_navigation_quickstart.md` |
-| Profile performance | `guides/performance_quickstart.md` |
-| Use Development Tools | `guides/development_tools_quickstart.md` |
-| Create custom development commands | `guides/custom_development_commands_tutorial.md` |
-| Inspect/move runtime scene objects | `guides/scene_object_console_quickstart.md` |
-| Validate scenes/resources | `guides/development_validation_quickstart.md` |
-| Host/join multiplayer | `guides/networking_quickstart.md` |
-| Build authoritative replication | `guides/online_replication_quickstart.md` |
-| Deploy a dedicated game server | `guides/multiplayer_deployment_quickstart.md` |
-| Integrate platform/store providers | `guides/platform_services_quickstart.md` |
-| Add signed DLC / safe data mods | `guides/content_packs_quickstart.md` |
-| Add touch/mobile support | `guides/mobile_quickstart.md` |
-| Diagnose integration problems | `guides/troubleshooting.md` |
-| Run validation and CI | `guides/validation_ci_quickstart.md` |
-| Package Nucleus | `guides/releasing.md` |
+| Create a game from Nucleus | [`guides/installation.md`](guides/installation.md) |
+| Understand the baseline architecture | [`guides/foundation_quickstart.md`](guides/foundation_quickstart.md) |
+| Learn by building | [`guides/tutorials/README.md`](guides/tutorials/README.md) |
+| Match a game problem to a subsystem | [`guides/real_game_patterns.md`](guides/real_game_patterns.md) |
+| Configure project/rendering defaults | [`guides/project_configuration.md`](guides/project_configuration.md) |
+| Validate locally and in CI | [`guides/validation_ci_quickstart.md`](guides/validation_ci_quickstart.md) |
+| Diagnose integration problems | [`guides/troubleshooting.md`](guides/troubleshooting.md) |
+
+## Core and player-facing systems
+
+| Goal | Read |
+| --- | --- |
+| Settings, input, rebinding and device hot-swap | [`guides/settings_input_quickstart.md`](guides/settings_input_quickstart.md) |
+| UI, focus, accessibility and presentation | [`guides/ui_quickstart.md`](guides/ui_quickstart.md) |
+| Audio, save and localization | [`guides/runtime_services_quickstart.md`](guides/runtime_services_quickstart.md) |
+| Scene transitions and recovery | [`guides/scene_flow_quickstart.md`](guides/scene_flow_quickstart.md) |
+| Resource batches / loading presentation | [`guides/resource_loading_quickstart.md`](guides/resource_loading_quickstart.md) |
+| Gameplay foundation | [`guides/gameplay_foundation_quickstart.md`](guides/gameplay_foundation_quickstart.md) |
+| Actions, attributes and status effects | [`guides/actions_attributes_status_quickstart.md`](guides/actions_attributes_status_quickstart.md) |
+| Pooling and targeting | [`guides/pooling_targeting_quickstart.md`](guides/pooling_targeting_quickstart.md) |
+
+## Performance and runtime efficiency
+
+Use these in order:
+
+1. [`guides/performance_quickstart.md`](guides/performance_quickstart.md) — measure and establish budgets.
+2. [`guides/tutorials/performance_profiling.md`](guides/tutorials/performance_profiling.md) — reproduce and diagnose a real workload.
+3. [`guides/runtime_optimization_quickstart.md`](guides/runtime_optimization_quickstart.md) — choose a bounded runtime intervention.
+4. [`guides/tutorials/runtime_optimization.md`](guides/tutorials/runtime_optimization.md) — compose scheduler, gates, prewarm, audits and warmup.
+5. [`components/runtime_optimization.md`](components/runtime_optimization.md) — canonical public contract.
+
+Terrain/world streaming have their own performance rules; the runtime optimization
+contract above covers general systems outside those domains.
+
+## Accessibility
+
+Accessibility is split deliberately:
+
+- [`components/ui_and_accessibility.md`](components/ui_and_accessibility.md) — UI behavior, focus, motion and presentation boundaries.
+- [`components/accessibility_preferences.md`](components/accessibility_preferences.md) — persisted UI scale/contrast intent, sensitivity, deadzones and hold/toggle behavior.
+- [`guides/settings_input_quickstart.md`](guides/settings_input_quickstart.md) — source-aware input and controller hot-swap.
+
+## Optional modules
+
+| Module | Contract |
+| --- | --- |
+| Performance | [`modules/performance.md`](modules/performance.md) |
+| Development tools | [`modules/development_tools.md`](modules/development_tools.md) |
+| EventBus | [`modules/event_bus.md`](modules/event_bus.md) |
+| Networking | [`modules/networking.md`](modules/networking.md) |
+| Online replication | [`modules/online_replication.md`](modules/online_replication.md) |
+| Inventory / equipment | [`modules/inventory_equipment.md`](modules/inventory_equipment.md) |
+| Probability / loot | [`modules/probability_loot.md`](modules/probability_loot.md) |
+| Persistent world state | [`modules/persistent_world_state.md`](modules/persistent_world_state.md) |
+| AI / navigation | [`modules/ai_navigation.md`](modules/ai_navigation.md) |
+| Platform services | [`modules/platform_services.md`](modules/platform_services.md) |
+| Content packs | [`modules/content_packs.md`](modules/content_packs.md) |
+| Mobile | [`modules/mobile.md`](modules/mobile.md) |
+| Terrain | [`modules/terrain_generation.md`](modules/terrain_generation.md) |
+
+## World and presentation contracts
+
+Useful focused contracts include:
+
+```text
+components/world_time_environment.md
+components/world_surfaces.md
+components/world_buoyancy.md
+components/world_feedback.md
+components/world_decals.md
+components/gameplay_movement_camera.md
+components/animation_integration.md
+components/camera_game_feel.md
+components/ui_runtime_bindings.md
+components/resource_loading.md
+```
 
 ## Documentation layers
 
 ```text
 guides/*_quickstart.md
-    fast ownership and setup
+    minimum setup + ownership
 
 guides/tutorials/
-    concrete scenes, Inspector setup, and minimal code
+    concrete build-along examples
 
 components/ and modules/
-    public technical contracts and limitations
+    public behavior, limits, persistence/network/performance boundaries
 
 architecture/
     dependency direction and design rationale
 
 policies/
-    compatibility, stability, versioning, and deprecation rules
+    compatibility, stability, versioning and deprecation
 ```
 
-Tutorials are practical entry points. Technical contracts remain the source of
-truth for public behavior.
-
-## Technical contracts
-
-Baseline component groups:
-
-- `components/core_runtime.md`
-- `components/settings_and_input.md`
-- `components/audio_save_scene_localization.md`
-- `components/resource_loading.md`
-- `components/gameplay_foundation.md`
-- `components/gameplay_actions_attributes_status.md`
-- `components/gameplay_movement_camera.md`
-- `components/gameplay_pooling_targeting.md`
-- `components/world_time_environment.md`
-- `components/world_surfaces.md`
-- `components/world_buoyancy.md`
-- `components/world_feedback.md`
-- `components/world_decals.md`
-- `components/ui_and_accessibility.md`
-- `components/animation_integration.md`
-- `components/camera_game_feel.md`
-
-Optional modules:
-
-- `modules/development_tools.md`
-- `modules/event_bus.md`
-- `modules/networking.md`
-- `modules/online_replication.md`
-- `modules/performance.md`
-- `modules/terrain_generation.md`
-- `modules/inventory_equipment.md`
-- `modules/probability_loot.md`
-- `modules/persistent_world_state.md`
-- `modules/ai_navigation.md`
-- `modules/platform_services.md`
-- `modules/content_packs.md`
-- `modules/mobile.md`
-
-No optional module is loaded by default in `project.godot`.
-
-## Product policies
-
-- `policies/versioning.md`
-- `policies/godot_compatibility.md`
-- `policies/api_stability.md`
-- `policies/deprecation.md`
-
-These define promises made by the template rather than implementation details.
+Technical contracts describe the current product. Migration history and iteration
+journals belong in Git history, releases and pull requests rather than current-use
+documentation.
 
 ## Machine-checkable coverage
 
-`documentation_coverage.json` maps subsystem directories to technical docs.
+`documentation_coverage.json` maps every top-level subsystem directory to one or
+more technical documents.
 
 Run:
 
@@ -128,7 +120,3 @@ Run:
 python3 scripts/ci/documentation_audit.py
 python3 scripts/ci/productization_audit.py
 ```
-
-Documentation in the repository is intended to help users integrate, operate,
-extend, validate, or maintain Nucleus. Historical iteration logs and planning
-roadmaps are intentionally kept outside the source tree.

@@ -1,51 +1,18 @@
 # Save Quickstart
 
-Nucleus separates storage/format policy from game-owned state capture.
+Nucleus separates global storage/format policy from scene-owned game-state capture.
 
-For a complete participant-based example, see:
+## Choose the entry point
 
-[`tutorials/save_system.md`](tutorials/save_system.md)
-
-## Choose the right entry point
-
-Use `NucleusSave` directly when the payload is already available as plain data.
-
-Use `NucleusSaveSession` when several scene/game systems each own part of the
-state and should capture/restore themselves.
-
-## Direct save
-
-```gdscript
-var result: NucleusSaveResult = NucleusSave.save_manual(
-    "slot_1",
-    {
-        "coins": 25,
-        "checkpoint": "harbor",
-    },
-)
-
-if not result.succeeded():
-    push_error(error_string(result.error))
-```
-
-Load:
-
-```gdscript
-var result: NucleusSaveResult = NucleusSave.load_manual("slot_1")
-
-if result.succeeded():
-    var payload: Dictionary = result.document.payload
-```
-
-## Scene-owned SaveSession
-
-Typical structure:
+Use `NucleusSave` when you already have a plain-data payload. Use
+`NucleusSaveSession` when several systems own independent capture/restore state.
 
 ```text
 GameSession
 ├── SaveSession : NucleusSaveSession
 ├── Player
-└── World
+├── Inventory
+└── WorldState
 ```
 
 Register explicit participants:
@@ -58,98 +25,68 @@ save_session.register_participant(
 )
 ```
 
-The global save service never scans the SceneTree to discover gameplay state.
+The save service never scans the SceneTree to discover gameplay state.
 
-## Capture plain, stable data
+## Save-safe data
 
-Good save payloads contain stable values such as:
+Prefer stable plain data:
 
 ```text
-bool
-numbers
-strings
-arrays
-dictionaries
+bool / numbers / strings
+arrays / dictionaries
 stable IDs
-explicit state snapshots
+explicit snapshots
 ```
 
-Do not save:
+Do not persist live Nodes, Callables, transient instance IDs or translated display
+strings as authoritative state.
 
-```text
-live Node references
-Callable objects
-transient instance IDs
-scene-tree addresses used as identity
-translated display strings
-```
+## Manual / quick / autosave
 
-## Manual, quick and autosave
-
-`NucleusSaveSession` exposes:
+The synchronous methods remain:
 
 ```text
 save_manual
 save_quick
 autosave
-load_manual
-load_quick
-load_latest_autosave
 ```
 
-Its optional `NucleusAutosavePolicy` controls:
+They are appropriate for small/medium snapshots and lifecycle boundaries that
+must complete immediately.
 
-```text
-enabled
-interval_seconds
-max_slots
-save_on_application_pause
-save_on_application_quit
-save_on_focus_lost
-minimum_interval_seconds
+## Large participant sets
+
+When capture itself causes a visible spike, create a bounded capture job:
+
+```gdscript
+var job := save_session.create_capture_job()
+
+while not job.is_completed():
+    job.step(8)
+    await get_tree().process_frame
+
+var payload := job.take_snapshot()
 ```
 
-## Metadata is not gameplay state
+Or use:
 
-Use metadata for save-slot presentation:
-
-```text
-display name
-playtime summary
-chapter/area label
-screenshot path
+```gdscript
+var payload := await save_session.capture_snapshot_incremental(8)
 ```
 
-Keep authoritative gameplay restore data in the payload.
+Convenience incremental save methods are also available for manual, quick and
+explicit autosave flows.
 
-## Restore order
+Capture callbacks may touch Nodes, so Nucleus keeps them on the main thread. A
+participant registered after a job starts belongs to the next snapshot.
 
-When one participant depends on another, restore the dependency first.
+Application pause/quit autosaves intentionally stay synchronous because another
+rendered frame may never arrive.
 
-Examples:
+## Restore order and late binding
 
-```text
-Inventory before Equipment
-world identity before dependent quest presentation
-player attributes before UI reads them
-```
+When one participant depends on another, register/restore the dependency first
+when order matters. Loaded payload remains pending so participants that register
+after `apply_snapshot()` can still receive their state.
 
-If a participant registers after a snapshot was loaded, `NucleusSaveSession`
-keeps pending payload data and can apply that participant's restore callable when
-it becomes available.
-
-## Common mistakes
-
-- serializing entire Nodes instead of explicit state;
-- mixing user preferences/settings into save-game state;
-- hiding load failures and continuing with partially invalid state;
-- using localized strings as IDs;
-- letting every component write its own unrelated file format;
-- committing encryption/integrity credentials into reusable Resources.
-
-## Related documentation
-
-- [`tutorials/save_system.md`](tutorials/save_system.md)
-- [`runtime_services_quickstart.md`](runtime_services_quickstart.md)
-- [`persistent_world_quickstart.md`](persistent_world_quickstart.md)
-- [`../components/audio_save_scene_localization.md`](../components/audio_save_scene_localization.md)
+Hands-on: [`tutorials/save_system.md`](tutorials/save_system.md).

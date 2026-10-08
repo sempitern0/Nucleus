@@ -1,92 +1,10 @@
 # Validation and CI Quickstart
 
-Nucleus validation has two local workflows:
+Nucleus has one authoritative automated path: load the real Godot project so the
+normal Autoload contract exists, then run the registered headless suites and smoke
+scenes.
 
-```text
-Godot editor
-    fast manual feedback while developing
-
-headless / CI
-    authoritative automation and export gate
-```
-
-## Test infrastructure contract
-
-All dependency-free unit/regression suites live under:
-
-```text
-tests/headless/*_test.gd
-```
-
-Every suite must:
-
-```text
-extend res://tests/headless/test_case.gd
-define func run() -> Dictionary
-use expect_true / expect_false / expect_equal / expect_float
-return finish()
-be registered in tests/headless/test_manifest.gd
-```
-
-`scripts/ci/static_checks.py` validates that contract before Godot starts.
-
-The headless test runner is a normal project scene:
-
-```text
-tests/headless/test_runner.tscn
-```
-
-This is deliberate. Running the suite as a scene lets Godot load `project.godot`
-and register the normal Nucleus Autoloads before the test manifest and its
-transitive scripts are compiled. Do not launch the native suite with
-`--script tests/headless/test_runner.gd`.
-
-The manifest uses `preload()`, so loading the scene still compiles every
-registered suite before runtime assertions execute. A compile/API error therefore
-fails the same CI step as the native suite instead of using a second CLI script
-context with different Autoload behavior.
-
-## Run tests from the Godot editor
-
-Open:
-
-```text
-tests/editor/test_runner.tscn
-```
-
-Press **F6 — Run Current Scene**.
-
-A clean result looks like:
-
-```text
-Nucleus editor tests: PASS (... checks, ... suites).
-```
-
-## Run validation fixtures
-
-Useful fixtures include:
-
-```text
-examples/validation/gameplay_2d.tscn
-examples/validation/gameplay_3d.tscn
-examples/validation/smart_decal_3d.tscn
-```
-
-Use F6 and inspect configuration warnings and Output.
-
-The automated bootstrap fixture is:
-
-```text
-tests/smoke/smoke_main.tscn
-```
-
-Threaded loading also has a dedicated runtime smoke fixture:
-
-```text
-tests/smoke/resource_loading_smoke.tscn
-```
-
-## Local static checks
+## 1. Repository checks
 
 ```bash
 python3 scripts/ci/static_checks.py
@@ -94,141 +12,90 @@ python3 scripts/ci/documentation_audit.py
 python3 scripts/ci/productization_audit.py
 ```
 
-PowerShell:
+These catch source conventions, test-manifest mistakes, documentation coverage
+and productization contract errors without pretending to be runtime validation.
 
-```powershell
-python .\scripts\ci\static_checks.py
-python .\scripts\ci\documentation_audit.py
-python .\scripts\ci\productization_audit.py
-```
-
-## Godot headless import
-
-Use the same Godot line as CI (`4.7.2-stable`):
+## 2. Import with the CI engine
 
 ```bash
 godot --headless --path . --import
 ```
 
-On Windows, keeping the executable in a variable makes the sequence easier to
-repeat:
+The release-gated reference is currently Godot `4.7.2-stable`.
 
-```powershell
-$godot = "C:\Tools\Godot\Godot_v4.7.2-stable_win64_console.exe"
-& $godot --version
-& $godot --headless --path . --import
-```
-
-Use the normal executable instead when the console build is not installed.
-
-## Native headless tests
-
-Linux/macOS:
+## 3. Run the native test scene
 
 ```bash
 godot --headless --path . res://tests/headless/test_runner.tscn
 ```
 
-PowerShell:
+Every dependency-free regression suite lives under `tests/headless/*_test.gd`,
+extends `tests/headless/test_case.gd`, returns `finish()`, and is registered in
+`tests/headless/test_manifest.gd`.
 
-```powershell
-& $godot --headless --path . res://tests/headless/test_runner.tscn
-$LASTEXITCODE
+The runner is a normal project scene on purpose. Do not replace this with
+`godot --script tests/headless/test_runner.gd`: transitive Nucleus source expects
+the project's Autoloads to exist during compilation and execution.
+
+### Editor workflow
+
+For fast local iteration, open:
+
+```text
+tests/headless/test_runner.tscn
 ```
 
-The runner exits with `0` on success and `1` when one or more assertions fail.
-Script compilation failures also make the Godot process fail before a PASS can
-be emitted.
+and press **F6 — Run Current Scene**. The same suite graph is used in editor and headless validation; there is no
+second editor-only test contract.
 
-## Bootstrap smoke scene
+## 4. Smoke scenes
+
+Baseline Core/Autoload smoke:
 
 ```bash
 godot --headless --path . res://tests/smoke/smoke_main.tscn
 ```
 
-This separately verifies the required default Autoloads and compatible Godot
-runtime.
-
-## Threaded resource-loading smoke
+Threaded resource-loading smoke:
 
 ```bash
 godot --headless --path . res://tests/smoke/resource_loading_smoke.tscn
 ```
 
-This exercises real `ResourceLoader.load_threaded_request()` work across normal
-frames and verifies terminal progress plus retained-resource lookup.
+Run the loading smoke whenever `core/loading`, warmup/loading integration or its
+public presentation bindings change.
 
-Run it whenever `core/loading` changes.
+## 5. Manual validation scenes
 
-## Why the runner is a scene
+Use representative scenes under `examples/` for visual or interaction behavior
+that cannot be proven headlessly. Examples include gameplay, UI polish, terrain,
+decals and other scene-owned integrations.
 
-Nucleus source legitimately references its project Autoload names, for example
-`NucleusApp` and `NucleusInput`.
+A manual scene is evidence for its visual/interaction contract; it is not a
+replacement for the automated suite.
 
-A standalone script launched with `godot --script` is not the same lifecycle as
-loading a project scene. In particular, `--check-only --script` can parse a
-transitive test graph before those project singletons are available to the
-script context. That produces misleading `Identifier not found: NucleusApp`
-style errors even when `[autoload]` in `project.godot` is correct.
+## 6. Smoke exports
 
-The scene runner uses the same project initialization model as the consuming
-game and smoke fixture, which is the behavior Nucleus actually promises.
-
-## Tests that need SceneTree lifecycle
-
-Most suites intentionally stay lightweight and can instantiate Resources or
-plain Nodes without scene attachment.
-
-Tests that use APIs requiring live global transforms, `_ready()`, physics or
-other SceneTree state must attach their parentless fixture through the helpers in
-`tests/headless/test_case.gd`:
-
-```gdscript
-var root := Node3D.new()
-expect_true(attach_test_node(root), "Fixture requires a live SceneTree.")
-
-# exercise global_position/global_transform/lifecycle
-
-free_test_node(root)
-```
-
-Do not use `global_position` or `global_transform` on a detached `Node3D` and
-then treat the resulting engine fallback as test data.
-
-## Smoke exports
-
-With official Godot 4.7.2 templates installed:
+With official export templates installed:
 
 ```bash
-GODOT_BIN=/path/to/godot \
-    bash scripts/ci/smoke_exports.sh "$PWD"
+GODOT_BIN=/path/to/godot bash scripts/ci/smoke_exports.sh "$PWD"
 ```
 
-## GitHub Actions
+The CI workflow validates Linux, Windows and Web packaging for the reusable
+baseline. That proves exportability of Nucleus itself, not every game-specific
+renderer/plugin/platform SDK.
 
-`.github/workflows/nucleus-ci.yml` runs repository audits first, then Godot
-import, the native headless test scene, bootstrap smoke, threaded resource-load
-smoke, and Linux/Windows/Web exports.
-
-The native scene is both the transitive GDScript compile gate and the assertion
-runner because its manifest preloads every suite.
-
-## Recommended local order
+## Recommended order
 
 ```text
-1. static checks
-2. editor test runner while iterating
-3. affected visual validation scene when applicable
-4. headless import
-5. headless native test scene
-6. bootstrap smoke scene if Core/Autoloads changed
-7. resource-loading smoke if core/loading changed
-8. CI smoke exports for release-facing work
+1. static/documentation/productization audits
+2. headless import
+3. native test scene
+4. affected smoke scene(s)
+5. affected manual validation scene(s)
+6. smoke exports for release-facing work
 ```
 
-## Runtime validation status
-
-Static generation checks are not equivalent to executing Godot.
-
-Call a change runtime-validated only after local Godot validation or a successful
-CI run covering import, native runtime tests, relevant smoke scenes, and exports.
+Call a change runtime-green only after the relevant Godot steps have actually
+executed successfully.

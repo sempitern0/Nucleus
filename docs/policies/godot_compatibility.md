@@ -2,75 +2,49 @@
 
 ## Current support contract
 
-Nucleus currently targets the Godot 4.7 line. The release-gated reference is:
+Nucleus currently targets the Godot 4.7 line. The CI/release-gated reference is:
 
 ```text
 Godot 4.7.2-stable
 ```
 
-Project metadata declares Godot 4.7 features, while CI installs and executes
-4.7.2-stable for import, tests, smoke validation, and exports.
-
-## Support matrix
-
 | Godot version | Nucleus policy |
 | --- | --- |
 | 4.7.2-stable | Supported and CI-gated |
-| Later 4.7.x patches | Expected compatible; promote after CI validation |
-| 4.7.0 - 4.7.1 | Not guaranteed |
-| 4.8.x and newer minors | Unsupported until explicitly adopted |
-| 4.6.x and older | Unsupported |
+| later 4.7.x patches | expected compatible; promote only after validation |
+| 4.7.0–4.7.1 | not guaranteed |
+| 4.8.x+ | unsupported until explicitly adopted |
+| 4.6.x and older | unsupported |
 
-"Unsupported" means Nucleus does not make a compatibility promise for that
-engine line; it does not necessarily mean the project is known to fail.
+Unsupported means no compatibility promise, not necessarily a known failure.
 
-## Why the exact CI version matters
+## Why the exact reference matters
 
-Godot patch releases can change parser behavior, exporters, warnings, and engine
-internals while project metadata still declares the same minor feature line.
+Patch releases can change parser behavior, warnings, exporters and engine internals
+while project metadata still declares the same minor feature line. Compatibility
+claims therefore come from the engine CI actually imports, tests and exports.
 
-A Nucleus release therefore has one exact reference engine version. Developers
-may use newer compatible patches locally, but compatibility claims come from the
-version CI actually executes.
-
-## Engine upgrade process
+## Upgrade process
 
 A reference-version change requires:
 
-1. update the pinned CI version;
-2. run headless import;
-3. parse the full native test graph;
-4. execute regression tests;
-5. run the bootstrap smoke scene;
-6. smoke-export Linux, Windows, and Web;
-7. review new warnings and deprecated engine APIs;
-8. update this policy and affected migration/release documentation.
-
-Changing to a new Godot minor line also requires an API/compatibility review and
-an appropriate Nucleus version bump.
+1. update the CI pin;
+2. headless import;
+3. compile/run the full native test scene;
+4. run smoke scenes;
+5. smoke-export Linux, Windows and Web;
+6. review warnings/deprecations;
+7. update compatibility and migration/release documentation;
+8. make the appropriate Nucleus version decision.
 
 ## Rendering and exports
 
-The default project currently declares Forward Plus.
-
-Nucleus CI smoke-exports:
-
-```text
-Linux
-Windows
-Web
-```
-
-Those exports prove that the reusable baseline packages successfully. They do
-not promise compatibility for every game-specific renderer, shader, native
-extension, platform SDK, or asset pipeline.
+The default project declares Forward Plus. CI smoke exports Linux, Windows and
+Web to validate packaging of the reusable baseline. That does not promise that
+every consuming game's shader, native extension, platform SDK or asset pipeline
+supports those targets.
 
 ## Dependencies
 
 Nucleus prefers Godot-native APIs and does not require a third-party runtime test
-framework. Optional game plugins maintain their own compatibility contracts.
-
-## Barebone
-
-Barebone compatibility is outside this policy. Nucleus supports the engine and
-Nucleus API contracts documented in this repository.
+framework. Optional external plugins keep their own compatibility contracts.

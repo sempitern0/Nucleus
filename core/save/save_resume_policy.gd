@@ -37,7 +37,7 @@ static func choose_latest(
 	kind_order: PackedInt32Array = PackedInt32Array(),
 ) -> NucleusSaveResult:
 	var order := normalize_kind_order(kind_order)
-	var best: NucleusSaveResult
+	var best: NucleusSaveResult = null
 	var best_time_usec: int = -1
 	var best_priority: int = 2147483647
 

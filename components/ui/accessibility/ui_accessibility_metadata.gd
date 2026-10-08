@@ -52,7 +52,6 @@ func _resolve_target() -> bool:
 	return false
 
 
-@warning_ignore("int_as_enum_without_cast")
 func _apply_metadata() -> void:
 	target.accessibility_name = _translated_or_fallback(
 		name_key,
@@ -62,8 +61,9 @@ func _apply_metadata() -> void:
 		description_key,
 		fallback_description,
 	)
-	
-	target.accessibility_live = live_mode as AccessibilityServer.AccessibilityLiveMode
+	target.accessibility_live = (
+		live_mode as AccessibilityServer.AccessibilityLiveMode
+	)
 
 
 func _translated_or_fallback(

@@ -157,7 +157,7 @@ func load_latest(
 		return _finish_load(invalid_result, false)
 
 	var candidates: Array[NucleusSaveResult] = []
-	var fallback_error: NucleusSaveResult
+	var fallback_error: NucleusSaveResult = null
 
 	for kind: int in order:
 		var candidate := _load_raw_kind(slot_id, kind)
@@ -354,7 +354,7 @@ func _create_document(
 	created_at_usec: int = 0,
 ) -> NucleusSaveDocument:
 	var now_usec := int(Time.get_unix_time_from_system() * 1000000.0)
-	var now := int(now_usec / 1000000)
+	var now := int(float(now_usec) / 1000000.0)
 	var document := NucleusSaveDocument.new()
 
 	document.slot_id = slot_id
@@ -366,7 +366,7 @@ func _create_document(
 		else now_usec
 	)
 	document.created_at_unix = int(
-		document.created_at_unix_usec / 1000000
+		float(document.created_at_unix_usec) / 1000000.0
 	)
 	document.updated_at_unix = now
 	document.updated_at_unix_usec = now_usec

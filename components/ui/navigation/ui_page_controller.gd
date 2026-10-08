@@ -58,14 +58,14 @@ func show_page(
 		return ERR_BUSY
 
 	var previous_index: int = current_index
-	var previous_page: Control = (
+	var previous_control: Control = (
 		pages[previous_index]
 		if previous_index >= 0
 		else null
 	)
-	var next_page: Control = pages[index]
+	var next_control: Control = pages[index]
 
-	if next_page == null:
+	if next_control == null:
 		return ERR_INVALID_DATA
 
 	page_changing.emit(previous_index, index)
@@ -73,15 +73,15 @@ func show_page(
 	if (
 		not animated
 		or not animate_transitions
-		or previous_page == null
+		or previous_control == null
 	):
 		_show_immediately(index)
 		return OK
 
 	var duration: float = NucleusUIMotion.get_duration(motion)
 
-	next_page.show()
-	next_page.modulate.a = 0.0
+	next_control.show()
+	next_control.modulate.a = 0.0
 
 	_transition_tween = NucleusUIMotion.create_tween(
 		self,
@@ -89,15 +89,15 @@ func show_page(
 	).set_parallel(true)
 
 	_transition_tween.tween_property(
-		previous_page,
+		previous_control,
 		"modulate:a",
 		0.0,
 		duration,
 	)
 	_transition_tween.tween_property(
-		next_page,
+		next_control,
 		"modulate:a",
-		_get_base_alpha(next_page),
+		_get_base_alpha(next_control),
 		duration,
 	)
 
@@ -172,21 +172,21 @@ func _finish_transition(
 	_transition_tween = null
 
 	if previous_index >= 0:
-		var previous_page: Control = pages[previous_index]
+		var previous_control: Control = pages[previous_index]
 
-		if previous_page:
-			previous_page.hide()
-			previous_page.modulate.a = _get_base_alpha(previous_page)
+		if previous_control:
+			previous_control.hide()
+			previous_control.modulate.a = _get_base_alpha(previous_control)
 
 	current_index = next_index
 
-	var next_page: Control = pages[current_index]
-	next_page.modulate.a = _get_base_alpha(next_page)
+	var next_control: Control = pages[current_index]
+	next_control.modulate.a = _get_base_alpha(next_control)
 
 	_update_tabs()
 	_focus_current_page()
 
-	page_changed.emit(current_index, next_page)
+	page_changed.emit(current_index, next_control)
 
 
 func _record_page_state() -> void:

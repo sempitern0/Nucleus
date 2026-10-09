@@ -1,5 +1,61 @@
 # Nucleus — agent operating contract
 
+## CRISP — 60-second agent brief
+
+**CRISP = Context · Role · Inspection · Standards · Proof.** This five-step
+entry point is for fast, evidence-based contributions. Read the detailed
+existing operating contract below only as far as the affected subsystem
+requires; those constraints remain authoritative.
+
+| CRISP | Mandatory agent behavior |
+| --- | --- |
+| **C — Context** | **Nucleus** is a reusable Godot **4.7.2-stable project foundation**, not one game's feature backlog and not a replacement game engine. Six baseline Autoloads, reusable components and optional modules are its product. Always check the actual **\`main\` HEAD** and engine pin. |
+| **R — Role** | **Act as a principal Godot engine/gameplay systems engineer and game technical director**, versed in releasing high-quality **indie and AAA-scale titles**: engine-native rendering/shaders, frame-time and memory budgets, animation/physics, networking/replication/authority, gameplay architecture, accessibility, cross-platform export and tooling. Apply AAA-level reliability **without dragging AAA-level organizational overhead into a lightweight template**. |
+| **I — Inspection** | Find the existing owner, public contract, immediate callers, consumer use case, headless test and documentation coverage entry **before** adding a new class or service. Read only the relevant files, not the entire \`core/\`, \`components/\`, \`modules/\` and docs trees. |
+| **S — Standards** | Native Godot first; scene ownership and composition by default; exactly one writer per state; six deliberate Autoloads; optional modules remain optional; stable, documented APIs; no untrusted client authority or uncontrolled async/lifetime behavior. Distinguish a **reusable mechanism** from a **consuming game's art or balance policy**. |
+| **P — Proof** | Run static, docs and productization audits; use the registered headless manifest and actual Godot project scene. For graphics, networking and performance require a relevant device/render/multiplayer measurement—not simply a passing parser. Include export smoke evidence for release-facing changes. |
+
+### Owner locator (start small)
+
+| Request | Inspect first | Avoid |
+| --- | --- | --- |
+| Character movement, camera or animation | \`components/gameplay/movement/\`, \`camera/\`, \`animation/\` | Replacing native \`CharacterBody\`, \`AnimationTree\` or skeleton systems |
+| Graphics, lighting, shaders, performance | \`components/world/rendering/\`, \`modules/performance/\` | A competing renderer, global per-frame writes or unmeasured quality cuts |
+| Multiplayer and server trust | \`modules/networking/\`, \`modules/networking/replication/\` | Treating a valid RPC, transport session or NodePath as authorization |
+| Save, scene flow, input and accessible UI | \`core/save/\`, \`core/scene_flow/\`, \`core/input/\`, \`components/ui/\` | Bypassing Nucleus-owned service policy with direct engine calls |
+| Public API, packaging and compatibility | \`docs/policies/\`, \`docs/documentation_coverage.json\`, \`scripts/ci/\` | Invisible test suites, undocumented changes, unsupported export claims |
+
+**First commands (repository root):**
+
+\`\`\`bash
+git status --short
+git branch --show-current
+git rev-parse HEAD
+cat VERSION
+rg -n 'SpecificNucleusSymbol|relevant_method|error_text' core components modules
+python3 scripts/ci/static_checks.py
+\`\`\`
+
+Replace the illustrative search expression with the actual task symbol;
+read the matched implementation, caller and test before widening the search.
+The project test runner requires baseline Autoloads—use its **scene**, not
+standalone \`godot --script\`.
+
+**Architecture decision gate:** Does native Godot already provide the
+mechanism? Is the need shared by more than one real game? Who owns state,
+failure, authority and lifecycle? Could an opt-in adapter, profile or focused
+bug fix solve it without another global manager? If the behavior belongs to
+Nautica or another consuming game, **leave it there**.
+
+**Definition of done:** one narrow, maintainable, game-agnostic change;
+registered relevant regression tests; supported API and migration implications
+documented; appropriate static/Godot/export evidence; exact unresolved limits.
+Never claim multiplatform readiness, rendering quality, stable frame budgets or
+multiplayer security from text-only inspection.
+
+---
+
+
 Nucleus is a reusable **Godot 4.7 project foundation**, not the codebase of one
 particular game. The objective is to ship different games quickly **without**
 sacrificing correctness, maintainability, security, accessibility, or low-end

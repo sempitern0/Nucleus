@@ -4,6 +4,8 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/semantic_version_test.gd"),
 	preload("res://tests/headless/value_pool_test.gd"),
 	preload("res://tests/headless/network_utils_test.gd"),
+	preload("res://tests/headless/network_recovery_test.gd"),
+	preload("res://tests/headless/network_clock_sync_test.gd"),
 	preload("res://tests/headless/input_binding_codec_test.gd"),
 	preload("res://tests/headless/input_defaults_test.gd"),
 	preload("res://tests/headless/settings_graphics_test.gd"),

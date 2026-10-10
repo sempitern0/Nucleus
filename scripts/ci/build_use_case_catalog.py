@@ -17,7 +17,7 @@ def render(registry: dict) -> str:
     lines = [
         "# Game Development Use Cases", "",
         f"**{total} game-development scenarios · five capability areas · one source of truth**", "",
-        "> [!TIP]", 
+        "> [!TIP]",
         "> **Start with the feature you want.** Find its row, follow the existing",
         "> Nucleus contract, and implement only the game-specific rules that remain.", "",
         "**Browse:** [Core](#core) · [Gameplay](#gameplay) · [UI](#ui) ·",

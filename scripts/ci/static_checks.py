@@ -25,6 +25,11 @@ SKIP_DIRS = {".ci", ".git", ".godot", "build", "dist"}
 CLASS_NAME_RE = re.compile(r"^\s*class_name\s+([A-Za-z_][A-Za-z0-9_]*)\s*$")
 UID_RE = re.compile(r"^uid://[a-z0-9]+$")
 
+# Only reusable Nucleus-owned source requires the public Nucleus prefix.
+# Consuming projects may define game-owned scripts under game/ (or other
+# project-specific folders) without renaming their public classes.
+NUCLEUS_SOURCE_DIRS = frozenset({"core", "components", "modules"})
+
 TEST_ROOT = Path("tests/headless")
 TEST_CASE_PATH = TEST_ROOT / "test_case.gd"
 TEST_MANIFEST_PATH = TEST_ROOT / "test_manifest.gd"
@@ -122,6 +127,7 @@ def check_file(path: Path, repository_root: Path) -> list[str]:
 			)
 
 	if path.suffix == ".gd":
+		is_nucleus_source = relative.split("/", 1)[0] in NUCLEUS_SOURCE_DIRS
 		for number, line in enumerate(lines, start=1):
 			if line.startswith(" "):
 				errors.append(
@@ -129,7 +135,7 @@ def check_file(path: Path, repository_root: Path) -> list[str]:
 				)
 
 			match = CLASS_NAME_RE.match(line)
-			if match and not match.group(1).startswith("Nucleus"):
+			if match and is_nucleus_source and not match.group(1).startswith("Nucleus"):
 				errors.append(
 					f"{relative}:{number}: public class_name must use Nucleus prefix"
 				)

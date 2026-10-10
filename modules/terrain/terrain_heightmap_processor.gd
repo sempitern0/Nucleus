@@ -119,6 +119,127 @@ static func suggested_sample_limit(
 	)
 
 
+## Limit terrain slopes on a normalized RED heightmap without changing its source.
+## Returns FORMAT_RF data. Invalid input returns null, never a partial result.
+## Call after any resampling, curve baking or artistic height modifications.
+static func limit_heightmap_slopes(
+	source: Image,
+	terrain_size_m: Vector2,
+	height_scale_m: float,
+	maximum_slope_degrees: float,
+) -> Image:
+	var working := _editable_copy(source)
+	if working == null:
+		return null
+
+	var dimensions := Vector2i(working.get_width(), working.get_height())
+	if dimensions.x < 2 or dimensions.y < 2:
+		return null
+	if not terrain_size_m.is_finite():
+		return null
+
+	var values := PackedFloat32Array()
+	values.resize(dimensions.x * dimensions.y)
+	for y: int in range(dimensions.y):
+		for x: int in range(dimensions.x):
+			var value := working.get_pixel(x, y).r
+			if not is_finite(value):
+				return null
+			values[y * dimensions.x + x] = value
+
+	var spacing := terrain_size_m / Vector2(dimensions - Vector2i.ONE)
+	var limited := limit_sample_slopes(
+		values,
+		dimensions,
+		spacing,
+		height_scale_m,
+		maximum_slope_degrees,
+	)
+	if limited.is_empty():
+		return null
+
+	var result := Image.create_empty(
+		dimensions.x,
+		dimensions.y,
+		false,
+		Image.FORMAT_RF,
+	)
+	for y: int in range(dimensions.y):
+		for x: int in range(dimensions.x):
+			result.set_pixel(
+				x,
+				y,
+				Color(limited[y * dimensions.x + x], 0.0, 0.0),
+			)
+	return result
+
+
+## Conservative horizontal slope bound in metres, including bilinear cells.
+## Two in-place min-plus scans lower sharp peaks without raising any samples.
+## Input and returned sample arrays never share mutable storage.
+## Empty return means the dimensions, spacings, scale or samples are invalid.
+static func limit_sample_slopes(
+	values: PackedFloat32Array,
+	sample_size: Vector2i,
+	meters_per_cell: Vector2,
+	height_scale_m: float,
+	maximum_slope_degrees: float,
+) -> PackedFloat32Array:
+	var empty := PackedFloat32Array()
+	if sample_size.x < 2 or sample_size.y < 2:
+		return empty
+	if sample_size.x > values.size() / sample_size.y:
+		return empty
+	if values.size() != sample_size.x * sample_size.y:
+		return empty
+	if not meters_per_cell.is_finite():
+		return empty
+	if meters_per_cell.x <= 0.0 or meters_per_cell.y <= 0.0:
+		return empty
+	if not is_finite(height_scale_m) or height_scale_m <= 0.0:
+		return empty
+	if not is_finite(maximum_slope_degrees):
+		return empty
+	if maximum_slope_degrees < 0.0 or maximum_slope_degrees >= 89.9:
+		return empty
+
+	for value: float in values:
+		if not is_finite(value):
+			return empty
+
+	# Bound each axis by tan(theta) / sqrt(2). Both partial derivatives
+	# then fit inside tan(theta) even on a bilinearly interpolated cell.
+	var maximum_gradient := tan(deg_to_rad(maximum_slope_degrees))
+	var normalized_gradient := maximum_gradient / (height_scale_m * sqrt(2.0))
+	var step_x := normalized_gradient * meters_per_cell.x
+	var step_y := normalized_gradient * meters_per_cell.y
+	if not is_finite(step_x) or not is_finite(step_y):
+		return empty
+
+	var result := values.duplicate()
+	for y: int in range(sample_size.y):
+		for x: int in range(sample_size.x):
+			var index := y * sample_size.x + x
+			var current: float = result[index]
+			if x > 0:
+				current = minf(current, result[index - 1] + step_x)
+			if y > 0:
+				current = minf(current, result[index - sample_size.x] + step_y)
+			result[index] = current
+
+	for y: int in range(sample_size.y - 1, -1, -1):
+		for x: int in range(sample_size.x - 1, -1, -1):
+			var index := y * sample_size.x + x
+			var current: float = result[index]
+			if x + 1 < sample_size.x:
+				current = minf(current, result[index + 1] + step_x)
+			if y + 1 < sample_size.y:
+				current = minf(current, result[index + sample_size.x] + step_y)
+			result[index] = current
+
+	return result
+
+
 static func _editable_copy(source: Image) -> Image:
 	if source == null or source.is_empty():
 		return null

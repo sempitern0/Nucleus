@@ -42,6 +42,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/scene_flow_test.gd"),
 	preload("res://tests/headless/terrain_generation_test.gd"),
 	preload("res://tests/headless/terrain_material_quality_test.gd"),
+	preload("res://tests/headless/terrain_heightfield_constraints_test.gd"),
 	preload("res://tests/headless/terrain_shader_source_test.gd"),
 	preload("res://tests/headless/terrain_materialization_test.gd"),
 	preload("res://tests/headless/scatter_generation_test.gd"),
@@ -57,5 +58,6 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/ui_world_anchor_test.gd"),
 	preload("res://tests/headless/ui_runtime_bindings_test.gd"),
 	preload("res://tests/headless/world_streaming_test.gd"),
+	preload("res://tests/headless/world_mask_test.gd"),
 	preload("res://tests/headless/gameplay_2d_foundation_test.gd"),
 ]

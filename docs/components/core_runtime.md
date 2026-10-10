@@ -137,6 +137,12 @@ random geometry
 enum helpers
 ```
 
+For exact integer quantity arithmetic and abbreviated numeric presentation,
+use `NucleusBoundedIntMath` and `NucleusNumberFormatter`, respectively. Their
+limits, rounding behavior, localization boundary, and examples are documented
+in [`numeric_utilities.md`](numeric_utilities.md). Neither is a global service
+or an incremental-game system.
+
 Use native Godot APIs directly when they already express the operation clearly.
 A utility belongs here only when it removes repeated project code without hiding
 important engine behavior.

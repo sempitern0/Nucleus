@@ -3,9 +3,12 @@
 Target engine: Godot 4.7.2. Component: `components/world/fields/world_mask_3d.gd`.
 
 `NucleusWorldMask3D` is a **scene-owned** scalar field sampled in world space.
-It transfers the reusable, tested field implementation from Nautica Survival's
-`codex/player-traversal-polish` branch into Nucleus. It has no dependencies on
-Nautica, terrain generation, weather, world streaming or scatter rendering.
+It samples authored scalar data without depending on terrain generation,
+weather, world streaming, or scatter rendering.
+
+> [!TIP]
+> **Use for:** authored spatial weights such as placement density or ambient intensity.
+> **Not for:** collision, weather simulation, or authoritative world generation.
 
 ## Basic use
 
@@ -81,13 +84,9 @@ textures, and nonfinite pixel channels all resolve to the configured fallback.
 `@tool` configuration warnings describe invalid assignments and read failures.
 No Autoload or per-frame polling is introduced.
 
-The same code and `.gd.uid` from Nautica were retained. Regression coverage is
-registered in `tests/headless/world_mask_test.gd`.
+Regression coverage is registered in `tests/headless/world_mask_test.gd`.
 
-Source: `nautica-survival/components/world/fields/world_mask_3d.gd`,
-branch `codex/player-traversal-polish` at commit `f152099dc6a0af5769fbd2dd11ff6f16b3bfff91`.
-
-## Use cases / Casos de uso
+## Use cases
 
 | Scenario | Scalar-field role | Game policy |
 | --- | --- | --- |

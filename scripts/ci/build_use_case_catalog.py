@@ -13,26 +13,37 @@ def render(registry: dict) -> str:
     grouped: dict[str, list[dict]] = defaultdict(list)
     for item in registry["cases"]:
         grouped[item["domain"]].append(item)
+    total = len(registry["cases"])
     lines = [
-        "# Game development use cases / Casos de uso", "",
-        "This is the **problem-first navigation layer** for humans and coding agents. Start with",
-        "a behavior you want to build, follow the linked contract, and keep the final",
-        "gameplay/content/art policy in the consuming game. This catalog is also stored",
-        "in machine-readable form in [`../use_case_registry.json`](../use_case_registry.json).", "",
-        "## Choose a route", "",
-        "1. Find the closest player/developer problem below.",
-        "2. Open the linked canonical document and inspect the actual source owner.",
-        "3. Read the relevant quickstart or tutorial for a minimum working scene.",
-        "4. Author game-specific behavior next to its owning scene, not as a Nucleus Autoload.",
-        "5. Validate headless + a real gameplay/editor scene where the change is observable.", "",
-        "If none fits, prefer native Godot APIs and a game-local implementation. Extract",
-        "a Nucleus feature only after independent reuse is demonstrated. See",
-        "[`ai_composition_workflow.md`](ai_composition_workflow.md) for the coding workflow.", "",
+        "# Game Development Use Cases", "",
+        f"**{total} game-development scenarios · five capability areas · one source of truth**", "",
+        "> [!TIP]", 
+        "> **Start with the feature you want.** Find its row, follow the existing",
+        "> Nucleus contract, and implement only the game-specific rules that remain.", "",
+        "**Browse:** [Core](#core) · [Gameplay](#gameplay) · [UI](#ui) ·",
+        "[World](#world) · [Optional modules](#optional-modules)", "",
+        "## How to use this catalog", "",
+        "1. Find the closest player or developer problem below.",
+        "2. Open the linked technical contract and verify its current script API.",
+        "3. Read a quickstart or tutorial to wire a minimal scene.",
+        "4. Keep gameplay logic and content in the consuming game.",
+        "5. Run the relevant tests and verify the behavior in a real scene.", "",
+        "> [!IMPORTANT]",
+        "> **Ownership boundary:** Godot owns engine primitives; Nucleus provides",
+        "> reusable contracts; the game owns rules, content, balance, and visuals.", "",
+        "**More help:** [AI/human workflow](ai_composition_workflow.md) ·",
+        "[Composition recipes](composition_recipes.md) ·",
+        "[Ownership decisions](../architecture/component_selection.md) ·",
+        "[Machine-readable registry](../use_case_registry.json)", "",
     ]
+    icons = {
+        "Core": "🟦", "Gameplay": "🟩", "UI": "🟪",
+        "World": "🟨", "Optional modules": "🟧",
+    }
     for domain, cases in grouped.items():
         lines.extend([
-            f"## {domain}: use cases / casos de uso", "",
-            "| You want to... | Start with Nucleus | The game still owns... |",
+            f"## {icons.get(domain, '▪')} {domain}", "",
+            "| What you want to build | Reuse this contract | The game still decides |",
             "| --- | --- | --- |",
         ])
         for item in cases:
@@ -43,7 +54,10 @@ def render(registry: dict) -> str:
             )
         lines.append("")
     lines.extend([
-        "## What the catalog does not promise", "",
+        "## Limits and guardrails", "",
+        "> [!WARNING]",
+        "> **Use the listed owner; do not assume a finished game mechanic.**",
+        "> Add your own rules, test real gameplay, and keep trust decisions server-side.", "",
         "- A component is not a finished RPG/MMO/survival/puzzle mechanic; the game wires inputs, state and feedback.",
         "- A valid API call is not a trust decision; authoritative worlds validate requests and visibility.",
         "- A smoke/headless test is not proof of feel, visuals, latency or frame budget on real hardware.",

@@ -7,6 +7,10 @@ Target: Nucleus on Godot 4.7.2-stable.
 `NucleusPerformanceSampler`; it is not another engine profiler, Autoload, or
 independent per-frame performance collector.
 
+> [!IMPORTANT]
+> **Instrument only known expensive sections.** Measured wall-clock
+> duration is not a CPU-only profiler or GPU timing measurement.
+
 ## Ownership and limits
 
 - Native Godot Profiler still owns deep CPU/script call profiling.
@@ -145,7 +149,7 @@ For actual performance comparisons, profile a repeatable representative workload
 in a standalone debug export and use Godot's native Profiler as well. Debug and
 instrumentation overhead can materially affect measured timing.
 
-## Use cases / Casos de uso
+## Use cases
 
 | Scenario | Instrument | What to verify |
 | --- | --- | --- |

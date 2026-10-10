@@ -61,12 +61,43 @@ docs/policies/
 
 Component/module documents define ownership, lifetime, public API, data flow,
 extension points, Godot-native dependencies, and known limitations. Add a short
-`Use cases / Casos de uso` section when the relationship between a low-level API
+`Use cases` section when the relationship between a low-level API
 and real gameplay/editor tasks is not already obvious. Give contrasting examples
 of a good fit, a bad fit, and the consuming game's responsibility.
 
 Architecture documents explain dependency direction and maintainership rules.
 Policies define compatibility, stability, deprecation, and versioning promises.
+
+## Visual hierarchy and language
+
+Use **English only** for repository-facing headings, navigation, callouts,
+registry fields, and generated guides. Do not append translated duplicates to
+section titles: they reduce search precision for both readers and agents.
+
+Prefer portable, accessible GitHub-flavored Markdown:
+
+1. **One `#` title** per document; `##` for major decisions and `###` for detail.
+2. **Bold the decision**, not every sentence. Use short tables for capability
+   comparisons and named actions.
+3. Use GitHub's colored alerts **sparingly** to convey meaning:
+   - `> [!TIP]`: the recommended next action or best-fit use.
+   - `> [!IMPORTANT]`: a prerequisite or ownership boundary.
+   - `> [!WARNING]`: a compatibility, performance, or integration risk.
+   - `> [!CAUTION]`: a security or destructive-editing concern.
+   - `> [!NOTE]`: secondary context.
+4. Use consistent **Use cases**, **API**, **Setup**, **Limitations**, and
+   **Validation** headings where they help. Keep a quick decision above long
+   implementation details; link rather than duplicating contracts.
+5. For indexes, a small number of colored category icons may aid scanning.
+   Do not rely on color alone: every icon also needs a text label.
+
+Avoid raw HTML styling or CSS for GitHub documents. GitHub strips or ignores
+most custom font sizes and colors; headings and native alerts render reliably.
+Do not add externally hosted badge services merely for decorative emphasis.
+
+Do not include unrelated product histories or inspiration credits in API
+contracts. Retain legally required notices, licenses, and explicit third-party
+source attribution when applicable.
 
 ## One source of truth
 

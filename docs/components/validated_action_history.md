@@ -9,6 +9,10 @@ scene, save slot, input mapping, or global Undo/Redo service. Prefer Godot's
 native `UndoRedo` for reversible commands, and `EditorInterface.get_editor_undo_redo()`
 for editor-authored actions.
 
+> [!IMPORTANT]
+> **Choose this only when snapshots need game-side validation before Undo/Redo
+> can advance.** Otherwise prefer Godot native `UndoRedo`.
+
 ## Contract
 
 - `record(before: Dictionary, after: Dictionary, label: StringName) -> Error`
@@ -60,12 +64,7 @@ Do not call `confirm_*` before restoration succeeds.
 - Deep copying plus serialization-size checks cost CPU and memory. Record one
   logical player action, not every cursor or drag frame.
 
-## Provenance
-
-Inspired by the bounded snapshot cursor and validated Board restoration in
-JigsawG. This is a new data-only API, not a copy of puzzle-state ownership.
-
-## Use cases / Casos de uso
+## Use cases
 
 | Scenario | Use this? | Alternative or required game work |
 | --- | --- | --- |

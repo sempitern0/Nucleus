@@ -28,6 +28,10 @@ nested marker does not count. Script detection examines serialized node
 properties. Collision checks cover native 2D/3D collision objects, shapes,
 and polygons. A maximum stored-node count keeps editor validation bounded.
 
+> [!CAUTION]
+> **Preflight does not sandbox untrusted scenes.** It checks stored
+> declarations without instantiation; later loading or execution remains risky.
+
 ## Scope and limitations
 
 - Works with already loaded, **trusted authored** `PackedScene` resources.
@@ -44,7 +48,7 @@ and polygons. A maximum stored-node count keeps editor validation bounded.
 
 ## Safe editor transaction pattern
 
-Room Creator demonstrates the preferred workflow:
+The recommended editor-authoring workflow is:
 
 1. Prepare a candidate by deep-copying the authored model/data.
 2. Run pure topology, resource, scene-preflight and physical validations **on
@@ -60,7 +64,7 @@ Nucleus deliberately does **not** wrap `EditorUndoRedoManager` in a new global
 transaction manager. This document is the reusable contract; editor tooling
 remains owned by each addon.
 
-## Use cases / Casos de uso
+## Use cases
 
 | Scenario | Recommended use | Mandatory follow-up |
 | --- | --- | --- |

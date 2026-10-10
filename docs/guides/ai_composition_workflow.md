@@ -5,6 +5,14 @@ foundation that makes generated and manually authored game code easier to compos
 reason about, test, and maintain. This document tells a coding agent *how to use
 it*, rather than encouraging the agent to invent new framework APIs.
 
+> [!IMPORTANT]
+> **Required starting point:** Define the player-visible behavior, locate the
+> existing owner, and verify the real API before adding new scripts or Autoloads.
+
+**Quick route:** [Find a capability](use_case_catalog.md) →
+[Choose an owner](../architecture/component_selection.md) →
+[See composed examples](composition_recipes.md) → **Implement and validate.**
+
 ## 0. Start with the user-visible behavior
 
 Write one sentence in the form **"When [input/event], the player sees [result]"**.
@@ -79,6 +87,10 @@ semantic player intent
 
 A generated feature is incomplete if a signal has no consumer, if two owners
 mutate the same state, or if a rejected action still plays success feedback.
+
+> [!CAUTION]
+> **Trust and persistence boundaries are not optional.** A valid RPC, loaded
+> scene, or accepted editor action is not proof of authorization or safety.
 
 ## 4. Persistence, determinism and security
 

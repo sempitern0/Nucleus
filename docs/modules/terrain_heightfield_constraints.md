@@ -3,10 +3,13 @@
 Target engine: Godot 4.7.2. Owner: `modules/terrain/terrain_heightmap_processor.gd`.
 
 Nucleus extends its **existing** `NucleusTerrainHeightmapProcessor` rather than
-introducing another terrain system. The mechanism is based on the bounded
-heightfield correction used by Nautica Survival's Island Morphology V2. Nucleus
-owns only the numeric slope constraint; island outlines, noise, ridge profiles,
-erosion styles, climate and art direction stay game-owned.
+introducing another terrain system. It owns only the numeric slope constraint;
+island outlines, noise, ridge profiles, erosion styles, climate, and art direction
+remain game-owned.
+
+> [!WARNING]
+> **Apply the limit after all height edits and elevation curves.**
+> Later normalization or resampling can reintroduce excessive slopes.
 
 ## Public API
 
@@ -106,10 +109,7 @@ For a production island workflow, also run the consumer's actual generation,
 mesh/collision and visual tests with its chosen post-processing. A unit test of
 one elevation filter does **not** prove island morphology or graphics quality.
 
-Reference: `nautica-survival/game/world/island_morphology.gd`, branch
-`codex/player-traversal-polish`, commit `f152099dc6a0af5769fbd2dd11ff6f16b3bfff91`.
-
-## Use cases / Casos de uso
+## Use cases
 
 | Scenario | Use the constraint | Still owned by the game |
 | --- | --- | --- |

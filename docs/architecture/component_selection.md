@@ -5,6 +5,11 @@ engine**. It does not promise to generate complete games or automatically pick
 the correct mechanic. It gives humans and coding agents tested, composable
 mechanisms and documented ownership boundaries.
 
+> [!IMPORTANT]
+> **Reuse in this order:** native Godot → existing Nucleus contract → small
+> game-owned behavior. Only propose a shared Nucleus API after independent
+> reuse is demonstrated.
+
 ## A request-to-owner decision tree
 
 ```text

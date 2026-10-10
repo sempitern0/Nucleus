@@ -2,6 +2,10 @@
 
 Target: Godot 4.7.2, GDScript. Scene-owned, renderer-neutral UI behavior.
 
+> [!TIP]
+> **Use for:** names, health bars, and HUD labels attached to positions in 3D.
+> The game decides permissions, occlusion rules, and label styling.
+
 ## Scope and ownership
 
 The components in `components/ui/presentation/` project world-space positions
@@ -143,7 +147,7 @@ The headless suite checks state contracts. Actual CanvasLayer scaling,
 viewports, crowds, DPI, split-screen and frame-time budgets require a real
 rendered build and representative device testing.
 
-## Use cases / Casos de uso
+## Use cases
 
 | Scenario | Use the anchor | Game responsibility |
 | --- | --- | --- |

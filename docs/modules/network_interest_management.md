@@ -2,6 +2,10 @@
 
 Target: Godot 4.7.2-stable / GDScript. Module: `modules/networking/interest`.
 
+> [!CAUTION]
+> **Server authority is mandatory.** Nearby candidates are not a
+> permission grant; the authoritative game controls replication visibility.
+
 ## What this does
 
 Spatial interest management reduces the number of network-relevant entities
@@ -207,7 +211,7 @@ See `docs/modules/networking.md`, `docs/modules/online_replication.md` and
 `docs/guides/online_replication_quickstart.md` for native authority and
 replication contracts.
 
-## Use cases / Casos de uso
+## Use cases
 
 | Scenario | Relevant use | Authority caveat |
 | --- | --- | --- |

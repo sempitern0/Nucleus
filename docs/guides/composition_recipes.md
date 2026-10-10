@@ -5,7 +5,11 @@ shaped starting points**. Recipes are intentionally small. They tell a human or
 AI where to begin, not which art, combat or progression decisions to hard-code.
 The linked contracts contain the real class signatures and Inspector setup.
 
-## Casos de uso / Use cases
+> [!TIP]
+> Pick the closest recipe, open its linked contract, and build one testable
+> vertical slice. These examples show **composition**, not drop-in scenes.
+
+## Use cases
 
 ### 1. A door that opens and remains open after reload
 

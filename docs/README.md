@@ -5,14 +5,26 @@ second**. Start with a quickstart; use a tutorial when you want a complete examp
 open the component/module contract when you need API guarantees, limits or extension
 rules.
 
-## Start here
+## Choose a starting point
+
+> [!IMPORTANT]
+> **Start from the result you want**, not from a class name. The use-case catalog
+> maps game features to the right contracts; the source scripts remain the final
+> reference for actual API signatures.
+
+### Build a feature
+
+| Your starting point | Read first |
+| --- | --- |
+| A gameplay feature or player behavior | **[Use-case catalog](guides/use_case_catalog.md)** |
+| A combination of several systems | **[Composition recipes](guides/composition_recipes.md)** |
+| Coding with an AI agent | **[AI/human workflow](guides/ai_composition_workflow.md)** |
+| Choosing the correct code owner | [Architecture decision guide](architecture/component_selection.md) |
+
+### Setup, learning, and diagnostics
 
 | Goal | Read |
 | --- | --- |
-| **Find a feature by game behavior** | **[`guides/use_case_catalog.md`](guides/use_case_catalog.md)** — 68 use cases / casos de uso |
-| **Have an AI generate a mechanic safely** | **[`guides/ai_composition_workflow.md`](guides/ai_composition_workflow.md)** |
-| **See multi-system composition examples** | **[`guides/composition_recipes.md`](guides/composition_recipes.md)** |
-| Decide between native Godot, Nucleus and game code | [`architecture/component_selection.md`](architecture/component_selection.md) |
 | Create a game from Nucleus | [`guides/installation.md`](guides/installation.md) |
 | Understand the baseline architecture | [`guides/foundation_quickstart.md`](guides/foundation_quickstart.md) |
 | Learn by building | [`guides/tutorials/README.md`](guides/tutorials/README.md) |
@@ -21,10 +33,12 @@ rules.
 | Validate locally and in CI | [`guides/validation_ci_quickstart.md`](guides/validation_ci_quickstart.md) |
 | Diagnose integration problems | [`guides/troubleshooting.md`](guides/troubleshooting.md) |
 
-Use the catalog first when the question is **what behavior should exist?** Use
-technical contracts first when the question is **how does an identified API
-behave?** The registry [`use_case_registry.json`](use_case_registry.json) exposes
-the same discovery routes for machine-assisted tools. It does not execute code.
+> [!NOTE]
+> **Two reading modes:** Use the catalog to answer *which tool should I use?*
+> Open a technical contract to answer *how exactly does this API behave?*
+
+The registry [`use_case_registry.json`](use_case_registry.json) exposes the same
+discovery routes for machine-assisted tools. It does not execute code.
 
 ## Core and player-facing systems
 

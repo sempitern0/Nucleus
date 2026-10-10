@@ -59,6 +59,20 @@ class UseCaseAuditTest(unittest.TestCase):
         page.write_text("# Test\n[bad](../../missing.md)\n", encoding="utf-8")
         self.assertTrue(any("broken link" in e for e in audit(self.root)))
 
+    def test_catalog_has_single_language_and_visual_routes(self) -> None:
+        from build_use_case_catalog import render
+        text = render(self.data)
+        self.assertIn("# Game Development Use Cases", text)
+        self.assertIn("> [!TIP]", text)
+        self.assertIn("> [!IMPORTANT]", text)
+        self.assertIn("🟩 Gameplay", text)
+        self.assertNotIn("casos" + " de uso", text.lower())
+
+    def test_reject_bilingual_heading(self) -> None:
+        page = self.root / REQUIRED_GUIDES[0]
+        page.write_text("# Example\n## Use cases / " + "Casos" + " de uso\n", encoding="utf-8")
+        self.assertTrue(any("bilingual section heading" in e for e in audit(self.root)))
+
     def test_reject_non_docs_route(self) -> None:
         self.data["cases"][0]["guide"] = "https://example.org/intro"
         self.save()

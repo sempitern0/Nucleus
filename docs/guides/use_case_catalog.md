@@ -1,25 +1,34 @@
-# Game development use cases / Casos de uso
+# Game Development Use Cases
 
-This is the **problem-first navigation layer** for humans and coding agents. Start with
-a behavior you want to build, follow the linked contract, and keep the final
-gameplay/content/art policy in the consuming game. This catalog is also stored
-in machine-readable form in [`../use_case_registry.json`](../use_case_registry.json).
+**68 game-development scenarios · five capability areas · one source of truth**
 
-## Choose a route
+> [!TIP]
+> **Start with the feature you want.** Find its row, follow the existing
+> Nucleus contract, and implement only the game-specific rules that remain.
 
-1. Find the closest player/developer problem below.
-2. Open the linked canonical document and inspect the actual source owner.
-3. Read the relevant quickstart or tutorial for a minimum working scene.
-4. Author game-specific behavior next to its owning scene, not as a Nucleus Autoload.
-5. Validate headless + a real gameplay/editor scene where the change is observable.
+**Browse:** [Core](#core) · [Gameplay](#gameplay) · [UI](#ui) ·
+[World](#world) · [Optional modules](#optional-modules)
 
-If none fits, prefer native Godot APIs and a game-local implementation. Extract
-a Nucleus feature only after independent reuse is demonstrated. See
-[`ai_composition_workflow.md`](ai_composition_workflow.md) for the coding workflow.
+## How to use this catalog
 
-## Core: use cases / casos de uso
+1. Find the closest player or developer problem below.
+2. Open the linked technical contract and verify its current script API.
+3. Read a quickstart or tutorial to wire a minimal scene.
+4. Keep gameplay logic and content in the consuming game.
+5. Run the relevant tests and verify the behavior in a real scene.
 
-| You want to... | Start with Nucleus | The game still owns... |
+> [!IMPORTANT]
+> **Ownership boundary:** Godot owns engine primitives; Nucleus provides
+> reusable contracts; the game owns rules, content, balance, and visuals.
+
+**More help:** [AI/human workflow](ai_composition_workflow.md) ·
+[Composition recipes](composition_recipes.md) ·
+[Ownership decisions](../architecture/component_selection.md) ·
+[Machine-readable registry](../use_case_registry.json)
+
+## 🟦 Core
+
+| What you want to build | Reuse this contract | The game still decides |
 | --- | --- | --- |
 | Start a game, handle app pause/quit | [Use lifecycle hooks without making a global GameManager](../components/core_runtime.md) | Game boot scene and state transitions |
 | Player changes resolution or fullscreen | [Persist user intent and apply via settings owners](../components/settings_and_input.md) | Graphics presets and art-quality tradeoffs |
@@ -34,9 +43,9 @@ a Nucleus feature only after independent reuse is demonstrated. See
 | Respect reduced motion and accessibility options | [Read neutral preferences and connect visuals to adapters](../components/accessibility_preferences.md) | Accessibility presentation and gameplay assistance |
 | Diagnose errors and log important operations | [Use diagnostic scopes, reports and logging](../components/diagnostics.md) | Relevant failure messages and privacy |
 
-## Gameplay: use cases / casos de uso
+## 🟩 Gameplay
 
-| You want to... | Start with Nucleus | The game still owns... |
+| What you want to build | Reuse this contract | The game still decides |
 | --- | --- | --- |
 | Health, stamina, shield or mana | [Compose ValuePool and optional regeneration](../components/gameplay_foundation.md) | Resource rules and balancing |
 | Hits, damage, invulnerability | [Compose hit payloads, damage receivers and collision nodes](../components/gameplay_foundation.md) | Hitbox shape, damage formulas and teams |
@@ -54,9 +63,9 @@ a Nucleus feature only after independent reuse is demonstrated. See
 | AnimationTree character state integration | [Compose animation adapters rather than replacing AnimationTree](../components/animation_integration.md) | Animation assets and transition semantics |
 | Ragdoll on death or impact | [Use humanoid ragdoll authoring helpers with native physics](../components/ragdoll_authoring_3d.md) | Rig, reactions and cinematic choices |
 
-## UI: use cases / casos de uso
+## 🟪 UI
 
-| You want to... | Start with Nucleus | The game still owns... |
+| What you want to build | Reuse this contract | The game still decides |
 | --- | --- | --- |
 | Menus and keyboard/gamepad focus | [Use focus, navigation and modal ownership](../components/ui_and_accessibility.md) | Menu hierarchy and visual theme |
 | Responsive HUD and safe area | [Compose UI layout and scale policies](../components/ui_and_accessibility.md) | Breakpoints, art and hierarchy |
@@ -69,9 +78,9 @@ a Nucleus feature only after independent reuse is demonstrated. See
 | Select thousands of objects in a 2D editor | [Use SpatialRectIndex2D as broad phase before exact hit testing](../components/spatial_rect_index_2d.md) | Object IDs, draw order and precision selection |
 | Show active input glyphs and prompts | [Use input-source-aware UI adapters](../guides/settings_input_quickstart.md) | Localized action labels and glyph art |
 
-## World: use cases / casos de uso
+## 🟨 World
 
-| You want to... | Start with Nucleus | The game still owns... |
+| What you want to build | Reuse this contract | The game still decides |
 | --- | --- | --- |
 | Procedural hills, islands and heightmaps | [Use terrain profiles, generation and heightfield preprocessing](../modules/terrain_generation.md) | Biome, geography and terrain art direction |
 | Remove heightmap needle peaks | [Apply explicit heightfield slope constraints after shaping](../modules/terrain_heightfield_constraints.md) | Physical slope budget and authored source |
@@ -88,9 +97,9 @@ a Nucleus feature only after independent reuse is demonstrated. See
 | Decals that adapt to uneven ground | [Use smart decals and ground sampling](../components/world_decals.md) | Materials, duration and placement context |
 | Choosing a visual/collision LOD | [Use rendering quality and explicit scene-owned policies](../components/rendering_quality.md) | LOD thresholds and hardware targets |
 
-## Optional modules: use cases / casos de uso
+## 🟧 Optional modules
 
-| You want to... | Start with Nucleus | The game still owns... |
+| What you want to build | Reuse this contract | The game still decides |
 | --- | --- | --- |
 | Enemy decision utility and path following | [Compose utility AI with native navigation and scheduled evaluations](../modules/ai_navigation.md) | Behaviors, context scores and factions |
 | Carry, stack and equip items | [Use inventory and equipment contracts](../modules/inventory_equipment.md) | Items, slots, restrictions and UX |
@@ -110,7 +119,11 @@ a Nucleus feature only after independent reuse is demonstrated. See
 | Communicate across distant independent systems | [Use optional EventBus only when local signals are insufficient](../modules/event_bus.md) | Event semantics and ownership |
 | Capture stable world flags and state | [Use persistent world state with stable IDs](../modules/persistent_world_state.md) | What the world must remember |
 
-## What the catalog does not promise
+## Limits and guardrails
+
+> [!WARNING]
+> **Use the listed owner; do not assume a finished game mechanic.**
+> Add your own rules, test real gameplay, and keep trust decisions server-side.
 
 - A component is not a finished RPG/MMO/survival/puzzle mechanic; the game wires inputs, state and feedback.
 - A valid API call is not a trust decision; authoritative worlds validate requests and visibility.

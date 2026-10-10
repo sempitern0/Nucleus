@@ -19,6 +19,8 @@ REQUIRED_GUIDES = (
     "docs/architecture/component_selection.md",
 )
 MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
+# English is the repository documentation language.
+BILINGUAL_HEADING = re.compile(r"(?im)^#{1,6}[^\n]*casos\s+de\s+uso")
 
 
 def audit(root: Path) -> list[str]:
@@ -73,6 +75,8 @@ def audit(root: Path) -> list[str]:
         if not page.is_file():
             continue
         text = page.read_text(encoding="utf-8")
+        if BILINGUAL_HEADING.search(text):
+            errors.append(f"{relative}: bilingual section heading; use English only")
         for uri in MARKDOWN_LINK.findall(text):
             path_part = uri.split("#", 1)[0].strip()
             if not path_part or path_part.startswith(("https:", "http:", "mailto:")):

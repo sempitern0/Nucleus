@@ -22,6 +22,10 @@ index.remove(101)
 index.clear()
 ```
 
+> [!TIP]
+> **Use for:** broad-phase 2D hit candidates and large selection areas.
+> **Not for:** exact shape intersection, physics, or network visibility.
+
 ## Index semantics
 
 - IDs are nonnegative integers supplied by the caller, never Godot instance
@@ -49,12 +53,7 @@ An extremely dense index can still cost O(N) per query. Reuse the same index
 across updates; avoid rebuilding it per mouse event. This helper is not an
 R-tree, a spatial partition for networking, or a physics broad phase.
 
-## Provenance
-
-Adapted conceptually from JigsawG's board-local rectangle index, without
-jigsaw IDs, scene ordering assumptions, or puzzle interaction ownership.
-
-## Use cases / Casos de uso
+## Use cases
 
 | Scenario | Good fit | Not the responsibility of this index |
 | --- | --- | --- |

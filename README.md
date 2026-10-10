@@ -48,7 +48,21 @@ game-owned rules, content, art and product policy
 The template intentionally ships without a game main scene. The consuming project
 owns its entry point and opts into only the systems it needs.
 
-## Start in five minutes
+## Start here: choose your route
+
+> [!TIP]
+> **Building a mechanic?** Start with the [Game Development Use Cases](docs/guides/use_case_catalog.md)
+> to find the existing owner before creating new classes.
+> **Using an AI agent?** Follow the [AI and human composition workflow](docs/guides/ai_composition_workflow.md).
+
+| Goal | Best entry point |
+| --- | --- |
+| Find tools by a player-facing feature | **[Use-case catalog](docs/guides/use_case_catalog.md)** |
+| Combine gameplay, UI, or world systems | **[Composition recipes](docs/guides/composition_recipes.md)** |
+| Decide Godot vs. Nucleus vs. game code | [Ownership guide](docs/architecture/component_selection.md) |
+| Read exact APIs and limitations | [Documentation index](docs/README.md) |
+
+### First five minutes
 
 1. Read [Installation](docs/guides/installation.md).
 2. Open [Foundation Quickstart](docs/guides/foundation_quickstart.md).

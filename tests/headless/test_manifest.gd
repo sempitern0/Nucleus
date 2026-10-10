@@ -40,6 +40,7 @@ const SUITES: Array[Script] = [
 	preload("res://tests/headless/scene_flow_test.gd"),
 	preload("res://tests/headless/terrain_generation_test.gd"),
 	preload("res://tests/headless/terrain_material_quality_test.gd"),
+	preload("res://tests/headless/terrain_shader_source_test.gd"),
 	preload("res://tests/headless/terrain_materialization_test.gd"),
 	preload("res://tests/headless/scatter_generation_test.gd"),
 	preload("res://tests/headless/world_clock_test.gd"),

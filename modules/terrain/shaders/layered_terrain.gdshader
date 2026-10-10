@@ -275,7 +275,7 @@ vec3 world_grid_color(vec3 position) {
 	return mix(dark, light, checker);
 }
 
-float detail_fade_at(vec3 position) {
+float detail_fade_at(vec3 position, vec3 camera_position) {
 	if (!detail_enabled) {
 		return 0.0;
 	}
@@ -291,7 +291,7 @@ float detail_fade_at(vec3 position) {
 	return 1.0 - smoothstep(
 		detail_distance_start,
 		fade_end,
-		distance(CAMERA_POSITION_WORLD, position)
+		distance(camera_position, position)
 	);
 }
 
@@ -323,7 +323,10 @@ void fragment() {
 	);
 	vec3 surface_normal = normalize(world_normal);
 	vec3 weights = projection_weights(surface_normal);
-	float detail_fade = detail_fade_at(world_position);
+	float detail_fade = detail_fade_at(
+		world_position,
+		CAMERA_POSITION_WORLD
+	);
 
 	float w0 = layer0_enabled ? range_weight(
 		normalized_height,

@@ -43,13 +43,16 @@ func set_value(
 ) -> Tween:
 	_kill_tween()
 
-	if not animated:
+	# Reduced-motion policy can resolve the effective duration to zero.
+	# Snap synchronously instead of creating a zero-duration tween that
+	# settles on a later frame and can fire a stale completion callback.
+	var duration: float = NucleusUIMotion.get_duration(motion)
+	if not animated or is_zero_approx(duration):
 		_apply_value(value)
 		animation_finished.emit(current_value)
 		return null
 
 	var target_value: float = _normalize_value(value)
-	var duration: float = NucleusUIMotion.get_duration(motion)
 
 	_tween = NucleusUIMotion.create_tween(
 		self,

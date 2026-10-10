@@ -44,3 +44,13 @@ changes interaction correctness.
 
 Bindings are signal-driven. Do not add per-frame HUD polling merely to keep a
 Control synchronized with an owner that already emits changes.
+
+## Animated value edge cases
+
+`NucleusUIAnimatedValue` remains presentation-only. `set_value()` replaces an
+in-flight Tween with the newest target; a synchronous `animated=false` request
+snaps immediately. When `NucleusUIMotion.get_duration()` resolves to zero,
+including reduced-motion policy, even `animated=true` snaps synchronously,
+emits its completion once, and does not create a zero-duration deferred Tween.
+The underlying gameplay owner remains authoritative. Regression coverage:
+`tests/headless/composition_contracts_test.gd`.

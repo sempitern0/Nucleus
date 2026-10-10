@@ -64,3 +64,15 @@ Do not call `confirm_*` before restoration succeeds.
 
 Inspired by the bounded snapshot cursor and validated Board restoration in
 JigsawG. This is a new data-only API, not a copy of puzzle-state ownership.
+
+## Use cases / Casos de uso
+
+| Scenario | Use this? | Alternative or required game work |
+| --- | --- | --- |
+| In-game editor with reversible data snapshots | Yes, if state restoration may be rejected | Game validates/applies all state atomically |
+| Puzzle move with connected groups and rotations | Yes, one logical drag/rotate action per snapshot | Game-owned group rules and tween cancellation |
+| Godot editor plugin changing scene Nodes | No | Native `EditorInterface.get_editor_undo_redo()` |
+| Simple reversible runtime property action | Usually not needed | Native `UndoRedo` with do/undo methods |
+
+Store **data-only** history. For long-running asynchronous restore, retain one
+pending ticket and do not preview another action until it resolves.

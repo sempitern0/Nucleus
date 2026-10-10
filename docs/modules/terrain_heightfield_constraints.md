@@ -108,3 +108,16 @@ one elevation filter does **not** prove island morphology or graphics quality.
 
 Reference: `nautica-survival/game/world/island_morphology.gd`, branch
 `codex/player-traversal-polish`, commit `f152099dc6a0af5769fbd2dd11ff6f16b3bfff91`.
+
+## Use cases / Casos de uso
+
+| Scenario | Use the constraint | Still owned by the game |
+| --- | --- | --- |
+| Procedural terrain generates needle-like peaks | Bound neighbor differences after the artistic shaping stage | Desired silhouette and relief volume |
+| Designer-authored heightmap exceeds a walkable slope goal | Limit source-grid height gradients with physical dimensions | Gameplay navigation and traversability checks |
+| Terrain collision and preview disagree after resampling | Use one final profile and test the actual sampler | Resolution/LOD decisions and physical QA |
+
+Do not apply a steep elevation curve or aggressive resampling *after* enforcing
+the limit without validating the final surface again. Source slope limiting is
+not erosion, anti-aliasing, or a guaranteed maximum for every world-space
+normal under arbitrary external transformations.

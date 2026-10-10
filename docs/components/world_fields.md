@@ -86,3 +86,16 @@ registered in `tests/headless/world_mask_test.gd`.
 
 Source: `nautica-survival/components/world/fields/world_mask_3d.gd`,
 branch `codex/player-traversal-polish` at commit `f152099dc6a0af5769fbd2dd11ff6f16b3bfff91`.
+
+## Use cases / Casos de uso
+
+| Scenario | Scalar-field role | Game policy |
+| --- | --- | --- |
+| Paint vegetation density in a terrain editor | Sample red or luminance at an X/Z point | Decide species, spawning and weights |
+| Zones with contamination, heat or exposure | Read a stable authored channel | Choose gameplay consequences |
+| Restrict building on authored ground | Sample region average as one decision input | Check actual collision and placement rules |
+| Ambient sound or particles that vary by location | Sample normalized intensity | Select clips, visuals and accessibility limits |
+
+This is a **read-only authored data sampler**, not a climate model, GPU compute
+service, collision replacement or world-generation authority. Prewarm the image
+cache before large synchronous queries when appropriate.

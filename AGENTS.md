@@ -15,6 +15,13 @@ requires; those constraints remain authoritative.
 | **S — Standards** | Native Godot first; scene ownership and composition by default; exactly one writer per state; six deliberate Autoloads; optional modules remain optional; stable, documented APIs; no untrusted client authority or uncontrolled async/lifetime behavior. Distinguish a **reusable mechanism** from a **consuming game's art or balance policy**. |
 | **P — Proof** | Run static, docs and productization audits; use the registered headless manifest and actual Godot project scene. For graphics, networking and performance require a relevant device/render/multiplayer measurement—not simply a passing parser. Include export smoke evidence for release-facing changes. |
 
+### Scope, assumptions and controlled diffs
+
+- Before implementation, state the task's observable outcome, material assumptions and the smallest relevant proof. When interpretations change reusable API, compatibility, authority, security or ownership, surface the alternatives and request a decision. For low-risk ambiguity, document a reversible assumption and proceed; do not stall trivial work.
+- Challenge an unneeded abstraction, setting or feature when the existing Godot/Nucleus owner already solves the problem. The simplest **complete** solution wins; correctness, lifecycle handling, security and documented public contracts are not optional merely to reduce line count.
+- Keep the diff attributable to the request. Do not reformat or refactor adjacent code or remove pre-existing dead code opportunistically. Do update necessary callers, tests and public documentation, and remove imports/helpers **made obsolete by this change**; report unrelated findings instead of mixing them into the patch.
+- Reproduce a defect with a targeted regression before fixing when practical; compare the validated baseline before and after a refactor. Finish by mapping each acceptance criterion to executed evidence, while clearly identifying any unavailable engine, device, export or multiplayer check.
+
 ### Owner locator (start small)
 
 | Request | Inspect first | Avoid |

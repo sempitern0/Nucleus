@@ -206,3 +206,15 @@ claim about bandwidth improvement until measured in a real game.
 See `docs/modules/networking.md`, `docs/modules/online_replication.md` and
 `docs/guides/online_replication_quickstart.md` for native authority and
 replication contracts.
+
+## Use cases / Casos de uso
+
+| Scenario | Relevant use | Authority caveat |
+| --- | --- | --- |
+| Co-op world with creatures near each player | Select nearby candidate entity IDs | Server authorizes visibility/spawning |
+| Open-world MMO-style shard | Query cells with per-peer admission budgets | Authentication, persistence and backend stay game/provider-owned |
+| A player teleports across the map | Reconcile old/new relevance without trusting the client | Clear stale visibility and replicated identities |
+
+Interest is a **server-side optimization and filtering input**, never proof that
+a remote player is permitted to see or control an object. Validate actual
+network effect with at least two clients and an authoritative server.

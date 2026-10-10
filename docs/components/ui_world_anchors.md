@@ -142,3 +142,14 @@ godot --headless --path . res://tests/headless/test_runner.tscn
 The headless suite checks state contracts. Actual CanvasLayer scaling,
 viewports, crowds, DPI, split-screen and frame-time budgets require a real
 rendered build and representative device testing.
+
+## Use cases / Casos de uso
+
+| Scenario | Use the anchor | Game responsibility |
+| --- | --- | --- |
+| Character names and health bars over actors | Project world points and manage label overlaps | Team/name/health visibility permissions |
+| Mark interactable items near the camera | Hide behind-camera and offscreen targets | Which item is interactable and its prompt |
+| Show multiple quest objectives in 3D | Bound update rates and screen overlap | Quest state, prioritization and HUD styling |
+
+The anchor is a presentation bridge; it does not replicate gameplay state,
+enforce network visibility or do a ray-occlusion pass automatically.

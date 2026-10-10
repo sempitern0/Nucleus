@@ -29,6 +29,12 @@ jobs:
       - name: Documentation coverage audit
         run: python3 scripts/ci/documentation_audit.py
 
+      - name: Use-case registry and links audit
+        run: |
+          python3 -m unittest discover -s scripts/ci -p test_use_case_audit.py
+          python3 scripts/ci/use_case_audit.py
+          python3 scripts/ci/build_use_case_catalog.py --check
+
       - name: Productization contract audit
         run: python3 scripts/ci/productization_audit.py
 

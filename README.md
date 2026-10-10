@@ -60,6 +60,26 @@ The complete documentation map is [`docs/README.md`](docs/README.md).
 Hands-on build-along guides are indexed at
 [`docs/guides/tutorials/README.md`](docs/guides/tutorials/README.md).
 
+## Build by game mechanic: humans and coding agents
+
+If you know **what a game should do**, but not which reusable system owns it,
+start with the **68-case [use-case catalog](docs/guides/use_case_catalog.md)**.
+It routes player/designer problems to canonical components, modules and the
+specific work that still belongs in the game.
+
+- [AI and human composition workflow](docs/guides/ai_composition_workflow.md):
+  how to turn a behavior request into owned nodes, tests and observable results.
+- [Composition recipes](docs/guides/composition_recipes.md): persistent doors,
+  stamina/dodges, AI, inventory, terrain, boats, UI labels, multiplayer and tools.
+- [Ownership decision tree](docs/architecture/component_selection.md):
+  when to use native Godot, an existing Nucleus contract, or game-owned code.
+- [`docs/use_case_registry.json`](docs/use_case_registry.json): same problem-first
+  routing data in machine-readable form for agents and maintenance tooling.
+
+Nucleus does **not** automatically generate full mechanics. A human or agent
+writes the game's rules and connects the existing mechanisms. The goal is faster,
+safer composition with less duplicate code, not a new engine or global framework.
+
 ## Core runtime
 
 Nucleus keeps the global surface deliberately small:
@@ -185,10 +205,13 @@ Use the shortest layer that answers the question:
 README / docs index
     orientation
         ↓
+use-case catalog
+    choose a mechanism by gameplay intent
+        ↓
 *_quickstart.md
     ownership + minimum setup
         ↓
-guides/tutorials/
+guides/tutorials/ and composition recipes
     build one concrete integration
         ↓
 components/ or modules/
@@ -204,6 +227,8 @@ Fast repository checks:
 ```bash
 python3 scripts/ci/static_checks.py
 python3 scripts/ci/documentation_audit.py
+python3 scripts/ci/use_case_audit.py
+python3 scripts/ci/build_use_case_catalog.py --check
 python3 scripts/ci/productization_audit.py
 ```
 

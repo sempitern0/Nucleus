@@ -53,3 +53,14 @@ R-tree, a spatial partition for networking, or a physics broad phase.
 
 Adapted conceptually from JigsawG's board-local rectangle index, without
 jigsaw IDs, scene ordering assumptions, or puzzle interaction ownership.
+
+## Use cases / Casos de uso
+
+| Scenario | Good fit | Not the responsibility of this index |
+| --- | --- | --- |
+| Hundreds of draggable items on a 2D workbench | Keep bounding rectangles current and query only nearby candidates | Exact rotated/polygon hit tests |
+| Selecting many nodes inside a map-editor marquee | Query candidates by `Rect2` before applying selection rules | Editor selection history and hidden/locked filters |
+| Controller or accessible pointer with hit margin | Query an expanded input region, then verify actual shape | Input assist policy and UI focus |
+
+Use native physics querying for collidable bodies. Use the network 3D interest
+index for authoritative peer visibility; this 2D index is neither of those.

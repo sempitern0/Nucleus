@@ -59,3 +59,15 @@ Room Creator demonstrates the preferred workflow:
 Nucleus deliberately does **not** wrap `EditorUndoRedoManager` in a new global
 transaction manager. This document is the reusable contract; editor tooling
 remains owned by each addon.
+
+## Use cases / Casos de uso
+
+| Scenario | Recommended use | Mandatory follow-up |
+| --- | --- | --- |
+| Art-module palette with named direct sockets | Inspect stored marker declarations before preview | Check socket positions, orientation and geometry |
+| Visual-only scene which must not carry collision nodes | Reject stored native collision shapes/objects | Review nested PackedScenes and actual final scene |
+| Prevent scripts in a trusted prefab catalog | Check stored script properties | Do not treat this as untrusted-code sandboxing |
+| Check actual runtime configuration warnings | Not sufficient | Use `NucleusDevelopmentValidation.validate_scene()` |
+
+Keep editor operations transactional: inspect, validate a candidate, build a
+preview, then commit one native Undo/Redo action after every step passes.

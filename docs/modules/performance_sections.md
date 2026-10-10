@@ -144,3 +144,15 @@ godot --headless --path . res://tests/headless/test_runner.tscn
 For actual performance comparisons, profile a repeatable representative workload
 in a standalone debug export and use Godot's native Profiler as well. Debug and
 instrumentation overhead can materially affect measured timing.
+
+## Use cases / Casos de uso
+
+| Scenario | Instrument | What to verify |
+| --- | --- | --- |
+| Network interest reconciliation occasionally stalls | Measure one reconcile section | Concurrent peer count and actual network profiler |
+| Scene streaming produces intermittent hitches | Time materialization/physics activation | CPU profiler, frame interval and GPU first-use |
+| Large inventory sort is slow | Time the full sort action | Data set size and UI redraw cost |
+
+Prefer native Godot CPU/GPU specialist tools when deep per-function or GPU
+profiling is required. Instrument only a small set of important logical work
+sections so the profiler does not become the bottleneck.

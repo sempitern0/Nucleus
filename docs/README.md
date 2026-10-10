@@ -9,6 +9,10 @@ rules.
 
 | Goal | Read |
 | --- | --- |
+| **Find a feature by game behavior** | **[`guides/use_case_catalog.md`](guides/use_case_catalog.md)** — 68 use cases / casos de uso |
+| **Have an AI generate a mechanic safely** | **[`guides/ai_composition_workflow.md`](guides/ai_composition_workflow.md)** |
+| **See multi-system composition examples** | **[`guides/composition_recipes.md`](guides/composition_recipes.md)** |
+| Decide between native Godot, Nucleus and game code | [`architecture/component_selection.md`](architecture/component_selection.md) |
 | Create a game from Nucleus | [`guides/installation.md`](guides/installation.md) |
 | Understand the baseline architecture | [`guides/foundation_quickstart.md`](guides/foundation_quickstart.md) |
 | Learn by building | [`guides/tutorials/README.md`](guides/tutorials/README.md) |
@@ -16,6 +20,11 @@ rules.
 | Configure project/rendering defaults | [`guides/project_configuration.md`](guides/project_configuration.md) |
 | Validate locally and in CI | [`guides/validation_ci_quickstart.md`](guides/validation_ci_quickstart.md) |
 | Diagnose integration problems | [`guides/troubleshooting.md`](guides/troubleshooting.md) |
+
+Use the catalog first when the question is **what behavior should exist?** Use
+technical contracts first when the question is **how does an identified API
+behave?** The registry [`use_case_registry.json`](use_case_registry.json) exposes
+the same discovery routes for machine-assisted tools. It does not execute code.
 
 ## Core and player-facing systems
 
@@ -87,13 +96,17 @@ components/world_surfaces.md
 components/world_buoyancy.md
 components/world_feedback.md
 components/world_decals.md
+components/world_fields.md
 components/gameplay_movement_camera.md
 components/safe_placement_queries.md
 components/animation_integration.md
 components/ragdoll_authoring_3d.md
 components/camera_game_feel.md
 components/ui_runtime_bindings.md
-components/resource_loading.md
+components/ui_world_anchors.md
+components/validated_action_history.md
+components/spatial_rect_index_2d.md
+modules/packed_scene_preflight.md
 ```
 
 Quickstarts:
@@ -108,6 +121,12 @@ guides/ragdoll_authoring_quickstart.md
 ## Documentation layers
 
 ```text
+guides/use_case_catalog.md
+    find reusable tools by player/developer intent
+
+guides/ai_composition_workflow.md and composition_recipes.md
+    compose native Godot, Nucleus and game-owned mechanics
+
 guides/*_quickstart.md
     minimum setup + ownership
 
@@ -131,11 +150,16 @@ documentation.
 ## Machine-checkable coverage
 
 `documentation_coverage.json` maps every top-level subsystem directory to one or
-more technical documents.
+more technical documents. `use_case_registry.json` maps common developer needs
+to existing contracts; `scripts/ci/use_case_audit.py` validates these references.
+Edit the JSON registry and run `scripts/ci/build_use_case_catalog.py` to regenerate
+the human-readable catalog; CI rejects out-of-sync copies.
 
 Run:
 
 ```bash
 python3 scripts/ci/documentation_audit.py
+python3 scripts/ci/use_case_audit.py
+python3 scripts/ci/build_use_case_catalog.py --check
 python3 scripts/ci/productization_audit.py
 ```

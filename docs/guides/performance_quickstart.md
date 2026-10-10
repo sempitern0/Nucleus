@@ -47,6 +47,25 @@ performance_sampler.mark_trace(
 Trace scene transitions, spawn bursts, large saves, VFX first-use and other
 meaningful events; do not emit markers every frame.
 
+### Instrument synchronous sections and frame hitches (optional)
+
+Attach `NucleusPerformanceSectionProfiler` to the same scene and point its
+`sampler` at the existing `NucleusPerformanceSampler`:
+
+```gdscript
+var token: int = section_profiler.begin_section(&"network/interest_update")
+update_interest_sets()
+if token != 0:
+	section_profiler.end_section(token)
+```
+
+Set explicit budgets through `set_section_budget()` to record and trace expensive
+sections. The profiler also listens to the sampler's maximum frame interval per
+sampling window and can emit bounded hitch events. It does **not** add a second
+per-frame collector or replace Godot's function profiler.
+
+Complete contract: [`../modules/performance_sections.md`](../modules/performance_sections.md).
+
 ## 4. Capture and compare
 
 ```gdscript

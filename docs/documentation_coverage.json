@@ -52,7 +52,8 @@
       "docs/components/gameplay_foundation.md"
     ],
     "components/gameplay/state": [
-      "docs/components/gameplay_foundation.md"
+      "docs/components/gameplay_foundation.md",
+      "docs/components/validated_action_history.md"
     ],
     "components/gameplay/status": [
       "docs/components/gameplay_actions_attributes_status.md"
@@ -190,7 +191,8 @@
       "docs/components/accessibility_preferences.md"
     ],
     "core/utils": [
-      "docs/components/core_runtime.md"
+      "docs/components/core_runtime.md",
+      "docs/components/spatial_rect_index_2d.md"
     ],
     "core/window": [
       "docs/components/core_runtime.md"
@@ -203,7 +205,8 @@
       "docs/modules/content_packs.md"
     ],
     "modules/development_tools": [
-      "docs/modules/development_tools.md"
+      "docs/modules/development_tools.md",
+      "docs/modules/packed_scene_preflight.md"
     ],
     "modules/event_bus": [
       "docs/modules/event_bus.md"

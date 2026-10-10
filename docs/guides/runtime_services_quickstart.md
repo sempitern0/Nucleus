@@ -30,6 +30,10 @@ Hands-on:
 
 [`tutorials/save_system.md`](tutorials/save_system.md)
 
+Technical contract (including default save location and file layout):
+
+[`../components/save_system.md`](../components/save_system.md)
+
 ## Scene flow
 
 Use `NucleusSceneFlow` for observable scene replacement, background loading,

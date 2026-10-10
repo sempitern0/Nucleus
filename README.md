@@ -80,7 +80,8 @@ simulation and optional production tooling remain scene-owned by default.
 | --- | --- |
 | Lifecycle, paths, logging, platform helpers | [Core runtime](docs/components/core_runtime.md) |
 | Settings, input, rebinding, hot-swap | [Settings and input](docs/guides/settings_input_quickstart.md) |
-| Audio, save, localization, scene flow | [Runtime services](docs/guides/runtime_services_quickstart.md) |
+| Audio, localization, scene flow | [Runtime services](docs/guides/runtime_services_quickstart.md) |
+| Save paths, formats, backups and migrations | [Save system](docs/components/save_system.md) |
 | Resource batches and loading UI | [Resource loading](docs/guides/resource_loading_quickstart.md) |
 | UI, focus and accessibility | [UI and accessibility](docs/guides/ui_quickstart.md) |
 

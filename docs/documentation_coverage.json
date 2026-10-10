@@ -176,6 +176,7 @@
     ],
     "core/save": [
       "docs/components/audio_save_scene_localization.md",
+      "docs/components/save_system.md",
       "docs/components/runtime_optimization.md"
     ],
     "core/scene_flow": [

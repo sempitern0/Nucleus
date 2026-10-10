@@ -1,130 +1,173 @@
 # Save Quickstart
 
-Nucleus separates global storage/format policy from scene-owned game-state capture.
+Nucleus separates global storage/format policy from scene-owned game-state
+capture. For the complete format, backup, migration, security and failure
+contract, see [Save System](../components/save_system.md).
 
-## Choose the entry point
+## 1. Find the save directory
 
-Use `NucleusSave` when you already have a plain-data payload. Use
-`NucleusSaveSession` when several systems own independent capture/restore state.
+The default Save Profile in `core/save/save.tscn` leaves `base_directory` empty,
+so the application resolves the root as:
 
-```text
+~~~gdscript
+OS.get_user_data_dir().path_join("saves")
+~~~
+
+For the stock `Nucleus` project on Windows, this is typically
+`%APPDATA%\Godot\app_userdata\Nucleus\saves\`. It is **not** in `res://`.
+Use the runtime value when the project or profile changes:
+
+~~~gdscript
+print(NucleusSave.profile.base_directory)
+~~~
+
+To override it, edit `core/save/defaults/default_save_profile.tres` and set
+`base_directory` to an absolute writable directory. Do so before shipping
+saves; changing locations later requires a game-owned migration.
+
+By default, a `slot_1` manual save is `slot_1/manual.nsav` under that root;
+quick saves use `quick.nsav` and autosaves live under
+`slot_1/autosaves/auto_<unix_time_ms>.nsav`. The profile defaults to binary
+format, two manual/quick backups, no encryption and schema version 1.
+Alternative codecs use `.nsv` (Variant text) or `.json`; encrypted files add
+`.pwd` or `.key`.
+
+## 2. Choose the entry point
+
+Use `NucleusSave` when you already have a plain-data payload:
+
+~~~gdscript
+var result: NucleusSaveResult = NucleusSave.save_manual(
+    "slot_1",
+    {"level": 2, "coins": 25},
+)
+if not result.succeeded():
+    push_error(error_string(result.error))
+~~~
+
+Use `NucleusSaveSession` when several systems own independent capture/restore
+state:
+
+~~~text
 GameSession
 ├── SaveSession : NucleusSaveSession
 ├── Player
 ├── Inventory
 └── WorldState
-```
+~~~
 
 Register explicit participants:
 
-```gdscript
+~~~gdscript
 save_session.register_participant(
-	&"player",
-	player.capture_state,
-	player.restore_state,
+    &"player",
+    player.capture_state,
+    player.restore_state,
 )
-```
+~~~
 
 The save service never scans the SceneTree to discover gameplay state.
 
-## Save-safe data
+## 3. Use save-safe data
 
-Prefer stable plain data:
+Prefer booleans, numbers, strings, arrays, string-keyed dictionaries, stable
+IDs and explicit snapshots. Do not persist Nodes, Objects, Callables, Signals,
+RIDs or transient instance IDs. JSON additionally rejects Godot-specific types
+such as `Vector3` or `Color`; binary and Variant text are better when those
+types must be preserved. Keep presentation metadata separate using
+`save_session.set_metadata_provider()`.
 
-```text
-bool / numbers / strings
-arrays / dictionaries
-stable IDs
-explicit snapshots
-```
+## 4. Manual, quick and autosave
 
-Do not persist live Nodes, Callables, transient instance IDs or translated display
-strings as authoritative state.
+Synchronous scene-session methods are:
 
-## Manual / quick / autosave
+~~~text
+save_manual()
+save_quick()
+autosave(force = false)
+~~~
 
-The synchronous methods remain:
+They suit small/medium snapshots and lifecycle boundaries that must complete.
+The global storage equivalents also accept slot ID and a Dictionary payload.
 
-```text
-save_manual
-save_quick
-autosave
-```
+`NucleusAutosavePolicy` defaults to enabled, 120-second timer, three retained
+autosaves, five-second minimum interval, pause/quit saving, and no save on focus
+loss. Its lifecycle autosaves remain synchronous. An autosave can be skipped
+(`ERR_BUSY`) when disabled, throttled or already in progress. Configure policy
+on the session and call `refresh_autosave_policy()` after changing it at runtime.
 
-They are appropriate for small/medium snapshots and lifecycle boundaries that
-must complete immediately.
+Manual and quick saves rotate up to two backups by default (`.bak1`/`.bak2`);
+autosaves are timestamped and pruned instead. Writes use a temporary file and
+rename. See the [Save System contract](../components/save_system.md) for
+integrity and backup-recovery guarantees.
 
-## Continue / resume the newest snapshot
+## 5. Continue / resume the newest snapshot
 
-When a Continue action should restore whichever successful snapshot is newest,
-use:
+To restore whichever successfully loaded kind is newest:
 
-```gdscript
-var result := save_session.load_latest()
-```
+~~~gdscript
+var result: NucleusSaveResult = save_session.load_latest()
+if not result.succeeded():
+    push_error(error_string(result.error))
+~~~
 
-By default Nucleus considers:
+Nucleus compares microsecond update timestamps first and uses the order
+`AUTOSAVE`, `QUICKSAVE`, `MANUAL` only for exact ties. Older documents with
+whole-second timestamps remain compatible.
 
-```text
-autosave
-quicksave
-manual
-```
+To restrict kinds, use the service or session equivalent:
 
-but timestamp wins before kind preference. The kind list only breaks an exact
-timestamp tie.
-
-To restrict the eligible kinds:
-
-```gdscript
-var result := NucleusSave.load_latest(
-	"slot_1",
-	PackedInt32Array([
-		NucleusSaveTypes.Kind.MANUAL,
-		NucleusSaveTypes.Kind.AUTOSAVE,
-	]),
+~~~gdscript
+var result: NucleusSaveResult = NucleusSave.load_latest(
+    "slot_1",
+    PackedInt32Array([
+        NucleusSaveTypes.Kind.MANUAL,
+        NucleusSaveTypes.Kind.AUTOSAVE,
+    ]),
 )
-```
+~~~
 
-New save documents store microsecond update timestamps so rapid manual/autosave
-sequences do not collapse into the same whole second. Older documents remain
-compatible through whole-second fallback.
+This chooses among the latest valid candidates per kind; it is not an
+exhaustive scan of historical autosaves. See
+[Resume Selection](../components/save_resume.md).
 
-See [`../components/save_resume.md`](../components/save_resume.md).
+## 6. Budget large captures
 
-## Large participant sets
+If participant capture causes a frame spike:
 
-When capture itself causes a visible spike, create a bounded capture job:
+~~~gdscript
+var result: NucleusSaveResult = await save_session.save_manual_incremental(8)
+~~~
 
-```gdscript
-var job := save_session.create_capture_job()
+Or drive the capture job yourself:
 
+~~~gdscript
+var job: NucleusSaveCaptureJob = save_session.create_capture_job()
 while not job.is_completed():
-	job.step(8)
-	await get_tree().process_frame
+    job.step(8)
+    await get_tree().process_frame
 
-var payload := job.take_snapshot()
-```
+var payload: Dictionary = job.take_snapshot()
+~~~
 
-Or use:
+`capture_snapshot_incremental(8)` and incremental quick/autosave helpers are
+also available. Participants are captured across frames **on the main thread**;
+file writing is still synchronous. Participants added after a capture job starts
+belong to the next snapshot. Pause/quit saves intentionally remain synchronous.
 
-```gdscript
-var payload := await save_session.capture_snapshot_incremental(8)
-```
+## 7. Restore, migrate and diagnose
 
-Convenience incremental save methods are also available for manual, quick and
-explicit autosave flows.
+Loaded participant payload remains pending, allowing participants registered
+after `apply_snapshot()` to receive their state. Restore dependencies before
+dependents when their order matters.
 
-Capture callbacks may touch Nodes, so Nucleus keeps them on the main thread. A
-participant registered after a job starts belongs to the next snapshot.
+Payload schema upgrades use `schema_version` and registered
+`NucleusSaveMigration` resources. Eligible migrated manual/quick saves may be
+rewritten; autosaves are not automatically rewritten.
 
-Application pause/quit autosaves intentionally stay synchronous because another
-rendered frame may never arrive.
+Always inspect `result.error`; on success also inspect
+`result.recovered_from_backup` and `result.migrated` when relevant. The
+Save Profile's password/key credentials must be configured at runtime before
+loading encrypted saves; they are never stored in the profile.
 
-## Restore order and late binding
-
-When one participant depends on another, register/restore the dependency first
-when order matters. Loaded payload remains pending so participants that register
-after `apply_snapshot()` can still receive their state.
-
-Hands-on: [`tutorials/save_system.md`](tutorials/save_system.md).
+Hands-on: [Save Tutorial](tutorials/save_system.md).

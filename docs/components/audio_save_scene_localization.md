@@ -14,16 +14,20 @@ scene/game policy.
 
 ## Save
 
-`NucleusSave` owns document format, validation, codecs, storage, integrity,
-migrations and slot policy. `NucleusSaveSession` owns scene-level coordination of
-explicit capture/restore participants.
+`NucleusSave` owns the global save profile, platform-aware storage location,
+versioned documents, binary/Variant-text/JSON codecs, integrity, optional
+password/key encryption, manual/quick backups, autosave rotation and migrations.
+`NucleusSaveSession` coordinates scene-owned participants, metadata, lifecycle
+autosaves, restore and incremental main-thread capture.
 
-Participants return save-safe plain data. The global service never scans the
-SceneTree or imports gameplay types.
+The shipped save root resolves to `OS.get_user_data_dir().path_join("saves")`,
+not `res://`; overrides live in `NucleusSaveProfile`. Games own stable slot IDs,
+cloud synchronization and save selection UI. Lifecycle autosaves on pause/quit
+remain synchronous even when incremental capture is available.
 
-For large participant sets, `NucleusSaveCaptureJob` and incremental save helpers
-spread capture across rendered frames while keeping callbacks on the main thread.
-Lifecycle saves on pause/quit remain synchronous.
+See the [Save System contract](save_system.md) for precise filenames,
+defaults, limits, failure behavior and runtime configuration, and the
+[Save Quickstart](../guides/save_quickstart.md) for working examples.
 
 ## Scene Flow
 

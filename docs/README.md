@@ -40,6 +40,14 @@ rules.
 The registry [`use_case_registry.json`](use_case_registry.json) exposes the same
 discovery routes for machine-assisted tools. It does not execute code.
 
+## Project-wide UI Theme
+
+> [!TIP]
+> Nucleus starts with a native, neutral [Theme baseline](components/ui_theme_baseline.md)
+> selected in `project.godot`. Use the [Theme Quickstart](guides/ui_theme_quickstart.md)
+> to preview focus, text contrast, states and the optional high-contrast variant.
+> The game's own look and accessibility layout decisions remain configurable.
+
 ## Core and player-facing systems
 
 | Goal | Read |

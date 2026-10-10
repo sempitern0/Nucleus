@@ -39,6 +39,10 @@ folder_colors={
 "res://modules/": "purple"
 }
 
+[gui]
+
+theme/custom="res://components/ui/theme/nucleus_base_theme.tres"
+
 [input]
 
 ui_accept={

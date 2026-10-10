@@ -94,6 +94,16 @@ Nucleus does **not** automatically generate full mechanics. A human or agent
 writes the game's rules and connects the existing mechanisms. The goal is faster,
 safer composition with less duplicate code, not a new engine or global framework.
 
+## Accessible native UI by default
+
+> [!TIP]
+> Every new Nucleus project loads a neutral, editable Godot `Theme` automatically.
+> Buttons, fields, panels and selection/focus states have a readable baseline
+> without installing third-party fonts or adding an Autoload.
+> See the **[UI Theme Quickstart](docs/guides/ui_theme_quickstart.md)** and
+> run `res://examples/ui/theme_lab.tscn` to inspect it. The project can replace
+> the resource or override a specific UI subtree at any time.
+
 ## Core runtime
 
 Nucleus keeps the global surface deliberately small:

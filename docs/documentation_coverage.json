@@ -114,6 +114,9 @@
     "components/ui/text": [
       "docs/components/ui_and_accessibility.md"
     ],
+    "components/ui/theme": [
+      "docs/components/ui_theme_baseline.md"
+    ],
     "components/ui/toast": [
       "docs/components/ui_and_accessibility.md"
     ],

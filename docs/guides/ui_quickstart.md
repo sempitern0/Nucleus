@@ -31,6 +31,27 @@ NucleusUITypewriter
 
 For authored multi-track sequences, keep using `AnimationPlayer`.
 
+## World-space HUD anchors (3D)
+
+`NucleusUIWorldAnchor3D` keeps a game-owned `Control` aligned with a `Node3D`
+through a specified `Camera3D`. It rejects points behind the camera, outside
+the viewport and beyond an optional distance cutoff.
+
+To present many labels, `NucleusUIWorldAnchorLayout` provides ordered priority,
+projection/visibility budgets and deterministic collision avoidance. Its
+`NucleusUIWorldAnchorLayoutSolver` is pure logic that hides unplaceable labels.
+The camera, 3D targets, label content and art remain game-owned.
+
+Use a plain HUD `Control` as the overlay and add each position-controlled label
+as a *direct child*. Disable each anchor's `update_automatically` option when a
+layout coordinates it. Do not tween the position on the same Control.
+
+See [`../components/ui_world_anchors.md`](../components/ui_world_anchors.md)
+for the full composition, APIs, limitations and validation checklist.
+
+Visual test scene: `examples/ui/world_anchor_lab.tscn`. It generates eight moving
+3D entities with nameplates and lets you inspect collision handling in-game.
+
 ## Input prompts and glyphs
 
 `NucleusInputGlyphBinding` follows the active keyboard/gamepad/touch source and

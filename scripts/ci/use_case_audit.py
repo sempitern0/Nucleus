@@ -6,7 +6,10 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections import Counter
 from pathlib import Path
+
+from console_report import ConsoleReport, add_console_arguments
 
 REGISTRY = Path("docs/use_case_registry.json")
 REQUIRED_DOMAINS = frozenset({
@@ -95,15 +98,32 @@ def audit(root: Path) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path.cwd())
+    add_console_arguments(parser)
     args = parser.parse_args()
-    errors = audit(args.root.resolve())
-    if errors:
-        print("Nucleus use-case audit: FAIL")
-        for error in errors:
-            print(f"  - {error}")
-        return 1
-    print("Nucleus use-case audit: PASS")
-    return 0
+    root = args.root.resolve()
+    report = ConsoleReport("Use-case routing and links", args)
+    errors = audit(root)
+
+    cases: list = []
+    registry_file = root / REGISTRY
+    if registry_file.is_file():
+        try:
+            data = json.loads(registry_file.read_text(encoding="utf-8"))
+            if isinstance(data, dict) and isinstance(data.get("cases"), list):
+                cases = data["cases"]
+        except (OSError, UnicodeError, ValueError):
+            pass
+    domains = Counter(
+        case.get("domain") for case in cases
+        if isinstance(case, dict) and isinstance(case.get("domain"), str)
+    )
+    report.metric("Registry", f"{len(cases)} use cases across {len(domains)} domains")
+    report.fraction("Required domains", len(REQUIRED_DOMAINS & domains.keys()), len(REQUIRED_DOMAINS))
+    for domain in sorted(REQUIRED_DOMAINS):
+        report.metric(f"  {domain}", f"{domains.get(domain, 0)} routes")
+    report.metric("Discovery guides", f"{len(REQUIRED_GUIDES)} files + local Markdown links")
+    report.hint("Run build_use_case_catalog.py --check to catch generated-catalog drift.")
+    return report.finish(errors)
 
 
 if __name__ == "__main__":

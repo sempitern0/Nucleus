@@ -5,7 +5,10 @@ from __future__ import annotations
 
 import argparse
 import re
+from collections import Counter
 from pathlib import Path
+
+from console_report import ConsoleReport, add_console_arguments
 
 TEXT_SUFFIXES = {
 	".cfg",
@@ -265,25 +268,38 @@ def main() -> int:
 		default=Path.cwd(),
 		help="Repository root; defaults to the current working directory.",
 	)
+	add_console_arguments(parser)
 	args = parser.parse_args()
 	repository_root = args.root.resolve()
+	report = ConsoleReport("Static repository checks", args)
 
+	files = list(iter_text_files(repository_root))
 	errors: list[str] = []
-
-	for path in iter_text_files(repository_root):
+	for path in files:
 		errors.extend(check_file(path, repository_root))
 
 	errors.extend(check_uid_contract(repository_root))
 	errors.extend(check_test_contract(repository_root))
 
-	if errors:
-		print("Nucleus static checks: FAIL")
-		for error in errors:
-			print(f"  - {error}")
-		return 1
-
-	print("Nucleus static checks: PASS")
-	return 0
+	gd_count = sum(path.suffix == ".gd" for path in files)
+	owned_count = sum(
+		path.suffix == ".gd"
+		and path.relative_to(repository_root).parts[0] in NUCLEUS_SOURCE_DIRS
+		for path in files
+	)
+	uid_count = sum(path.suffix == ".uid" for path in files)
+	test_count = len(list((repository_root / TEST_ROOT).glob("*_test.gd")))
+	kinds = Counter(path.suffix for path in files)
+	report.metric("Files inspected", f"{len(files)} text files / {gd_count} GDScript")
+	report.metric("Top file types", ", ".join(
+		f"{suffix}: {count}" for suffix, count in kinds.most_common(4)
+	))
+	report.metric("Public class scope", f"{owned_count} Nucleus-owned scripts; game scripts exempt")
+	report.metric("API ownership", f"{len(NUCLEUS_OWNED_API_RULES)} protected engine operations")
+	report.metric("Godot UIDs", f"{uid_count} UID files checked for format and uniqueness")
+	report.metric("Headless suites", f"{test_count} discovered; manifest + helpers validated")
+	report.hint("Run documentation_audit.py and use_case_audit.py for contract coverage.")
+	return report.finish(errors)
 
 
 if __name__ == "__main__":

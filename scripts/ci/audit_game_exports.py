@@ -15,6 +15,7 @@ from pathlib import Path
 import re
 import sys
 
+from console_report import ConsoleReport, add_console_arguments
 
 SENSITIVE_OPTION_PATTERNS = (
     "script_encryption_key",
@@ -75,8 +76,7 @@ def audit_file(path: Path, profile: str, preset_name: str | None = None) -> list
         if not parser.has_section(opt_name):
             findings.append(finding("warning", "NO_PLATFORM_OPTIONS", "No platform options section found.", name))
 
-        # Older Godot versions may have left credential strings in the preset.
-        # Never disclose the value, even in JSON/error output.
+        # Never disclose a sensitive value in findings, JSON, or CLI output.
         for section in (base, opts):
             for key in section:
                 if key.lower() in SENSITIVE_OPTION_PATTERNS and value(section, key):
@@ -119,16 +119,30 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--profile", choices=("standard", "hardened"), default="standard")
     ap.add_argument("--strict", action="store_true", help="Exit non-zero on warnings and errors")
     ap.add_argument("--json", action="store_true", help="Output machine-readable findings without credentials")
+    add_console_arguments(ap)
     args = ap.parse_args(argv)
 
     findings = audit_file(args.project / "export_presets.cfg", args.profile, args.preset)
     counts = {level: sum(f["severity"] == level for f in findings) for level in ("error", "warning", "info")}
     if args.json:
+        # Preserve the exact machine-readable contract (no ANSI/no headers).
         print(json.dumps({"profile": args.profile, "counts": counts, "findings": findings}, ensure_ascii=False, indent=2))
     else:
-        print(f"Game export audit: profile={args.profile}, errors={counts['error']}, warnings={counts['warning']}, info={counts['info']}")
-        for f in findings:
-            print(f"[{f['severity'].upper()}] [{f['code']}] {f['preset'] or 'project'}: {f['message']}")
+        report = ConsoleReport("Game export security preflight", args)
+        report.metric("Profile", args.profile + (" (strict)" if args.strict else ""))
+        report.metric("Preset selection", args.preset or "All available presets")
+        report.metric("Findings", f"{counts['error']} errors / {counts['warning']} warnings / {counts['info']} info")
+        report.metric("Security scope", "Export configuration only; no keys, binaries, or runtime verified")
+        blocking = [
+            f"[{f['severity'].upper()}] [{f['code']}] {f['preset'] or 'project'}: {f['message']}"
+            for f in findings if f["severity"] == "error" or (args.strict and f["severity"] == "warning")
+        ]
+        report.finish(blocking, warnings=0 if args.strict else counts["warning"])
+        nonblocking = [f for f in findings if f["severity"] == "info" or (f["severity"] == "warning" and not args.strict)]
+        if nonblocking and not args.quiet:
+            print("\n  Additional findings:")
+            for f in nonblocking:
+                print(f"  [{f['severity'].upper()}] [{f['code']}] {f['preset'] or 'project'}: {f['message']}")
     return 1 if counts["error"] or (args.strict and counts["warning"]) else 0
 
 

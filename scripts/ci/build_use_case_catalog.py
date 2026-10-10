@@ -8,6 +8,8 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from console_report import ConsoleReport, add_console_arguments
+
 
 def render(registry: dict) -> str:
     grouped: dict[str, list[dict]] = defaultdict(list)
@@ -71,20 +73,32 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--check", action="store_true")
+    add_console_arguments(parser)
     args = parser.parse_args()
     root = args.root.resolve()
-    registry = json.loads((root / "docs/use_case_registry.json").read_text(encoding="utf-8"))
+    report = ConsoleReport("Use-case catalog", args)
+    registry_path = root / "docs/use_case_registry.json"
+    try:
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        expected = render(registry)
+    except (OSError, UnicodeError, ValueError, KeyError, TypeError) as exc:
+        return report.finish([f"cannot build catalog: {exc}"])
+
     output = root / "docs/guides/use_case_catalog.md"
-    expected = render(registry)
+    report.metric("Registry", str(registry_path.relative_to(root)))
+    report.metric("Routes", f"{len(registry['cases'])} catalog entries")
+    report.metric("Output", str(output.relative_to(root)))
+    report.metric("Mode", "Read-only comparison" if args.check else "Generate file")
     if args.check:
         if not output.is_file() or output.read_text(encoding="utf-8") != expected:
-            print("Use-case catalog: OUT OF DATE; run build_use_case_catalog.py")
-            return 1
-        print("Use-case catalog: current")
-        return 0
+            return report.finish([
+                "Use-case catalog: OUT OF DATE; run build_use_case_catalog.py"
+            ])
+        report.hint("Catalog matches the current routing registry.")
+        return report.finish([])
     output.write_text(expected, encoding="utf-8")
-    print(f"Generated {output} from {len(registry['cases'])} use cases")
-    return 0
+    report.metric("Written", f"{len(expected.encode('utf-8'))} bytes")
+    return report.finish([])
 
 
 if __name__ == "__main__":
